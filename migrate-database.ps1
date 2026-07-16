@@ -1,0 +1,1 @@
+dotnet run --project Leitor.Erp --migrate-database
