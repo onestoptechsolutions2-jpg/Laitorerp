@@ -13,14 +13,40 @@ namespace Leitor.Erp.Services.Customers;
 public class CustomerAppService :
     CrudAppService<Customer, CustomerDto, Guid, GetCustomerListInput, CreateUpdateCustomerDto>
 {
-    public CustomerAppService(IRepository<Customer, Guid> repository)
+    private readonly IRepository<CustomerContact, Guid> _contactRepository;
+    private readonly IRepository<CustomerContract, Guid> _contractRepository;
+
+    public CustomerAppService(
+        IRepository<Customer, Guid> repository,
+        IRepository<CustomerContact, Guid> contactRepository,
+        IRepository<CustomerContract, Guid> contractRepository)
         : base(repository)
     {
+        _contactRepository = contactRepository;
+        _contractRepository = contractRepository;
+
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
         CreatePolicyName = ErpPermissions.Customers.Create;
         UpdatePolicyName = ErpPermissions.Customers.Edit;
         DeletePolicyName = ErpPermissions.Customers.Delete;
+    }
+
+    // Contacts and contracts are independent aggregate roots (see CustomerContact.cs /
+    // CustomerContract.cs comments), so deleting a customer doesn't cascade automatically -
+    // there's no FK relationship configured in ErpDbContext, just an index on CustomerId.
+    // Cascade the soft-delete explicitly here so nothing is left orphaned/unreachable.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        var contacts = await _contactRepository.GetListAsync(x => x.CustomerId == id);
+        await _contactRepository.DeleteManyAsync(contacts);
+
+        var contracts = await _contractRepository.GetListAsync(x => x.CustomerId == id);
+        await _contractRepository.DeleteManyAsync(contracts);
+
+        await Repository.DeleteAsync(id);
     }
 
     protected override async Task<IQueryable<Customer>> CreateFilteredQueryAsync(GetCustomerListInput input)
