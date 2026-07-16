@@ -14,9 +14,11 @@ public partial class CustomerToCustomerDtoMapper : MapperBase<Customer, Customer
 {
     [MapperIgnoreSource(nameof(Customer.ExtraProperties))]
     [MapperIgnoreSource(nameof(Customer.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(CustomerDto.AccountOwnerUserName))]
     public override partial CustomerDto Map(Customer source);
 
     [MapperIgnoreSource(nameof(Customer.ExtraProperties))]
     [MapperIgnoreSource(nameof(Customer.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(CustomerDto.AccountOwnerUserName))]
     public override partial void Map(Customer source, CustomerDto destination);
 }

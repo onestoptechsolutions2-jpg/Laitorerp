@@ -27,6 +27,9 @@
             <dt class="col-sm-2">@L["Country"]</dt>
             <dd class="col-sm-4">@Model.Customer.Country</dd>
 
+            <dt class="col-sm-2">@L["AccountOwner"]</dt>
+            <dd class="col-sm-10">@(Model.Customer.AccountOwnerUserName ?? L["None"].Value)</dd>
+
             <dt class="col-sm-2">@L["AddressLine"]</dt>
             <dd class="col-sm-10">
                 @Model.Customer.AddressLine, @Model.Customer.City @Model.Customer.State @Model.Customer.PostalCode
@@ -82,7 +85,7 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Contracts"]</h5>
         <a asp-page="/Customers/Contracts/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["NewContract"]</a>
@@ -124,5 +127,125 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Tasks"]</h5>
+        <a asp-page="/Customers/Tasks/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["NewTask"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Title"]</th>
+                        <th>@L["DueDate"]</th>
+                        <th>@L["AssignedTo"]</th>
+                        <th>@L["IsCompleted"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model.TaskItems)
+                    {
+                        <tr class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                            <td>@task.Title</td>
+                            <td>@(task.DueDate?.ToShortDateString())</td>
+                            <td>@task.AssignedToUserName</td>
+                            <td>@(task.IsCompleted ? "✓" : "")</td>
+                            <td>
+                                <form method="post" asp-page-handler="ToggleTask" asp-route-taskId="@task.Id" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@(task.IsCompleted ? L["Reopen"] : L["MarkComplete"])</button>
+                                </form>
+                                <a asp-page="/Customers/Tasks/Edit" asp-route-id="@task.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <form method="post" asp-page-handler="DeleteTask" asp-route-taskId="@task.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Documents"]</h5>
+        <a asp-page="/Customers/Attachments/Upload" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["UploadDocument"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["FileName"]</th>
+                        <th>@L["FileSize"]</th>
+                        <th>@L["UploadedBy"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var attachment in Model.Attachments)
+                    {
+                        <tr>
+                            <td>@attachment.FileName</td>
+                            <td>@((attachment.FileSizeBytes / 1024.0).ToString("N0")) KB</td>
+                            <td>@attachment.UploadedByUserName</td>
+                            <td>
+                                <a asp-page="/Customers/Attachments/Download" asp-route-id="@attachment.Id" class="btn btn-sm btn-outline-primary">@L["Download"]</a>
+                                <form method="post" asp-page-handler="DeleteAttachment" asp-route-attachmentId="@attachment.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Activity"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="AddNote" class="row g-2 mb-3">
+            <div class="col-auto">
+                <select asp-for="NewNote.Type" class="form-select">
+                    <option value="0">@L["Enum:CustomerNoteType:0"]</option>
+                    <option value="1">@L["Enum:CustomerNoteType:1"]</option>
+                    <option value="2">@L["Enum:CustomerNoteType:2"]</option>
+                    <option value="3">@L["Enum:CustomerNoteType:3"]</option>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" asp-for="NewNote.Text" class="form-control" placeholder="@L["NoteText"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">@L["AddNote"]</button>
+            </div>
+        </form>
+
+        @foreach (var note in Model.Notes)
+        {
+            <div class="border-bottom pb-2 mb-2">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="badge bg-secondary">@L[$"Enum:CustomerNoteType:{(int)note.Type}"]</span>
+                        <strong class="ms-2">@note.CreatorUserName</strong>
+                        <span class="text-muted ms-2">@note.CreationTime.ToString("g")</span>
+                    </div>
+                    <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                    </form>
+                </div>
+                <div>@note.Text</div>
+            </div>
+        }
     </div>
 </div>

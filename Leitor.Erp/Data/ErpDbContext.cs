@@ -17,6 +17,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
     public DbSet<CustomerContract> CustomerContracts { get; set; } = null!;
+    public DbSet<CustomerNote> CustomerNotes { get; set; } = null!;
+    public DbSet<CustomerTask> CustomerTasks { get; set; } = null!;
+    public DbSet<CustomerAttachment> CustomerAttachments { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -74,6 +77,32 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Title).IsRequired().HasMaxLength(256);
             b.Property(x => x.Value).HasColumnType("decimal(18,2)");
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<CustomerNote>(b =>
+        {
+            b.ToTable("CustomerNotes");
+            b.ConfigureByConvention();
+            b.Property(x => x.Text).IsRequired().HasMaxLength(4000);
+            b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<CustomerTask>(b =>
+        {
+            b.ToTable("CustomerTasks");
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<CustomerAttachment>(b =>
+        {
+            b.ToTable("CustomerAttachments");
+            b.ConfigureByConvention();
+            b.Property(x => x.FileName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.ContentType).IsRequired().HasMaxLength(128);
             b.HasIndex(x => x.CustomerId);
         });
     }

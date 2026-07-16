@@ -12,61 +12,50 @@ using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 
-namespace Leitor.Erp.Pages.Customers;
+namespace Leitor.Erp.Pages.Customers.Tasks;
 
+// Property is "TaskInput", not "Task" - this class needs System.Threading.Tasks.Task as a
+// return type, and a same-named property would shadow it within the class.
 [Authorize(Policy = ErpPermissions.Customers.Edit)]
-public class EditModel : AbpPageModel
+public class CreateModel : AbpPageModel
 {
-    private readonly CustomerAppService _customerAppService;
+    private readonly CustomerTaskAppService _customerTaskAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
 
-    public EditModel(
-        CustomerAppService customerAppService,
+    public CreateModel(
+        CustomerTaskAppService customerTaskAppService,
         IRepository<IdentityUser, Guid> identityUserRepository)
     {
-        _customerAppService = customerAppService;
+        _customerTaskAppService = customerTaskAppService;
         _identityUserRepository = identityUserRepository;
     }
 
     [BindProperty(SupportsGet = true)]
-    public Guid Id { get; set; }
+    public Guid CustomerId { get; set; }
 
     [BindProperty]
-    public CreateUpdateCustomerDto Customer { get; set; } = new();
+    public CreateUpdateCustomerTaskDto TaskInput { get; set; } = new();
 
     public List<SelectListItem> UserOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
-        var customer = await _customerAppService.GetAsync(Id);
-        Customer = new CreateUpdateCustomerDto
-        {
-            Name = customer.Name,
-            Email = customer.Email,
-            PhoneNumber = customer.PhoneNumber,
-            AddressLine = customer.AddressLine,
-            City = customer.City,
-            State = customer.State,
-            PostalCode = customer.PostalCode,
-            Country = customer.Country,
-            Status = customer.Status,
-            Notes = customer.Notes,
-            AccountOwnerUserId = customer.AccountOwnerUserId
-        };
-
+        TaskInput.CustomerId = CustomerId;
         await LoadUserOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
+        TaskInput.CustomerId = CustomerId;
+
         if (!ModelState.IsValid)
         {
             await LoadUserOptionsAsync();
             return Page();
         }
 
-        await _customerAppService.UpdateAsync(Id, Customer);
-        return RedirectToPage("./Detail", new { id = Id });
+        await _customerTaskAppService.CreateAsync(TaskInput);
+        return RedirectToPage("/Customers/Detail", new { id = CustomerId });
     }
 
     private async Task LoadUserOptionsAsync()

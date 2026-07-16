@@ -16,15 +16,24 @@ public class DetailModel : AbpPageModel
     private readonly CustomerAppService _customerAppService;
     private readonly CustomerContactAppService _customerContactAppService;
     private readonly CustomerContractAppService _customerContractAppService;
+    private readonly CustomerNoteAppService _customerNoteAppService;
+    private readonly CustomerTaskAppService _customerTaskAppService;
+    private readonly CustomerAttachmentAppService _customerAttachmentAppService;
 
     public DetailModel(
         CustomerAppService customerAppService,
         CustomerContactAppService customerContactAppService,
-        CustomerContractAppService customerContractAppService)
+        CustomerContractAppService customerContractAppService,
+        CustomerNoteAppService customerNoteAppService,
+        CustomerTaskAppService customerTaskAppService,
+        CustomerAttachmentAppService customerAttachmentAppService)
     {
         _customerAppService = customerAppService;
         _customerContactAppService = customerContactAppService;
         _customerContractAppService = customerContractAppService;
+        _customerNoteAppService = customerNoteAppService;
+        _customerTaskAppService = customerTaskAppService;
+        _customerAttachmentAppService = customerAttachmentAppService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -33,6 +42,12 @@ public class DetailModel : AbpPageModel
     public CustomerDto Customer { get; set; } = null!;
     public IReadOnlyList<CustomerContactDto> Contacts { get; set; } = Array.Empty<CustomerContactDto>();
     public IReadOnlyList<CustomerContractDto> Contracts { get; set; } = Array.Empty<CustomerContractDto>();
+    public IReadOnlyList<CustomerNoteDto> Notes { get; set; } = Array.Empty<CustomerNoteDto>();
+    public IReadOnlyList<CustomerTaskDto> TaskItems { get; set; } = Array.Empty<CustomerTaskDto>();
+    public IReadOnlyList<CustomerAttachmentDto> Attachments { get; set; } = Array.Empty<CustomerAttachmentDto>();
+
+    [BindProperty]
+    public CreateCustomerNoteDto NewNote { get; set; } = new();
 
     public bool CanEdit { get; set; }
 
@@ -40,6 +55,11 @@ public class DetailModel : AbpPageModel
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
 
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
         Customer = await _customerAppService.GetAsync(Id);
 
         var contacts = await _customerContactAppService.GetListAsync(new GetCustomerContactListInput
@@ -55,6 +75,22 @@ public class DetailModel : AbpPageModel
             MaxResultCount = 1000
         });
         Contracts = contracts.Items;
+
+        var notes = await _customerNoteAppService.GetListAsync(new GetCustomerNoteListInput
+        {
+            CustomerId = Id,
+            MaxResultCount = 1000
+        });
+        Notes = notes.Items;
+
+        var tasks = await _customerTaskAppService.GetListAsync(new GetCustomerTaskListInput
+        {
+            CustomerId = Id,
+            MaxResultCount = 1000
+        });
+        TaskItems = tasks.Items;
+
+        Attachments = await _customerAttachmentAppService.GetListAsync(Id);
     }
 
     public async Task<IActionResult> OnPostDeleteContactAsync(Guid contactId)
@@ -66,6 +102,51 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostDeleteContractAsync(Guid contractId)
     {
         await _customerContractAppService.DeleteAsync(contractId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostAddNoteAsync()
+    {
+        NewNote.CustomerId = Id;
+        if (!string.IsNullOrWhiteSpace(NewNote.Text))
+        {
+            await _customerNoteAppService.CreateAsync(NewNote);
+        }
+
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostDeleteNoteAsync(Guid noteId)
+    {
+        await _customerNoteAppService.DeleteAsync(noteId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostToggleTaskAsync(Guid taskId)
+    {
+        var task = await _customerTaskAppService.GetAsync(taskId);
+        await _customerTaskAppService.UpdateAsync(taskId, new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = task.CustomerId,
+            Title = task.Title,
+            Description = task.Description,
+            DueDate = task.DueDate,
+            AssignedToUserId = task.AssignedToUserId,
+            IsCompleted = !task.IsCompleted
+        });
+
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostDeleteTaskAsync(Guid taskId)
+    {
+        await _customerTaskAppService.DeleteAsync(taskId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostDeleteAttachmentAsync(Guid attachmentId)
+    {
+        await _customerAttachmentAppService.DeleteAsync(attachmentId);
         return RedirectToPage(new { id = Id });
     }
 }

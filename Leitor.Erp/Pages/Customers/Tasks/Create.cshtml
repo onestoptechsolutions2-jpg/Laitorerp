@@ -1,0 +1,26 @@
+@page "{customerId}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Customers.Tasks.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewTask"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="TaskInput.CustomerId" value="@Model.CustomerId" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="TaskInput.Title" />
+            <abp-input asp-for="TaskInput.Description" />
+            <abp-input asp-for="TaskInput.DueDate" />
+            <abp-select asp-for="TaskInput.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="/Customers/Detail" asp-route-id="@Model.CustomerId" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

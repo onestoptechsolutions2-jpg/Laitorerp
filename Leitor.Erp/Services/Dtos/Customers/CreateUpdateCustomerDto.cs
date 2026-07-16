@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using Leitor.Erp.Entities.Customers;
 
@@ -35,4 +36,6 @@ public class CreateUpdateCustomerDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public Guid? AccountOwnerUserId { get; set; }
 }

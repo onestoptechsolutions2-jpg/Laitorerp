@@ -29,6 +29,7 @@
                         <th>@L["Email"]</th>
                         <th>@L["PhoneNumber"]</th>
                         <th>@L["Status"]</th>
+                        <th>@L["AccountOwner"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
                 </thead>
@@ -40,6 +41,7 @@
                             <td>@customer.Email</td>
                             <td>@customer.PhoneNumber</td>
                             <td>@L[$"Enum:CustomerStatus:{(int)customer.Status}"]</td>
+                            <td>@customer.AccountOwnerUserName</td>
                             <td>
                                 @if (Model.CanEdit)
                                 {

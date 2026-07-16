@@ -15,6 +15,7 @@ public class Customer : FullAuditedAggregateRoot<Guid>
     public string? Country { get; set; }
     public CustomerStatus Status { get; set; } = CustomerStatus.Lead;
     public string? Notes { get; set; }
+    public Guid? AccountOwnerUserId { get; set; }
 
     protected Customer()
     {

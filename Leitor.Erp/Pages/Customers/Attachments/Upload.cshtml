@@ -1,0 +1,25 @@
+@page "{customerId}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Customers.Attachments.UploadModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["UploadDocument"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="mb-3">
+                <label class="form-label">@L["File"]</label>
+                <input type="file" name="UploadedFile" class="form-control" />
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Upload"]</button>
+                <a asp-page="/Customers/Detail" asp-route-id="@Model.CustomerId" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>
