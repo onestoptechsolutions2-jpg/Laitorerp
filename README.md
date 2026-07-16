@@ -47,26 +47,21 @@ abp install-libs
 
 ### How to Run
 
-#### Option A: Docker (recommended for this project)
+Everything the app needs (client-side libraries, EF Core migrations) is baked into the Docker image at build time and applied automatically on container start (`entrypoint.sh` runs `--migrate-database` before launching the app every time — safe to repeat, it's a no-op once migrations are applied). No manual post-deploy step is required.
+
+#### Option A: Docker Compose, local machine
 
 Prerequisite: [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 ```bash
-# 1. Start Postgres
-docker compose up -d postgres
-
-# 2. Build the app image and run the initial migration + seed
-docker compose run --rm app dotnet Leitor.Erp.dll --migrate-database
-
-# 3. Start the app
-docker compose up -d app
+docker compose up --build
 ```
 
-The app will be reachable at http://localhost:8080. Default seeded admin login: `admin` / `1q2w3E*` — **change this before any real deployment.**
+`docker-compose.override.yml` (auto-loaded locally, not used by Coolify) publishes the app on http://localhost:8080 and Postgres on `localhost:5432`. Default seeded admin login: `admin` / `1q2w3E*` — **change this before any real deployment.**
 
-#### Option B: Run locally against Dockerized Postgres
+#### Option B: Run locally against Dockerized Postgres, outside a container
 
-With `docker compose up -d postgres` running (exposed on `localhost:5432`, matching the connection string already in `appsettings.json`):
+With Postgres running via `docker compose up -d postgres`:
 
 ```bash
 cd Leitor.Erp
@@ -74,7 +69,14 @@ dotnet run --migrate-database   # first time only: creates and seeds the databas
 dotnet run                      # subsequent runs
 ```
 
-This command will create and seed the initial database. Then you can run the application with any IDE that supports .NET.
+#### Option C: Deploy to Coolify
+
+1. In Coolify, add this repository as a **Docker Compose** resource pointing at `docker-compose.yml` (Coolify does not read `docker-compose.override.yml`, so host ports stay unpublished — that's expected).
+2. Coolify auto-detects the `SERVICE_PASSWORD_POSTGRES` and `SERVICE_URL_APP` / `SERVICE_FQDN_APP` tokens referenced in `docker-compose.yml` and generates values for them — no manual secrets setup needed.
+3. Assign a domain to the `app` service in the Coolify UI (Coolify's proxy routes to it directly; that's why `app` doesn't publish a host port).
+4. Deploy. Postgres starts, the app image builds (Node/Yarn + `abp install-libs` + `dotnet publish`), and the container migrates the database and starts automatically.
+
+**Before going live, replace the committed `openiddict.pfx`** — see "Generating a Signing Certificate" above. The checked-in certificate is ABP's default dev cert with a published password; anyone with this repo can use it to forge tokens, so production must use its own private certificate(s) supplied via Coolify environment/secret injection rather than the file in git.
 
 ### Deploying the application
 

@@ -1,0 +1,12 @@
+# Auto-loaded by `docker compose up` for local development only.
+# Coolify deploys docker-compose.yml directly and does not read this file,
+# so host ports stay unpublished in production (Coolify's proxy handles routing
+# via the domain assigned to the `app` service and SERVICE_FQDN_APP).
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  app:
+    ports:
+      - "8080:8080"
