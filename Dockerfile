@@ -13,8 +13,11 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
-    && npm install -g yarn \
-    && rm -rf /var/lib/apt/lists/*
+    && corepack disable \
+    && npm install -g yarn@1.22.22 \
+    && yarn config set registry https://registry.npmjs.org \
+    && rm -rf /var/lib/apt/lists/* \
+    && node --version && yarn --version
 
 RUN dotnet tool install --global Volo.Abp.Cli --version 10.5.0
 ENV PATH="$PATH:/root/.dotnet/tools"
