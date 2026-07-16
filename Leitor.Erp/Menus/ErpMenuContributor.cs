@@ -46,6 +46,41 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Catalog.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.Catalog,
+                    l["Menu:Catalog"],
+                    "~/Catalog",
+                    icon: "fas fa-boxes-stacked",
+                    order: 2
+                )
+            );
+        }
+
+        if (await context.IsGrantedAsync(ErpPermissions.Sales.Default))
+        {
+            var salesMenu = new ApplicationMenuItem(
+                ErpMenus.Sales,
+                l["Menu:Sales"],
+                icon: "fas fa-file-invoice-dollar",
+                order: 3
+            );
+
+            salesMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SalesQuotes, l["Menu:Quotes"], "~/Sales/Quotes", order: 1)
+            );
+            salesMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SalesOrders, l["Menu:Orders"], "~/Sales/Orders", order: 2)
+            );
+            salesMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SalesInvoices, l["Menu:Invoices"], "~/Sales/Invoices", order: 3)
+            );
+
+            context.Menu.Items.Add(salesMenu);
+        }
+
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

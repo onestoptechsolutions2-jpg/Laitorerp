@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.Modeling;
@@ -20,6 +21,15 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<CustomerNote> CustomerNotes { get; set; } = null!;
     public DbSet<CustomerTask> CustomerTasks { get; set; } = null!;
     public DbSet<CustomerAttachment> CustomerAttachments { get; set; } = null!;
+
+    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<Quote> Quotes { get; set; } = null!;
+    public DbSet<QuoteLine> QuoteLines { get; set; } = null!;
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<OrderLine> OrderLines { get; set; } = null!;
+    public DbSet<Invoice> Invoices { get; set; } = null!;
+    public DbSet<InvoiceLine> InvoiceLines { get; set; } = null!;
+    public DbSet<Payment> Payments { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -104,6 +114,90 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.FileName).IsRequired().HasMaxLength(256);
             b.Property(x => x.ContentType).IsRequired().HasMaxLength(128);
             b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<Product>(b =>
+        {
+            b.ToTable("Products");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Sku).HasMaxLength(64);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<Quote>(b =>
+        {
+            b.ToTable("Quotes");
+            b.ConfigureByConvention();
+            b.Property(x => x.QuoteNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.QuoteNumber).IsUnique();
+        });
+
+        builder.Entity<QuoteLine>(b =>
+        {
+            b.ToTable("QuoteLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.HasIndex(x => x.QuoteId);
+        });
+
+        builder.Entity<Order>(b =>
+        {
+            b.ToTable("Orders");
+            b.ConfigureByConvention();
+            b.Property(x => x.OrderNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.OrderNumber).IsUnique();
+        });
+
+        builder.Entity<OrderLine>(b =>
+        {
+            b.ToTable("OrderLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.HasIndex(x => x.OrderId);
+        });
+
+        builder.Entity<Invoice>(b =>
+        {
+            b.ToTable("Invoices");
+            b.ConfigureByConvention();
+            b.Property(x => x.InvoiceNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.InvoiceNumber).IsUnique();
+        });
+
+        builder.Entity<InvoiceLine>(b =>
+        {
+            b.ToTable("InvoiceLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.HasIndex(x => x.InvoiceId);
+        });
+
+        builder.Entity<Payment>(b =>
+        {
+            b.ToTable("Payments");
+            b.ConfigureByConvention();
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Reference).HasMaxLength(128);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.InvoiceId);
         });
     }
 }

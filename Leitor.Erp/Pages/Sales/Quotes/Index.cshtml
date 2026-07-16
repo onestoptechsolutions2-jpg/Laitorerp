@@ -1,0 +1,59 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Sales.Quotes.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Quotes"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewQuote"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["QuoteNumber"] / @L["Title"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["QuoteNumber"]</th>
+                        <th>@L["Title"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Total"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var quote in Model.Quotes)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@quote.Id">@quote.QuoteNumber</a></td>
+                            <td>@quote.Title</td>
+                            <td>@quote.CustomerName</td>
+                            <td>@L[$"Enum:QuoteStatus:{(int)quote.Status}"]</td>
+                            <td>@quote.Total.ToString("N2")</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@quote.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

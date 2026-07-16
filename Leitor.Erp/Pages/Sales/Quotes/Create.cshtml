@@ -1,0 +1,27 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Sales.Quotes.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewQuote"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="Quote.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-input asp-for="Quote.Title" />
+            <abp-input asp-for="Quote.Status" />
+            <abp-input asp-for="Quote.IssueDate" />
+            <abp-input asp-for="Quote.ExpiryDate" />
+            <abp-input asp-for="Quote.Notes" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

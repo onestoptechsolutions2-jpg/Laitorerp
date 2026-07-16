@@ -1,0 +1,61 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Sales.Invoices.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Invoices"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewInvoice"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["InvoiceNumber"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["InvoiceNumber"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["DueDate"]</th>
+                        <th>@L["Total"]</th>
+                        <th>@L["AmountPaid"]</th>
+                        <th>@L["PaymentStatus"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model.Invoices)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@invoice.Id">@invoice.InvoiceNumber</a></td>
+                            <td>@invoice.CustomerName</td>
+                            <td>@invoice.DueDate.ToShortDateString()</td>
+                            <td>@invoice.Total.ToString("N2")</td>
+                            <td>@invoice.AmountPaid.ToString("N2")</td>
+                            <td>@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@invoice.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
