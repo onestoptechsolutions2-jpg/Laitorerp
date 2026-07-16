@@ -139,7 +139,19 @@ public class ErpModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", "4fe83c05-58a3-44f5-8a5f-d9980464f05b");
+                // The certificate file itself is written by entrypoint.sh from the
+                // OPENIDDICT_CERT_BASE64 secret at container startup - it's never committed to
+                // git. The pass phrase is likewise supplied via configuration/environment
+                // (OpenIddict__CertificatePassPhrase), not hardcoded, since this repo is public.
+                var certificatePassPhrase = configuration["OpenIddict:CertificatePassPhrase"];
+                if (string.IsNullOrEmpty(certificatePassPhrase))
+                {
+                    throw new AbpException(
+                        "OpenIddict:CertificatePassPhrase configuration is required outside the Development environment. " +
+                        "Set the OpenIddict__CertificatePassPhrase environment variable.");
+                }
+
+                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", certificatePassPhrase);
             });
         }
         

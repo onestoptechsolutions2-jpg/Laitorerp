@@ -17,6 +17,10 @@ services:
     environment:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=LeitorErp;User ID=leitor_erp;Password=${SERVICE_PASSWORD_POSTGRES:-changeme};"
       App__SelfUrl: "${SERVICE_URL_APP:-http://localhost:8080}"
+      # Required outside Development: the OpenIddict signing cert isn't in git (public repo).
+      # Set these as secret env vars in Coolify - see README "OpenIddict certificate" section.
+      OPENIDDICT_CERT_BASE64: "${OPENIDDICT_CERT_BASE64:-}"
+      OpenIddict__CertificatePassPhrase: "${OPENIDDICT_CERT_PASSPHRASE:-}"
 
 volumes:
   postgres-data:

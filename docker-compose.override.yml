@@ -10,3 +10,7 @@ services:
   app:
     ports:
       - "8080:8080"
+    environment:
+      # Development mode uses ABP's built-in ephemeral OpenIddict cert - no
+      # OPENIDDICT_CERT_BASE64/passphrase needed for local testing.
+      ASPNETCORE_ENVIRONMENT: Development
