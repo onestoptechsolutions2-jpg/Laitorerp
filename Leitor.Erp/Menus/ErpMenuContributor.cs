@@ -1,4 +1,5 @@
 ﻿using Leitor.Erp.Localization;
+using Leitor.Erp.Permissions;
 using Volo.Abp.Identity.Web.Navigation;
 using Volo.Abp.SettingManagement.Web.Navigation;
 using Volo.Abp.TenantManagement.Web.Navigation;
@@ -16,7 +17,7 @@ public class ErpMenuContributor : IMenuContributor
         }
     }
 
-    private Task ConfigureMainMenuAsync(MenuConfigurationContext context)
+    private async Task ConfigureMainMenuAsync(MenuConfigurationContext context)
     {
         var administration = context.Menu.GetAdministration();
         var l = context.GetLocalizer<ErpResource>();
@@ -32,6 +33,19 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
+        if (await context.IsGrantedAsync(ErpPermissions.Customers.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.Customers,
+                    l["Menu:Customers"],
+                    "~/Customers",
+                    icon: "fas fa-users",
+                    order: 1
+                )
+            );
+        }
+
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);
@@ -40,7 +54,5 @@ public class ErpMenuContributor : IMenuContributor
         {
             administration.TryRemoveMenuItem(TenantManagementMenuNames.GroupName);
         }
-
-        return Task.CompletedTask;
     }
 }
