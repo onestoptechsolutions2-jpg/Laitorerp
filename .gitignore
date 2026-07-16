@@ -259,5 +259,5 @@ Leitor.Erp/Logs/*
 *.db-shm
 *.db-wal
 
-# Use abp install-libs to restore.
-**/wwwroot/libs/*
+# wwwroot/libs is intentionally committed (not regenerated via `abp install-libs`)
+# so the Docker build doesn't need Node/Yarn/npm-registry access at all - see Dockerfile.
