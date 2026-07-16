@@ -1,0 +1,165 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.FieldService
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.FieldService.Jobs.DetailModel
+
+@{
+    var isOpen = Model.Job.Status is FieldServiceJobStatus.Scheduled or FieldServiceJobStatus.InProgress;
+}
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Job.CustomerName - @L[$"Enum:FieldServiceJobType:{(int)Model.Job.Type}"]</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Job.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+                @if (isOpen)
+                {
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="2" class="d-inline">
+                        <button type="submit" class="btn btn-success">@L["MarkComplete"]</button>
+                    </form>
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
+                        <button type="submit" class="btn btn-warning">@L["MarkIncomplete"]</button>
+                    </form>
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                        <button type="submit" class="btn btn-outline-danger">@L["Enum:FieldServiceJobStatus:4"]</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="0" class="d-inline">
+                        <button type="submit" class="btn btn-secondary">@L["Reopen"]</button>
+                    </form>
+                }
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:FieldServiceJobStatus:{(int)Model.Job.Status}"]</dd>
+            <dt class="col-sm-2">@L["AssignedTo"]</dt>
+            <dd class="col-sm-4">@Model.Job.AssignedToUserName</dd>
+
+            <dt class="col-sm-2">@L["ScheduledDate"]</dt>
+            <dd class="col-sm-4">@Model.Job.ScheduledDate.ToShortDateString()</dd>
+            <dt class="col-sm-2">@L["CompletedDate"]</dt>
+            <dd class="col-sm-4">@(Model.Job.CompletedDate?.ToShortDateString())</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Job.SiteAddress))
+            {
+                <dt class="col-sm-2">@L["SiteAddress"]</dt>
+                <dd class="col-sm-10">@Model.Job.SiteAddress</dd>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Job.Description))
+            {
+                <dt class="col-sm-2">@L["Description"]</dt>
+                <dd class="col-sm-10">@Model.Job.Description</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["PartsUsed"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="AddPart" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">@L["Description"]</label>
+                    <input asp-for="NewPart.Description" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Quantity"]</label>
+                    <input asp-for="NewPart.Quantity" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">@L["AddPart"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Description"]</th>
+                        <th>@L["Quantity"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var part in Model.Parts)
+                    {
+                        <tr>
+                            <td>@part.Description</td>
+                            <td>@part.Quantity</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="DeletePart" asp-route-partId="@part.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Activity"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="AddNote" class="row g-2 mb-3">
+                <div class="col-auto">
+                    <select asp-for="NewNote.Type" class="form-select">
+                        <option value="0">@L["Enum:FieldServiceJobNoteType:0"]</option>
+                        <option value="1">@L["Enum:FieldServiceJobNoteType:1"]</option>
+                        <option value="2">@L["Enum:FieldServiceJobNoteType:2"]</option>
+                        <option value="3">@L["Enum:FieldServiceJobNoteType:3"]</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="text" asp-for="NewNote.Text" class="form-control" placeholder="@L["NoteText"]" />
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">@L["AddNote"]</button>
+                </div>
+            </form>
+        }
+
+        @foreach (var note in Model.Notes)
+        {
+            <div class="border-bottom pb-2 mb-2">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="badge bg-secondary">@L[$"Enum:FieldServiceJobNoteType:{(int)note.Type}"]</span>
+                        <strong class="ms-2">@note.CreatorUserName</strong>
+                        <span class="text-muted ms-2">@note.CreationTime.ToString("g")</span>
+                    </div>
+                    @if (Model.CanEdit)
+                    {
+                        <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                        </form>
+                    }
+                </div>
+                <div>@note.Text</div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Sales;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -30,6 +31,10 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Invoice> Invoices { get; set; } = null!;
     public DbSet<InvoiceLine> InvoiceLines { get; set; } = null!;
     public DbSet<Payment> Payments { get; set; } = null!;
+
+    public DbSet<FieldServiceJob> FieldServiceJobs { get; set; } = null!;
+    public DbSet<FieldServiceJobNote> FieldServiceJobNotes { get; set; } = null!;
+    public DbSet<FieldServiceJobPart> FieldServiceJobParts { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -198,6 +203,33 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Reference).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => x.InvoiceId);
+        });
+
+        builder.Entity<FieldServiceJob>(b =>
+        {
+            b.ToTable("FieldServiceJobs");
+            b.ConfigureByConvention();
+            b.Property(x => x.SiteAddress).HasMaxLength(512);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.AssignedToUserId);
+        });
+
+        builder.Entity<FieldServiceJobNote>(b =>
+        {
+            b.ToTable("FieldServiceJobNotes");
+            b.ConfigureByConvention();
+            b.Property(x => x.Text).IsRequired().HasMaxLength(4000);
+            b.HasIndex(x => x.JobId);
+        });
+
+        builder.Entity<FieldServiceJobPart>(b =>
+        {
+            b.ToTable("FieldServiceJobParts");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.JobId);
         });
     }
 }

@@ -81,6 +81,19 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(salesMenu);
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.FieldService.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.FieldServiceJobs,
+                    l["Menu:FieldService"],
+                    "~/FieldService/Jobs",
+                    icon: "fas fa-truck-fast",
+                    order: 4
+                )
+            );
+        }
+
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

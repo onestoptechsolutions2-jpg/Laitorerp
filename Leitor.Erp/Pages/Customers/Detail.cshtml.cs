@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
+using Leitor.Erp.Services.Dtos.FieldService;
+using Leitor.Erp.Services.FieldService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
@@ -19,6 +21,7 @@ public class DetailModel : AbpPageModel
     private readonly CustomerNoteAppService _customerNoteAppService;
     private readonly CustomerTaskAppService _customerTaskAppService;
     private readonly CustomerAttachmentAppService _customerAttachmentAppService;
+    private readonly FieldServiceJobAppService _fieldServiceJobAppService;
 
     public DetailModel(
         CustomerAppService customerAppService,
@@ -26,7 +29,8 @@ public class DetailModel : AbpPageModel
         CustomerContractAppService customerContractAppService,
         CustomerNoteAppService customerNoteAppService,
         CustomerTaskAppService customerTaskAppService,
-        CustomerAttachmentAppService customerAttachmentAppService)
+        CustomerAttachmentAppService customerAttachmentAppService,
+        FieldServiceJobAppService fieldServiceJobAppService)
     {
         _customerAppService = customerAppService;
         _customerContactAppService = customerContactAppService;
@@ -34,6 +38,7 @@ public class DetailModel : AbpPageModel
         _customerNoteAppService = customerNoteAppService;
         _customerTaskAppService = customerTaskAppService;
         _customerAttachmentAppService = customerAttachmentAppService;
+        _fieldServiceJobAppService = fieldServiceJobAppService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -45,6 +50,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<CustomerNoteDto> Notes { get; set; } = Array.Empty<CustomerNoteDto>();
     public IReadOnlyList<CustomerTaskDto> TaskItems { get; set; } = Array.Empty<CustomerTaskDto>();
     public IReadOnlyList<CustomerAttachmentDto> Attachments { get; set; } = Array.Empty<CustomerAttachmentDto>();
+    public IReadOnlyList<FieldServiceJobDto> FieldServiceJobs { get; set; } = Array.Empty<FieldServiceJobDto>();
 
     [BindProperty]
     public CreateCustomerNoteDto NewNote { get; set; } = new();
@@ -91,6 +97,13 @@ public class DetailModel : AbpPageModel
         TaskItems = tasks.Items;
 
         Attachments = await _customerAttachmentAppService.GetListAsync(Id);
+
+        var fieldServiceJobs = await _fieldServiceJobAppService.GetListAsync(new GetFieldServiceJobListInput
+        {
+            CustomerId = Id,
+            MaxResultCount = 1000
+        });
+        FieldServiceJobs = fieldServiceJobs.Items;
     }
 
     public async Task<IActionResult> OnPostDeleteContactAsync(Guid contactId)
