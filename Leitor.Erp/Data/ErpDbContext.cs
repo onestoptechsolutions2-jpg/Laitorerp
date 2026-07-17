@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.Support;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.Modeling;
@@ -35,6 +37,13 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<FieldServiceJob> FieldServiceJobs { get; set; } = null!;
     public DbSet<FieldServiceJobNote> FieldServiceJobNotes { get; set; } = null!;
     public DbSet<FieldServiceJobPart> FieldServiceJobParts { get; set; } = null!;
+
+    public DbSet<Vendor> Vendors { get; set; } = null!;
+    public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
+    public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; } = null!;
+
+    public DbSet<Ticket> Tickets { get; set; } = null!;
+    public DbSet<TicketMessage> TicketMessages { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -230,6 +239,64 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Description).IsRequired().HasMaxLength(512);
             b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
             b.HasIndex(x => x.JobId);
+        });
+
+        builder.Entity<Vendor>(b =>
+        {
+            b.ToTable("Vendors");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.Phone).HasMaxLength(64);
+            b.Property(x => x.AddressLine).HasMaxLength(512);
+            b.Property(x => x.City).HasMaxLength(128);
+            b.Property(x => x.State).HasMaxLength(128);
+            b.Property(x => x.PostalCode).HasMaxLength(32);
+            b.Property(x => x.Country).HasMaxLength(128);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+        });
+
+        builder.Entity<PurchaseOrder>(b =>
+        {
+            b.ToTable("PurchaseOrders");
+            b.ConfigureByConvention();
+            b.Property(x => x.PONumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.VendorId);
+            b.HasIndex(x => x.PONumber).IsUnique();
+        });
+
+        builder.Entity<PurchaseOrderLine>(b =>
+        {
+            b.ToTable("PurchaseOrderLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.HasIndex(x => x.PurchaseOrderId);
+        });
+
+        builder.Entity<Ticket>(b =>
+        {
+            b.ToTable("Tickets");
+            b.ConfigureByConvention();
+            b.Property(x => x.TicketNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Subject).IsRequired().HasMaxLength(256);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.OrderId);
+            b.HasIndex(x => x.JobId);
+            b.HasIndex(x => x.ContractId);
+            b.HasIndex(x => x.AssignedToUserId);
+            b.HasIndex(x => x.TicketNumber).IsUnique();
+        });
+
+        builder.Entity<TicketMessage>(b =>
+        {
+            b.ToTable("TicketMessages");
+            b.ConfigureByConvention();
+            b.Property(x => x.Text).IsRequired().HasMaxLength(4000);
+            b.HasIndex(x => x.TicketId);
         });
     }
 }

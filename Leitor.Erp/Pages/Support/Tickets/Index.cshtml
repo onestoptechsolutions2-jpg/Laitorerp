@@ -1,0 +1,82 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Support
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Support.Tickets.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Tickets"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewTicket"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Subject"] / @L["TicketNumber"]" />
+            </div>
+            <div class="col-auto">
+                <select name="Status" class="form-select">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Status == TicketStatus.Open)">@L["Enum:TicketStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == TicketStatus.InProgress)">@L["Enum:TicketStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == TicketStatus.WaitingOnCustomer)">@L["Enum:TicketStatus:2"]</option>
+                    <option value="3" selected="@(Model.Status == TicketStatus.Resolved)">@L["Enum:TicketStatus:3"]</option>
+                    <option value="4" selected="@(Model.Status == TicketStatus.Closed)">@L["Enum:TicketStatus:4"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="Priority" class="form-select">
+                    <option value="">@L["Priority"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Priority == TicketPriority.Low)">@L["Enum:TicketPriority:0"]</option>
+                    <option value="1" selected="@(Model.Priority == TicketPriority.Medium)">@L["Enum:TicketPriority:1"]</option>
+                    <option value="2" selected="@(Model.Priority == TicketPriority.High)">@L["Enum:TicketPriority:2"]</option>
+                    <option value="3" selected="@(Model.Priority == TicketPriority.Urgent)">@L["Enum:TicketPriority:3"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["TicketNumber"]</th>
+                        <th>@L["Subject"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Priority"]</th>
+                        <th>@L["AssignedTo"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in Model.Tickets)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
+                            <td>@ticket.Subject</td>
+                            <td>@ticket.CustomerName</td>
+                            <td>@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</td>
+                            <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
+                            <td>@ticket.AssignedToUserName</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@ticket.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

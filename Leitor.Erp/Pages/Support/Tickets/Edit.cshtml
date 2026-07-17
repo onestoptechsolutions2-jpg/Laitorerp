@@ -1,0 +1,32 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Support.Tickets.EditModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["EditTicket"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="Ticket.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-select asp-for="Ticket.OrderId" asp-items="Model.OrderOptions" label="@L["Order"]" />
+            <abp-select asp-for="Ticket.JobId" asp-items="Model.JobOptions" label="@L["Job"]" />
+            <abp-select asp-for="Ticket.ContractId" asp-items="Model.ContractOptions" label="@L["Contract"]" />
+            <abp-input asp-for="Ticket.Subject" />
+            <abp-input asp-for="Ticket.Type" />
+            <abp-input asp-for="Ticket.Status" />
+            <abp-input asp-for="Ticket.Priority" />
+            <abp-select asp-for="Ticket.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-input asp-for="Ticket.CustomerSatisfactionRating" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Detail" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>
