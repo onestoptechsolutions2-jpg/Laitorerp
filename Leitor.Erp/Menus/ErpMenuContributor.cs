@@ -94,6 +94,19 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Support.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.SupportTickets,
+                    l["Menu:Support"],
+                    "~/Support/Tickets",
+                    icon: "fas fa-headset",
+                    order: 5
+                )
+            );
+        }
+
         if (await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default))
         {
             administration.Items.Add(
