@@ -107,6 +107,19 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Vendors.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.ProcurementVendors,
+                    l["Menu:Vendors"],
+                    "~/Procurement/Vendors",
+                    icon: "fas fa-truck-ramp-box",
+                    order: 6
+                )
+            );
+        }
+
         if (await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default))
         {
             administration.Items.Add(

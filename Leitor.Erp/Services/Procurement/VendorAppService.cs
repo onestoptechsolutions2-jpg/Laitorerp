@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Procurement;
@@ -10,16 +11,43 @@ using Volo.Abp.Domain.Repositories;
 namespace Leitor.Erp.Services.Procurement;
 
 public class VendorAppService :
-    CrudAppService<Vendor, VendorDto, System.Guid, GetVendorListInput, CreateUpdateVendorDto>
+    CrudAppService<Vendor, VendorDto, Guid, GetVendorListInput, CreateUpdateVendorDto>
 {
-    public VendorAppService(IRepository<Vendor, System.Guid> repository)
+    private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
+    private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
+
+    public VendorAppService(
+        IRepository<Vendor, Guid> repository,
+        IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
+        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository)
         : base(repository)
     {
+        _purchaseOrderRepository = purchaseOrderRepository;
+        _purchaseOrderLineRepository = purchaseOrderLineRepository;
+
         GetPolicyName = ErpPermissions.Vendors.Default;
         GetListPolicyName = ErpPermissions.Vendors.Default;
         CreatePolicyName = ErpPermissions.Vendors.Create;
         UpdatePolicyName = ErpPermissions.Vendors.Edit;
         DeletePolicyName = ErpPermissions.Vendors.Delete;
+    }
+
+    // PurchaseOrders are an independent aggregate root with no FK relationship configured, so
+    // deleting a vendor doesn't cascade automatically - same pattern as CustomerAppService.DeleteAsync.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        var purchaseOrders = await _purchaseOrderRepository.GetListAsync(x => x.VendorId == id);
+        if (purchaseOrders.Count > 0)
+        {
+            var purchaseOrderIds = purchaseOrders.Select(x => x.Id).ToList();
+            await _purchaseOrderLineRepository.DeleteManyAsync(
+                await _purchaseOrderLineRepository.GetListAsync(x => purchaseOrderIds.Contains(x.PurchaseOrderId)));
+            await _purchaseOrderRepository.DeleteManyAsync(purchaseOrders);
+        }
+
+        await Repository.DeleteAsync(id);
     }
 
     protected override async Task<IQueryable<Vendor>> CreateFilteredQueryAsync(GetVendorListInput input)

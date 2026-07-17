@@ -13,6 +13,7 @@ public class ErpMenus
     public const string FieldService = Prefix + ".FieldService";
     public const string FieldServiceJobs = FieldService + ".Jobs";
     public const string SupportTickets = Prefix + ".Support.Tickets";
+    public const string ProcurementVendors = Prefix + ".Procurement.Vendors";
     public const string AuditLogs = Prefix + ".AuditLogs";
 
     //Add your menu items here...

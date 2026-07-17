@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
 using Volo.Abp;
@@ -22,6 +25,18 @@ public class CustomerAppService :
     private readonly IRepository<CustomerTask, Guid> _taskRepository;
     private readonly IRepository<CustomerAttachment, Guid> _attachmentRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Quote, Guid> _quoteRepository;
+    private readonly IRepository<QuoteLine, Guid> _quoteLineRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<OrderLine, Guid> _orderLineRepository;
+    private readonly IRepository<Invoice, Guid> _invoiceRepository;
+    private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
+    private readonly IRepository<Payment, Guid> _paymentRepository;
+    private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
+    private readonly IRepository<FieldServiceJobNote, Guid> _jobNoteRepository;
+    private readonly IRepository<FieldServiceJobPart, Guid> _jobPartRepository;
+    private readonly IRepository<Ticket, Guid> _ticketRepository;
+    private readonly IRepository<TicketMessage, Guid> _ticketMessageRepository;
 
     public CustomerAppService(
         IRepository<Customer, Guid> repository,
@@ -30,7 +45,19 @@ public class CustomerAppService :
         IRepository<CustomerNote, Guid> noteRepository,
         IRepository<CustomerTask, Guid> taskRepository,
         IRepository<CustomerAttachment, Guid> attachmentRepository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Quote, Guid> quoteRepository,
+        IRepository<QuoteLine, Guid> quoteLineRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<OrderLine, Guid> orderLineRepository,
+        IRepository<Invoice, Guid> invoiceRepository,
+        IRepository<InvoiceLine, Guid> invoiceLineRepository,
+        IRepository<Payment, Guid> paymentRepository,
+        IRepository<FieldServiceJob, Guid> jobRepository,
+        IRepository<FieldServiceJobNote, Guid> jobNoteRepository,
+        IRepository<FieldServiceJobPart, Guid> jobPartRepository,
+        IRepository<Ticket, Guid> ticketRepository,
+        IRepository<TicketMessage, Guid> ticketMessageRepository)
         : base(repository)
     {
         _contactRepository = contactRepository;
@@ -39,6 +66,18 @@ public class CustomerAppService :
         _taskRepository = taskRepository;
         _attachmentRepository = attachmentRepository;
         _identityUserRepository = identityUserRepository;
+        _quoteRepository = quoteRepository;
+        _quoteLineRepository = quoteLineRepository;
+        _orderRepository = orderRepository;
+        _orderLineRepository = orderLineRepository;
+        _invoiceRepository = invoiceRepository;
+        _invoiceLineRepository = invoiceLineRepository;
+        _paymentRepository = paymentRepository;
+        _jobRepository = jobRepository;
+        _jobNoteRepository = jobNoteRepository;
+        _jobPartRepository = jobPartRepository;
+        _ticketRepository = ticketRepository;
+        _ticketMessageRepository = ticketMessageRepository;
 
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
@@ -47,10 +86,11 @@ public class CustomerAppService :
         DeletePolicyName = ErpPermissions.Customers.Delete;
     }
 
-    // Contacts, contracts, notes, tasks, and attachments are all independent aggregate roots
-    // (see their respective entity file comments), so deleting a customer doesn't cascade
-    // automatically - there's no FK relationship configured in ErpDbContext, just an index on
-    // CustomerId. Cascade the soft-delete explicitly here so nothing is left orphaned/unreachable.
+    // Contacts, contracts, notes, tasks, attachments, and every other module's records that
+    // reference this customer (Quotes, Orders, Invoices, FieldServiceJobs, Tickets - all via a
+    // non-nullable CustomerId) are independent aggregate roots with no FK relationship configured
+    // in ErpDbContext, just an index on CustomerId. Cascade explicitly here so nothing is left
+    // with a dangling required CustomerId pointing at a deleted customer.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
@@ -69,6 +109,48 @@ public class CustomerAppService :
 
         var attachments = await _attachmentRepository.GetListAsync(x => x.CustomerId == id);
         await _attachmentRepository.DeleteManyAsync(attachments);
+
+        var quotes = await _quoteRepository.GetListAsync(x => x.CustomerId == id);
+        if (quotes.Count > 0)
+        {
+            var quoteIds = quotes.Select(x => x.Id).ToList();
+            await _quoteLineRepository.DeleteManyAsync(await _quoteLineRepository.GetListAsync(x => quoteIds.Contains(x.QuoteId)));
+            await _quoteRepository.DeleteManyAsync(quotes);
+        }
+
+        var orders = await _orderRepository.GetListAsync(x => x.CustomerId == id);
+        if (orders.Count > 0)
+        {
+            var orderIds = orders.Select(x => x.Id).ToList();
+            await _orderLineRepository.DeleteManyAsync(await _orderLineRepository.GetListAsync(x => orderIds.Contains(x.OrderId)));
+            await _orderRepository.DeleteManyAsync(orders);
+        }
+
+        var invoices = await _invoiceRepository.GetListAsync(x => x.CustomerId == id);
+        if (invoices.Count > 0)
+        {
+            var invoiceIds = invoices.Select(x => x.Id).ToList();
+            await _invoiceLineRepository.DeleteManyAsync(await _invoiceLineRepository.GetListAsync(x => invoiceIds.Contains(x.InvoiceId)));
+            await _paymentRepository.DeleteManyAsync(await _paymentRepository.GetListAsync(x => invoiceIds.Contains(x.InvoiceId)));
+            await _invoiceRepository.DeleteManyAsync(invoices);
+        }
+
+        var jobs = await _jobRepository.GetListAsync(x => x.CustomerId == id);
+        if (jobs.Count > 0)
+        {
+            var jobIds = jobs.Select(x => x.Id).ToList();
+            await _jobNoteRepository.DeleteManyAsync(await _jobNoteRepository.GetListAsync(x => jobIds.Contains(x.JobId)));
+            await _jobPartRepository.DeleteManyAsync(await _jobPartRepository.GetListAsync(x => jobIds.Contains(x.JobId)));
+            await _jobRepository.DeleteManyAsync(jobs);
+        }
+
+        var tickets = await _ticketRepository.GetListAsync(x => x.CustomerId == id);
+        if (tickets.Count > 0)
+        {
+            var ticketIds = tickets.Select(x => x.Id).ToList();
+            await _ticketMessageRepository.DeleteManyAsync(await _ticketMessageRepository.GetListAsync(x => ticketIds.Contains(x.TicketId)));
+            await _ticketRepository.DeleteManyAsync(tickets);
+        }
 
         await Repository.DeleteAsync(id);
     }
