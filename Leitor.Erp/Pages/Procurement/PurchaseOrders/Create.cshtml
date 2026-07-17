@@ -1,0 +1,26 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Procurement.PurchaseOrders.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewPurchaseOrder"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="PurchaseOrder.VendorId" asp-items="Model.VendorOptions" label="@L["Vendor"]" />
+            <abp-input asp-for="PurchaseOrder.Status" />
+            <abp-input asp-for="PurchaseOrder.OrderDate" />
+            <abp-input asp-for="PurchaseOrder.ExpectedDeliveryDate" />
+            <abp-input asp-for="PurchaseOrder.Notes" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

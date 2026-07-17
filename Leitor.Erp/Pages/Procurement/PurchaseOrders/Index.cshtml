@@ -1,0 +1,60 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Procurement.PurchaseOrders.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["PurchaseOrders"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewPurchaseOrder"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["PONumber"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["PONumber"]</th>
+                        <th>@L["Vendor"]</th>
+                        <th>@L["OrderDate"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Total"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var purchaseOrder in Model.PurchaseOrders)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
+                            <td>@purchaseOrder.VendorName</td>
+                            <td>@purchaseOrder.OrderDate.ToShortDateString()</td>
+                            <td>@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</td>
+                            <td>@purchaseOrder.Total.ToString("N2")</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@purchaseOrder.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

@@ -1,0 +1,74 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Procurement;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Domain.Repositories;
+
+namespace Leitor.Erp.Pages.Procurement.PurchaseOrders;
+
+[Authorize(Policy = ErpPermissions.Procurement.Edit)]
+public class EditModel : AbpPageModel
+{
+    private readonly PurchaseOrderAppService _purchaseOrderAppService;
+    private readonly IRepository<Vendor, Guid> _vendorRepository;
+
+    public EditModel(
+        PurchaseOrderAppService purchaseOrderAppService,
+        IRepository<Vendor, Guid> vendorRepository)
+    {
+        _purchaseOrderAppService = purchaseOrderAppService;
+        _vendorRepository = vendorRepository;
+    }
+
+    [BindProperty(SupportsGet = true)]
+    public Guid Id { get; set; }
+
+    [BindProperty]
+    public CreateUpdatePurchaseOrderDto PurchaseOrder { get; set; } = new();
+
+    public List<SelectListItem> VendorOptions { get; set; } = new();
+
+    public async Task OnGetAsync()
+    {
+        var purchaseOrder = await _purchaseOrderAppService.GetAsync(Id);
+        PurchaseOrder = new CreateUpdatePurchaseOrderDto
+        {
+            VendorId = purchaseOrder.VendorId,
+            Status = purchaseOrder.Status,
+            OrderDate = purchaseOrder.OrderDate,
+            ExpectedDeliveryDate = purchaseOrder.ExpectedDeliveryDate,
+            Notes = purchaseOrder.Notes
+        };
+
+        await LoadVendorOptionsAsync();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid)
+        {
+            await LoadVendorOptionsAsync();
+            return Page();
+        }
+
+        await _purchaseOrderAppService.UpdateAsync(Id, PurchaseOrder);
+        return RedirectToPage("./Detail", new { id = Id });
+    }
+
+    private async Task LoadVendorOptionsAsync()
+    {
+        var vendors = await _vendorRepository.GetListAsync();
+        VendorOptions = vendors
+            .OrderBy(x => x.Name)
+            .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+            .ToList();
+    }
+}

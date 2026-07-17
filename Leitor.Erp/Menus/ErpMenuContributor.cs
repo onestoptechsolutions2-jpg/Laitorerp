@@ -107,17 +107,33 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
-        if (await context.IsGrantedAsync(ErpPermissions.Vendors.Default))
+        var canViewVendors = await context.IsGrantedAsync(ErpPermissions.Vendors.Default);
+        var canViewPurchaseOrders = await context.IsGrantedAsync(ErpPermissions.Procurement.Default);
+
+        if (canViewVendors || canViewPurchaseOrders)
         {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.ProcurementVendors,
-                    l["Menu:Vendors"],
-                    "~/Procurement/Vendors",
-                    icon: "fas fa-truck-ramp-box",
-                    order: 6
-                )
+            var procurementMenu = new ApplicationMenuItem(
+                ErpMenus.Procurement,
+                l["Menu:Procurement"],
+                icon: "fas fa-truck-ramp-box",
+                order: 6
             );
+
+            if (canViewVendors)
+            {
+                procurementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ProcurementVendors, l["Menu:Vendors"], "~/Procurement/Vendors", order: 1)
+                );
+            }
+
+            if (canViewPurchaseOrders)
+            {
+                procurementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ProcurementPurchaseOrders, l["Menu:PurchaseOrders"], "~/Procurement/PurchaseOrders", order: 2)
+                );
+            }
+
+            context.Menu.Items.Add(procurementMenu);
         }
 
         if (await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default))
