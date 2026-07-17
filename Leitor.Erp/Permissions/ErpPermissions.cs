@@ -55,4 +55,24 @@ public static class ErpPermissions
         public const string GroupName = "Erp.AuditLogs";
         public const string Default = GroupName;
     }
+
+    // Vendor master data is split from Procurement the same way Catalog is split from Sales - a
+    // vendor directory usable independent of the purchase-order workflow that references it.
+    public static class Vendors
+    {
+        public const string GroupName = "Erp.Vendors";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class Procurement
+    {
+        public const string GroupName = "Erp.Procurement";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
 }

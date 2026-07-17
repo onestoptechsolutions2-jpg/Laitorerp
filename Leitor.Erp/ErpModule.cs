@@ -2,8 +2,10 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Leitor.Erp.Data;
+using Leitor.Erp.Documents;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
+using QuestPDF.Infrastructure;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
 using Volo.Abp.Uow;
@@ -169,6 +171,9 @@ public class ErpModule : AbpModule
         {
             context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());
         }
+
+        QuestPDF.Settings.License = LicenseType.Community;
+        context.Services.Configure<ErpCompanyOptions>(configuration.GetSection("Company"));
 
         ConfigureAuthentication(context);
         ConfigureMultiTenancy();

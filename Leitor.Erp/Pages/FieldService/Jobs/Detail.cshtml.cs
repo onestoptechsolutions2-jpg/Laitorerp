@@ -1,13 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Leitor.Erp.Documents;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.FieldService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Emailing;
 
 namespace Leitor.Erp.Pages.FieldService.Jobs;
 
@@ -17,15 +22,24 @@ public class DetailModel : AbpPageModel
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly FieldServiceJobNoteAppService _fieldServiceJobNoteAppService;
     private readonly FieldServiceJobPartAppService _fieldServiceJobPartAppService;
+    private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IEmailSender _emailSender;
+    private readonly ErpCompanyOptions _companyOptions;
 
     public DetailModel(
         FieldServiceJobAppService fieldServiceJobAppService,
         FieldServiceJobNoteAppService fieldServiceJobNoteAppService,
-        FieldServiceJobPartAppService fieldServiceJobPartAppService)
+        FieldServiceJobPartAppService fieldServiceJobPartAppService,
+        IRepository<Customer, Guid> customerRepository,
+        IEmailSender emailSender,
+        IOptions<ErpCompanyOptions> companyOptions)
     {
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _fieldServiceJobNoteAppService = fieldServiceJobNoteAppService;
         _fieldServiceJobPartAppService = fieldServiceJobPartAppService;
+        _customerRepository = customerRepository;
+        _emailSender = emailSender;
+        _companyOptions = companyOptions.Value;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -34,6 +48,7 @@ public class DetailModel : AbpPageModel
     public FieldServiceJobDto Job { get; set; } = null!;
     public IReadOnlyList<FieldServiceJobNoteDto> Notes { get; set; } = Array.Empty<FieldServiceJobNoteDto>();
     public IReadOnlyList<FieldServiceJobPartDto> Parts { get; set; } = Array.Empty<FieldServiceJobPartDto>();
+    public Customer Customer { get; set; } = null!;
 
     [BindProperty]
     public CreateFieldServiceJobNoteDto NewNote { get; set; } = new();
@@ -55,6 +70,7 @@ public class DetailModel : AbpPageModel
     private async Task LoadAsync()
     {
         Job = await _fieldServiceJobAppService.GetAsync(Id);
+        Customer = await _customerRepository.GetAsync(Job.CustomerId);
 
         var notes = await _fieldServiceJobNoteAppService.GetListAsync(new GetFieldServiceJobNoteListInput
         {
@@ -117,6 +133,39 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostDeletePartAsync(Guid partId)
     {
         await _fieldServiceJobPartAppService.DeleteAsync(partId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnGetPdfAsync()
+    {
+        await LoadAsync();
+        var pdfBytes = FieldServiceJobPdfDocument.Generate(Job, Parts, Notes, Customer, _companyOptions);
+        return File(pdfBytes, "application/pdf", $"JobSheet-{Job.ScheduledDate:yyyyMMdd}-{Job.Id.ToString()[..8]}.pdf");
+    }
+
+    public async Task<IActionResult> OnPostEmailAsync()
+    {
+        await LoadAsync();
+
+        if (!string.IsNullOrWhiteSpace(Customer.Email))
+        {
+            var pdfBytes = FieldServiceJobPdfDocument.Generate(Job, Parts, Notes, Customer, _companyOptions);
+            var fileName = $"JobSheet-{Job.ScheduledDate:yyyyMMdd}.pdf";
+            await _emailSender.SendAsync(
+                Customer.Email,
+                $"Job Sheet - {Job.ScheduledDate:d}",
+                $"Dear {Customer.Name},\n\nPlease find attached the job sheet for the visit on {Job.ScheduledDate:d}.\n\nRegards,\n{_companyOptions.Name}",
+                isBodyHtml: false,
+                new AdditionalEmailSendingArgs
+                {
+                    Attachments = new List<EmailAttachment>
+                    {
+                        new() { Name = fileName, File = pdfBytes }
+                    }
+                }
+            );
+        }
+
         return RedirectToPage(new { id = Id });
     }
 }

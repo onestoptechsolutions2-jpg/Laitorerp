@@ -41,6 +41,18 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
 
         var auditLogsGroup = context.AddGroup(ErpPermissions.AuditLogs.GroupName, L("Permission:AuditLogs"));
         auditLogsGroup.AddPermission(ErpPermissions.AuditLogs.Default, L("Permission:AuditLogs"));
+
+        var vendorsGroup = context.AddGroup(ErpPermissions.Vendors.GroupName, L("Permission:Vendors"));
+        var vendorsPermission = vendorsGroup.AddPermission(ErpPermissions.Vendors.Default, L("Permission:Vendors"));
+        vendorsPermission.AddChild(ErpPermissions.Vendors.Create, L("Permission:Create"));
+        vendorsPermission.AddChild(ErpPermissions.Vendors.Edit, L("Permission:Edit"));
+        vendorsPermission.AddChild(ErpPermissions.Vendors.Delete, L("Permission:Delete"));
+
+        var procurementGroup = context.AddGroup(ErpPermissions.Procurement.GroupName, L("Permission:Procurement"));
+        var procurementPermission = procurementGroup.AddPermission(ErpPermissions.Procurement.Default, L("Permission:Procurement"));
+        procurementPermission.AddChild(ErpPermissions.Procurement.Create, L("Permission:Create"));
+        procurementPermission.AddChild(ErpPermissions.Procurement.Edit, L("Permission:Edit"));
+        procurementPermission.AddChild(ErpPermissions.Procurement.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

@@ -15,6 +15,13 @@
                     <button type="submit" class="btn btn-success">@L["ConvertToInvoice"]</button>
                 </form>
             }
+            <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Order.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
+            @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
+            {
+                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Order.Id" class="d-inline" onsubmit="return confirm('@L["EmailToCustomer"]?');">
+                    <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
+                </form>
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>
