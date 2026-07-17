@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.FieldService;
@@ -27,7 +28,12 @@ public class IndexModel : AbpPageModel
     [BindProperty(SupportsGet = true)]
     public FieldServiceJobStatus? Status { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex { get; set; } = 1;
+
     public IReadOnlyList<FieldServiceJobDto> Jobs { get; set; } = Array.Empty<FieldServiceJobDto>();
+
+    public PaginationModel Pagination { get; set; } = new();
 
     public bool CanCreate { get; set; }
     public bool CanDelete { get; set; }
@@ -37,19 +43,26 @@ public class IndexModel : AbpPageModel
         CanCreate = await AuthorizationService.IsGrantedAsync(ErpPermissions.FieldService.Create);
         CanDelete = await AuthorizationService.IsGrantedAsync(ErpPermissions.FieldService.Delete);
 
+        if (PageIndex < 1)
+        {
+            PageIndex = 1;
+        }
+
         var result = await _fieldServiceJobAppService.GetListAsync(new GetFieldServiceJobListInput
         {
             Filter = Filter,
             Status = Status,
-            MaxResultCount = 1000
+            SkipCount = (PageIndex - 1) * PaginationModel.DefaultPageSize,
+            MaxResultCount = PaginationModel.DefaultPageSize
         });
 
         Jobs = result.Items;
+        Pagination = new PaginationModel { PageIndex = PageIndex, TotalCount = result.TotalCount };
     }
 
     public async Task<IActionResult> OnPostDeleteAsync(Guid id)
     {
         await _fieldServiceJobAppService.DeleteAsync(id);
-        return RedirectToPage(new { Filter, Status });
+        return RedirectToPage(new { Filter, Status, PageIndex });
     }
 }

@@ -1,0 +1,72 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.AuditLogs.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["AuditLogs"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="date" class="form-control" name="StartTime" value="@Model.StartTime?.ToString("yyyy-MM-dd")" placeholder="@L["From"]" />
+            </div>
+            <div class="col-auto">
+                <input type="date" class="form-control" name="EndTime" value="@Model.EndTime?.ToString("yyyy-MM-dd")" placeholder="@L["To"]" />
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control" name="UserName" value="@Model.UserName" placeholder="@L["User"]" />
+            </div>
+            <div class="col-auto">
+                <select name="HttpMethod" class="form-select">
+                    <option value="">@L["AuditLogs:Filter:AllMethods"]</option>
+                    @foreach (var method in new[] { "GET", "POST", "PUT", "DELETE" })
+                    {
+                        <option value="@method" selected="@(Model.HttpMethod == method)">@method</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="HasException" class="form-select">
+                    <option value="">@L["AuditLogs:Filter:All"]</option>
+                    <option value="true" selected="@(Model.HasException == true)">@L["AuditLogs:Filter:ExceptionsOnly"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["ExecutionTime"]</th>
+                        <th>@L["User"]</th>
+                        <th>@L["HttpMethod"]</th>
+                        <th>@L["Url"]</th>
+                        <th>@L["ExecutionDuration"]</th>
+                        <th>@L["HttpStatusCode"]</th>
+                        <th>@L["HasException"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.AuditLogs)
+                    {
+                        <tr class="@(log.HasException ? "table-danger" : "")">
+                            <td><a asp-page="./Detail" asp-route-id="@log.Id">@log.ExecutionTime.ToString("yyyy-MM-dd HH:mm:ss")</a></td>
+                            <td>@(log.UserName ?? L["None"].Value)</td>
+                            <td>@log.HttpMethod</td>
+                            <td class="text-truncate" style="max-width: 320px;">@log.Url</td>
+                            <td>@log.ExecutionDuration</td>
+                            <td>@log.HttpStatusCode</td>
+                            <td>@(log.HasException ? L["Yes"] : L["No"])</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

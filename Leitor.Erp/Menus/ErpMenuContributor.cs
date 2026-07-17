@@ -94,6 +94,18 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default))
+        {
+            administration.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.AuditLogs,
+                    l["Menu:AuditLogs"],
+                    "~/AuditLogs",
+                    icon: "fas fa-clipboard-list"
+                )
+            );
+        }
+
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

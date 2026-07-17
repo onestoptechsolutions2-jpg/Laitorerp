@@ -32,6 +32,15 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         fieldServicePermission.AddChild(ErpPermissions.FieldService.Create, L("Permission:Create"));
         fieldServicePermission.AddChild(ErpPermissions.FieldService.Edit, L("Permission:Edit"));
         fieldServicePermission.AddChild(ErpPermissions.FieldService.Delete, L("Permission:Delete"));
+
+        var supportGroup = context.AddGroup(ErpPermissions.Support.GroupName, L("Permission:Support"));
+        var supportPermission = supportGroup.AddPermission(ErpPermissions.Support.Default, L("Permission:Support"));
+        supportPermission.AddChild(ErpPermissions.Support.Create, L("Permission:Create"));
+        supportPermission.AddChild(ErpPermissions.Support.Edit, L("Permission:Edit"));
+        supportPermission.AddChild(ErpPermissions.Support.Delete, L("Permission:Delete"));
+
+        var auditLogsGroup = context.AddGroup(ErpPermissions.AuditLogs.GroupName, L("Permission:AuditLogs"));
+        auditLogsGroup.AddPermission(ErpPermissions.AuditLogs.Default, L("Permission:AuditLogs"));
     }
 
     private static LocalizableString L(string name)

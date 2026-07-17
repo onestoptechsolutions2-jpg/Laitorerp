@@ -1,0 +1,46 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Pages.Shared
+@inject IHtmlLocalizer<ErpResource> L
+@model PaginationModel
+@{
+    var baseQuery = Context.Request.Query
+        .Where(q => !string.Equals(q.Key, "PageIndex", StringComparison.OrdinalIgnoreCase))
+        .ToDictionary(q => q.Key, q => q.Value.ToString());
+
+    Dictionary<string, string> RouteDataFor(int pageIndex)
+    {
+        var routeData = new Dictionary<string, string>(baseQuery)
+        {
+            ["PageIndex"] = pageIndex.ToString()
+        };
+        return routeData;
+    }
+}
+
+@if (Model.TotalCount > 0)
+{
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="small text-muted">
+            @L["Pagination:Showing", Model.FirstItemNumber, Model.LastItemNumber, Model.TotalCount]
+        </div>
+        <div class="btn-group">
+            @if (Model.HasPrevious)
+            {
+                <a class="btn btn-sm btn-outline-secondary" asp-all-route-data="@RouteDataFor(Model.PageIndex - 1)">@L["Pagination:Previous"]</a>
+            }
+            else
+            {
+                <span class="btn btn-sm btn-outline-secondary disabled">@L["Pagination:Previous"]</span>
+            }
+            @if (Model.HasNext)
+            {
+                <a class="btn btn-sm btn-outline-secondary" asp-all-route-data="@RouteDataFor(Model.PageIndex + 1)">@L["Pagination:Next"]</a>
+            }
+            else
+            {
+                <span class="btn btn-sm btn-outline-secondary disabled">@L["Pagination:Next"]</span>
+            }
+        </div>
+    </div>
+}
