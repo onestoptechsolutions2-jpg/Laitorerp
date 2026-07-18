@@ -27,4 +27,6 @@ public class CreateUpdateLeadDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public bool DoNotContact { get; set; }
 }

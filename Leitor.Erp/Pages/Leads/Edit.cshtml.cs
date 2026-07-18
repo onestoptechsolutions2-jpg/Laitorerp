@@ -48,7 +48,8 @@ public class EditModel : AbpPageModel
             Source = lead.Source,
             Status = lead.Status,
             AssignedToUserId = lead.AssignedToUserId,
-            Notes = lead.Notes
+            Notes = lead.Notes,
+            DoNotContact = lead.DoNotContact
         };
 
         await LoadOptionsAsync();

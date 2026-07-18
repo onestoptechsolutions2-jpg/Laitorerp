@@ -17,9 +17,11 @@ public class CustomerDto : FullAuditedEntityDto<Guid>
     public CustomerStatus Status { get; set; }
     public string? Notes { get; set; }
     public Guid? AccountOwnerUserId { get; set; }
+    public Guid? PortalUserId { get; set; }
 
     // Resolved by CustomerAppService from IIdentityUserRepository - not a stored column,
     // so Mapperly won't map it (Customer has no matching source member; that's fine, it's
     // filled in manually after the entity->dto mapping runs).
     public string? AccountOwnerUserName { get; set; }
+    public string? PortalUserName { get; set; }
 }

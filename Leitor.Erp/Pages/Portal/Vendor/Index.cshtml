@@ -1,0 +1,98 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Procurement
+@using Leitor.Erp.Entities.FieldService
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Portal.Vendor.IndexModel
+
+@if (!Model.IsLinked)
+{
+    <div class="alert alert-warning">@L["PortalNotLinked"]</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@Model.Vendor.Name</h5>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="card-title mb-0">@L["PurchaseOrders"]</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["PONumber"]</th>
+                            <th>@L["OrderDate"]</th>
+                            <th>@L["ExpectedDeliveryDate"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["Total"]</th>
+                            <th>@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var po in Model.PurchaseOrders)
+                        {
+                            <tr>
+                                <td>@po.PONumber</td>
+                                <td>@po.OrderDate.ToShortDateString()</td>
+                                <td>@(po.ExpectedDeliveryDate?.ToShortDateString())</td>
+                                <td>@L[$"Enum:PurchaseOrderStatus:{(int)po.Status}"]</td>
+                                <td>@Model.PurchaseOrderTotals.GetValueOrDefault(po.Id).ToString("N2")</td>
+                                <td>
+                                    @if (po.Status == PurchaseOrderStatus.Sent)
+                                    {
+                                        <form method="post" asp-page-handler="ConfirmPurchaseOrder" asp-route-purchaseOrderId="@po.Id">
+                                            <button type="submit" class="btn btn-sm btn-success">@L["Confirm"]</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h5 class="card-title mb-0">@L["FieldServiceJobs"]</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["Customer"]</th>
+                            <th>@L["Type"]</th>
+                            <th>@L["ScheduledDate"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var job in Model.Jobs)
+                        {
+                            <tr>
+                                <td>@Model.JobCustomerNames.GetValueOrDefault(job.CustomerId)</td>
+                                <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
+                                <td>@job.ScheduledDate.ToShortDateString()</td>
+                                <td>@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</td>
+                                <td>
+                                    @if (job.Status is FieldServiceJobStatus.Scheduled or FieldServiceJobStatus.InProgress)
+                                    {
+                                        <form method="post" asp-page-handler="CompleteJob" asp-route-jobId="@job.Id">
+                                            <button type="submit" class="btn btn-sm btn-success">@L["MarkComplete"]</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

@@ -18,6 +18,8 @@ namespace Leitor.Erp.Services.Dashboard;
 // own list pages use - so the dashboard never surfaces counts the user couldn't otherwise see.
 public class DashboardAppService : ApplicationService
 {
+    private readonly IRepository<Lead, Guid> _leadRepository;
+    private readonly IRepository<LeadTouch, Guid> _leadTouchRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
@@ -27,6 +29,8 @@ public class DashboardAppService : ApplicationService
     private readonly IRepository<Payment, Guid> _paymentRepository;
 
     public DashboardAppService(
+        IRepository<Lead, Guid> leadRepository,
+        IRepository<LeadTouch, Guid> leadTouchRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
         IRepository<Quote, Guid> quoteRepository,
@@ -35,6 +39,8 @@ public class DashboardAppService : ApplicationService
         IRepository<InvoiceLine, Guid> invoiceLineRepository,
         IRepository<Payment, Guid> paymentRepository)
     {
+        _leadRepository = leadRepository;
+        _leadTouchRepository = leadTouchRepository;
         _customerRepository = customerRepository;
         _jobRepository = jobRepository;
         _quoteRepository = quoteRepository;
@@ -47,6 +53,11 @@ public class DashboardAppService : ApplicationService
     public async Task<DashboardDto> GetAsync()
     {
         var dto = new DashboardDto();
+
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Default))
+        {
+            dto.Leads = await GetLeadStatsAsync();
+        }
 
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Default))
         {
@@ -64,6 +75,26 @@ public class DashboardAppService : ApplicationService
         }
 
         return dto;
+    }
+
+    private async Task<LeadStatsDto> GetLeadStatsAsync()
+    {
+        var leadQuery = await _leadRepository.GetQueryableAsync();
+        var weekAgo = Clock.Now.AddDays(-7);
+        var monthAgo = Clock.Now.AddMonths(-1);
+
+        var touchesThisWeek = await _leadTouchRepository.GetListAsync(x => x.TouchedAt >= weekAgo);
+
+        return new LeadStatsDto
+        {
+            TotalCount = leadQuery.Count(),
+            NewCount = leadQuery.Count(x => x.Status == LeadStatus.New),
+            TouchesThisWeek = touchesThisWeek.Count,
+            ReplyRate = touchesThisWeek.Count == 0
+                ? 0
+                : Math.Round(100m * touchesThisWeek.Count(x => x.Direction == LeadDirection.Inbound) / touchesThisWeek.Count, 1),
+            ConvertedThisMonth = leadQuery.Count(x => x.Status == LeadStatus.Converted && x.LastModificationTime >= monthAgo)
+        };
     }
 
     private async Task<CustomerStatsDto> GetCustomerStatsAsync()

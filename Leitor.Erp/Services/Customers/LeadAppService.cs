@@ -42,6 +42,7 @@ public class LeadAppService :
         var query = await base.CreateFilteredQueryAsync(input);
         return query
             .WhereIf(input.Status.HasValue, x => x.Status == input.Status!.Value)
+            .WhereIf(input.AssignedToUserId.HasValue, x => x.AssignedToUserId == input.AssignedToUserId!.Value)
             .WhereIf(
                 !string.IsNullOrWhiteSpace(input.Filter),
                 x => x.Name.Contains(input.Filter!) ||
@@ -111,20 +112,21 @@ public class LeadAppService :
     // CreateUpdateLeadDto -> Lead is mapped manually rather than via Mapperly - same reason as
     // every other entity in this app (protected Id setter + constructor args Mapperly can't
     // resolve from the DTO).
-    protected override Task<Lead> MapToEntityAsync(CreateUpdateLeadDto createInput)
+    protected override async Task<Lead> MapToEntityAsync(CreateUpdateLeadDto createInput)
     {
         var entity = new Lead(GuidGenerator.Create(), createInput.Name);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateLeadDto updateInput, Lead entity)
+    protected override async Task MapToEntityAsync(CreateUpdateLeadDto updateInput, Lead entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private static void CopyToEntity(CreateUpdateLeadDto input, Lead entity)
+    // Phone normalization + duplicate check happens here on every create/update - a standing data
+    // rule enforced by the system, replacing the one-off dedup script this used to require.
+    private async Task CopyToEntityAsync(CreateUpdateLeadDto input, Lead entity)
     {
         entity.Name = input.Name;
         entity.CompanyName = input.CompanyName;
@@ -134,5 +136,31 @@ public class LeadAppService :
         entity.Status = input.Status;
         entity.AssignedToUserId = input.AssignedToUserId;
         entity.Notes = input.Notes;
+        entity.DoNotContact = input.DoNotContact;
+
+        var normalizedPhone = NormalizePhone(input.Phone);
+        if (!string.IsNullOrEmpty(normalizedPhone))
+        {
+            var duplicate = (await Repository.GetListAsync(x => x.NormalizedPhone == normalizedPhone && x.Id != entity.Id))
+                .FirstOrDefault();
+            if (duplicate != null)
+            {
+                throw new UserFriendlyException(
+                    $"A lead with this phone number already exists: {duplicate.Name} (created {duplicate.CreationTime:d}).");
+            }
+        }
+
+        entity.NormalizedPhone = normalizedPhone;
+    }
+
+    private static string? NormalizePhone(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            return null;
+        }
+
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        return digits.Length == 0 ? null : digits;
     }
 }

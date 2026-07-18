@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.FieldService;
@@ -7,8 +8,10 @@ using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Identity;
 
 namespace Leitor.Erp.Services.Procurement;
 
@@ -19,19 +22,22 @@ public class VendorAppService :
     private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
     private readonly IRepository<ProductVendor, Guid> _productVendorRepository;
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
+    private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
 
     public VendorAppService(
         IRepository<Vendor, Guid> repository,
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
         IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
         IRepository<ProductVendor, Guid> productVendorRepository,
-        IRepository<FieldServiceJob, Guid> fieldServiceJobRepository)
+        IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
+        IRepository<IdentityUser, Guid> identityUserRepository)
         : base(repository)
     {
         _purchaseOrderRepository = purchaseOrderRepository;
         _purchaseOrderLineRepository = purchaseOrderLineRepository;
         _productVendorRepository = productVendorRepository;
         _fieldServiceJobRepository = fieldServiceJobRepository;
+        _identityUserRepository = identityUserRepository;
 
         GetPolicyName = ErpPermissions.Vendors.Default;
         GetListPolicyName = ErpPermissions.Vendors.Default;
@@ -80,6 +86,45 @@ public class VendorAppService :
         return query.WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }
 
+    public override async Task<VendorDto> GetAsync(Guid id)
+    {
+        var dto = await base.GetAsync(id);
+        await ResolvePortalUserNamesAsync(new[] { dto });
+        return dto;
+    }
+
+    public override async Task<PagedResultDto<VendorDto>> GetListAsync(GetVendorListInput input)
+    {
+        var result = await base.GetListAsync(input);
+        await ResolvePortalUserNamesAsync(result.Items);
+        return result;
+    }
+
+    private async Task ResolvePortalUserNamesAsync(IReadOnlyCollection<VendorDto> vendors)
+    {
+        var userIds = vendors
+            .Where(x => x.PortalUserId.HasValue)
+            .Select(x => x.PortalUserId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
+        var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
+
+        foreach (var vendor in vendors)
+        {
+            if (vendor.PortalUserId.HasValue && namesById.TryGetValue(vendor.PortalUserId.Value, out var userName))
+            {
+                vendor.PortalUserName = userName;
+            }
+        }
+    }
+
     // CreateUpdateVendorDto -> Vendor is mapped manually rather than via Mapperly - same reason as
     // every other entity in this app (protected Id setter + constructor args Mapperly can't
     // resolve from the DTO).
@@ -107,5 +152,6 @@ public class VendorAppService :
         entity.PostalCode = input.PostalCode;
         entity.Country = input.Country;
         entity.Notes = input.Notes;
+        entity.PortalUserId = input.PortalUserId;
     }
 }

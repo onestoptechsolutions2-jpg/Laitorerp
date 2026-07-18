@@ -6,9 +6,19 @@ namespace Leitor.Erp.Services.Dtos.Dashboard;
 
 public class DashboardDto
 {
+    public LeadStatsDto? Leads { get; set; }
     public CustomerStatsDto? Customers { get; set; }
     public FieldServiceStatsDto? FieldService { get; set; }
     public SalesStatsDto? Sales { get; set; }
+}
+
+public class LeadStatsDto
+{
+    public int TotalCount { get; set; }
+    public int NewCount { get; set; }
+    public int TouchesThisWeek { get; set; }
+    public decimal ReplyRate { get; set; }
+    public int ConvertedThisMonth { get; set; }
 }
 
 public class CustomerStatsDto

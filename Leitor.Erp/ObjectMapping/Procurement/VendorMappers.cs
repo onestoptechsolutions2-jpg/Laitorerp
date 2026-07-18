@@ -10,9 +10,11 @@ public partial class VendorToVendorDtoMapper : MapperBase<Vendor, VendorDto>
 {
     [MapperIgnoreSource(nameof(Vendor.ExtraProperties))]
     [MapperIgnoreSource(nameof(Vendor.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(VendorDto.PortalUserName))]
     public override partial VendorDto Map(Vendor source);
 
     [MapperIgnoreSource(nameof(Vendor.ExtraProperties))]
     [MapperIgnoreSource(nameof(Vendor.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(VendorDto.PortalUserName))]
     public override partial void Map(Vendor source, VendorDto destination);
 }

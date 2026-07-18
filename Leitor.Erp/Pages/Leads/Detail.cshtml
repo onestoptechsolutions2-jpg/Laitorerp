@@ -5,7 +5,12 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Leads.DetailModel
 
-<div class="card">
+@if (Model.Lead.DoNotContact)
+{
+    <div class="alert alert-danger">@L["DoNotContact"]</div>
+}
+
+<div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@Model.Lead.Name</h5>
         <div>
@@ -43,11 +48,84 @@
             <dt class="col-sm-2">@L["AssignedTo"]</dt>
             <dd class="col-sm-4">@Model.Lead.AssignedToUserName</dd>
 
+            @if (Model.ChannelStatus.Count > 0)
+            {
+                <dt class="col-sm-2">@L["ChannelStatus"]</dt>
+                <dd class="col-sm-10">
+                    @foreach (var status in Model.ChannelStatus)
+                    {
+                        <span class="badge bg-secondary me-2">
+                            @L[$"Enum:LeadChannel:{(int)status.Channel}"]: @L[$"Enum:LeadDirection:{(int)status.Direction}"] (@status.TouchedAt.ToString("g"))
+                        </span>
+                    }
+                </dd>
+            }
+
             @if (!string.IsNullOrWhiteSpace(Model.Lead.Notes))
             {
                 <dt class="col-sm-2">@L["Notes"]</dt>
                 <dd class="col-sm-10">@Model.Lead.Notes</dd>
             }
         </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["ChannelActivity"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit && !Model.Lead.DoNotContact)
+        {
+            <form method="post" asp-page-handler="AddTouch" class="row g-2 mb-3">
+                <div class="col-auto">
+                    <select asp-for="NewTouch.Channel" class="form-select">
+                        <option value="0">@L["Enum:LeadChannel:0"]</option>
+                        <option value="1">@L["Enum:LeadChannel:1"]</option>
+                        <option value="2">@L["Enum:LeadChannel:2"]</option>
+                        <option value="3">@L["Enum:LeadChannel:3"]</option>
+                        <option value="4">@L["Enum:LeadChannel:4"]</option>
+                        <option value="5">@L["Enum:LeadChannel:5"]</option>
+                        <option value="6">@L["Enum:LeadChannel:6"]</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <select asp-for="NewTouch.Direction" class="form-select">
+                        <option value="0">@L["Enum:LeadDirection:0"]</option>
+                        <option value="1">@L["Enum:LeadDirection:1"]</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="text" asp-for="NewTouch.Notes" class="form-control" placeholder="@L["Notes"]" />
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">@L["LogTouch"]</button>
+                </div>
+            </form>
+        }
+
+        @foreach (var touch in Model.Touches)
+        {
+            <div class="border-bottom pb-2 mb-2">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="badge bg-secondary">@L[$"Enum:LeadChannel:{(int)touch.Channel}"]</span>
+                        <span class="badge bg-info">@L[$"Enum:LeadDirection:{(int)touch.Direction}"]</span>
+                        <strong class="ms-2">@touch.CreatorUserName</strong>
+                        <span class="text-muted ms-2">@touch.TouchedAt.ToString("g")</span>
+                    </div>
+                    @if (Model.CanEdit)
+                    {
+                        <form method="post" asp-page-handler="DeleteTouch" asp-route-touchId="@touch.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                        </form>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(touch.Notes))
+                {
+                    <div>@touch.Notes</div>
+                }
+            </div>
+        }
     </div>
 </div>

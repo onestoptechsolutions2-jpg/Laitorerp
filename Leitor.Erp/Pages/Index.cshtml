@@ -5,7 +5,8 @@
 @model Leitor.Erp.Pages.IndexModel
 
 @{
-    var noModulesVisible = Model.Dashboard.Customers == null &&
+    var noModulesVisible = Model.Dashboard.Leads == null &&
+                            Model.Dashboard.Customers == null &&
                             Model.Dashboard.FieldService == null &&
                             Model.Dashboard.Sales == null;
 }
@@ -21,6 +22,22 @@
 else
 {
     <div class="row mb-3">
+        @if (Model.Dashboard.Leads != null)
+        {
+            <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
+                <div class="card w-100">
+                    <div class="card-body">
+                        <div class="text-muted">@L["Leads"]</div>
+                        <div class="display-6">@Model.Dashboard.Leads.NewCount</div>
+                        <span class="small text-muted">
+                            @Model.Dashboard.Leads.TouchesThisWeek @L["Dashboard:TouchesThisWeek"]
+                            (@Model.Dashboard.Leads.ReplyRate.ToString("N0")% @L["Dashboard:ReplyRate"])
+                        </span>
+                        <a asp-page="/Leads/Index" class="small d-block">@L["Dashboard:ViewAll"]</a>
+                    </div>
+                </div>
+            </div>
+        }
         @if (Model.Dashboard.Customers != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">

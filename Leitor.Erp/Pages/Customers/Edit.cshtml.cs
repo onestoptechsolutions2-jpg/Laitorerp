@@ -51,7 +51,8 @@ public class EditModel : AbpPageModel
             Country = customer.Country,
             Status = customer.Status,
             Notes = customer.Notes,
-            AccountOwnerUserId = customer.AccountOwnerUserId
+            AccountOwnerUserId = customer.AccountOwnerUserId,
+            PortalUserId = customer.PortalUserId
         };
 
         await LoadUserOptionsAsync();

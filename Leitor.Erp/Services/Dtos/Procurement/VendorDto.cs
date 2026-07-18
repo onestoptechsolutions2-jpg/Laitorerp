@@ -14,4 +14,8 @@ public class VendorDto : FullAuditedEntityDto<Guid>
     public string? PostalCode { get; set; }
     public string? Country { get; set; }
     public string? Notes { get; set; }
+    public Guid? PortalUserId { get; set; }
+
+    // Resolved by VendorAppService from IdentityUser repository - not a stored column.
+    public string? PortalUserName { get; set; }
 }

@@ -317,6 +317,27 @@
     "Enum:LeadStatus:3": "Converted",
     "Enum:LeadStatus:4": "Lost",
     "ConvertToCustomer": "Convert to Customer",
-    "ViewCustomer": "View Customer"
+    "ViewCustomer": "View Customer",
+    "PortalAccess": "Portal Access",
+    "PortalNotLinked": "This account isn't linked to a customer or vendor record yet. Contact your account manager for access.",
+    "Menu:MyPortal": "My Portal",
+    "RaiseTicket": "Raise Ticket",
+    "Confirm": "Confirm",
+    "DoNotContact": "Do Not Contact - the system will refuse to log further outreach against this lead.",
+    "DoNotContactShort": "DNC",
+    "ChannelActivity": "Channel Activity",
+    "ChannelStatus": "Channel Status",
+    "LogTouch": "Log Touch",
+    "Enum:LeadChannel:0": "WhatsApp",
+    "Enum:LeadChannel:1": "Instagram",
+    "Enum:LeadChannel:2": "Facebook",
+    "Enum:LeadChannel:3": "LinkedIn",
+    "Enum:LeadChannel:4": "Email",
+    "Enum:LeadChannel:5": "Phone",
+    "Enum:LeadChannel:6": "Other",
+    "Enum:LeadDirection:0": "Outbound",
+    "Enum:LeadDirection:1": "Inbound",
+    "Dashboard:TouchesThisWeek": "touches this week",
+    "Dashboard:ReplyRate": "reply rate"
   }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
@@ -31,4 +32,6 @@ public class CreateUpdateVendorDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public Guid? PortalUserId { get; set; }
 }

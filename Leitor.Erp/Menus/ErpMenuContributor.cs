@@ -33,6 +33,20 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
+        // Always visible to any logged-in user, staff and portal accounts alike - it routes to
+        // whichever portal (Client/Vendor) the account is linked to, or a "not linked" message for
+        // staff who have no portal linkage. No permission gate: the linkage itself is the access
+        // control (see Pages/Portal/Index.cshtml.cs).
+        context.Menu.Items.Add(
+            new ApplicationMenuItem(
+                ErpMenus.Portal,
+                l["Menu:MyPortal"],
+                "~/Portal",
+                icon: "fas fa-address-card",
+                order: 100
+            )
+        );
+
         if (await context.IsGrantedAsync(ErpPermissions.Leads.Default))
         {
             context.Menu.Items.Add(

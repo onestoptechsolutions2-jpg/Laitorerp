@@ -20,6 +20,15 @@ public class Lead : FullAuditedAggregateRoot<Guid>
     public string? Notes { get; set; }
     public Guid? ConvertedCustomerId { get; set; }
 
+    // Consent/compliance: the system refuses to log further outreach (see
+    // LeadTouchAppService.CreateAsync) against a lead flagged Do Not Contact - it can't stop
+    // someone messaging on personal WhatsApp, but it won't record or encourage it.
+    public bool DoNotContact { get; set; }
+
+    // Digits-only normalization of Phone, computed by LeadAppService.CopyToEntity - the standing
+    // dedup key, replacing the one-off phone-normalization script this used to require.
+    public string? NormalizedPhone { get; set; }
+
     protected Lead()
     {
     }

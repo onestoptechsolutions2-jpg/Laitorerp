@@ -15,6 +15,11 @@ public class Vendor : FullAuditedAggregateRoot<Guid>
     public string? Country { get; set; }
     public string? Notes { get; set; }
 
+    // Links this Vendor to the IdentityUser they log in as on the Vendor Portal (see
+    // Pages/Portal/Vendor/Index.cshtml.cs) - one login covers both supplier (Purchase Orders) and
+    // subcontracted-technician (Field Service Jobs) access, since both reference Vendor already.
+    public Guid? PortalUserId { get; set; }
+
     protected Vendor()
     {
     }

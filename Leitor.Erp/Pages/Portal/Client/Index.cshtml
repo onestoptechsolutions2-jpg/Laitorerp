@@ -1,0 +1,143 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Portal.Client.IndexModel
+
+@if (!Model.IsLinked)
+{
+    <div class="alert alert-warning">@L["PortalNotLinked"]</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@Model.Customer.Name</h5>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="card-title mb-0">@L["Orders"]</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["OrderNumber"]</th>
+                            <th>@L["OrderDate"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["Total"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.OrderDate.ToShortDateString()</td>
+                                <td>@L[$"Enum:OrderStatus:{(int)order.Status}"]</td>
+                                <td>@Model.OrderTotals.GetValueOrDefault(order.Id).ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="card-title mb-0">@L["Invoices"]</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["InvoiceNumber"]</th>
+                            <th>@L["DueDate"]</th>
+                            <th>@L["Total"]</th>
+                            <th>@L["AmountPaid"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var invoice in Model.Invoices)
+                        {
+                            <tr>
+                                <td>@invoice.InvoiceNumber</td>
+                                <td>@invoice.DueDate.ToShortDateString()</td>
+                                <td>@Model.InvoiceTotals.GetValueOrDefault(invoice.Id).ToString("N2")</td>
+                                <td>@Model.InvoiceAmountsPaid.GetValueOrDefault(invoice.Id).ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h5 class="card-title mb-0">@L["Contracts"]</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["ContractNumber"]</th>
+                            <th>@L["Title"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["EndDate"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var contract in Model.Contracts)
+                        {
+                            <tr>
+                                <td>@contract.ContractNumber</td>
+                                <td>@contract.Title</td>
+                                <td>@L[$"Enum:CustomerContractStatus:{(int)contract.Status}"]</td>
+                                <td>@(contract.EndDate?.ToShortDateString())</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h5 class="card-title mb-0">@L["Tickets"]</h5></div>
+        <div class="card-body">
+            <form method="post" asp-page-handler="RaiseTicket" class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <input type="text" asp-for="NewTicketSubject" class="form-control" placeholder="@L["Subject"]" />
+                </div>
+                <div class="col-md-5">
+                    <input type="text" asp-for="NewTicketMessage" class="form-control" placeholder="@L["MessageText"]" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">@L["RaiseTicket"]</button>
+                </div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["TicketNumber"]</th>
+                            <th>@L["Subject"]</th>
+                            <th>@L["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in Model.Tickets)
+                        {
+                            <tr>
+                                <td>@ticket.TicketNumber</td>
+                                <td>@ticket.Subject</td>
+                                <td>@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

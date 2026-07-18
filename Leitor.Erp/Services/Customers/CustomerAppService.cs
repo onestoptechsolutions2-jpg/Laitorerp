@@ -171,26 +171,33 @@ public class CustomerAppService :
 
     private async Task ResolveAccountOwnerNamesAsync(IReadOnlyCollection<CustomerDto> customers)
     {
-        var ownerIds = customers
+        var userIds = customers
             .Where(x => x.AccountOwnerUserId.HasValue)
             .Select(x => x.AccountOwnerUserId!.Value)
+            .Concat(customers.Where(x => x.PortalUserId.HasValue).Select(x => x.PortalUserId!.Value))
             .Distinct()
             .ToList();
 
-        if (ownerIds.Count == 0)
+        if (userIds.Count == 0)
         {
             return;
         }
 
-        var owners = await _identityUserRepository.GetListAsync(x => ownerIds.Contains(x.Id));
-        var ownerNamesById = owners.ToDictionary(x => x.Id, x => x.UserName);
+        var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
+        var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
 
         foreach (var customer in customers)
         {
             if (customer.AccountOwnerUserId.HasValue &&
-                ownerNamesById.TryGetValue(customer.AccountOwnerUserId.Value, out var userName))
+                namesById.TryGetValue(customer.AccountOwnerUserId.Value, out var ownerName))
             {
-                customer.AccountOwnerUserName = userName;
+                customer.AccountOwnerUserName = ownerName;
+            }
+
+            if (customer.PortalUserId.HasValue &&
+                namesById.TryGetValue(customer.PortalUserId.Value, out var portalUserName))
+            {
+                customer.PortalUserName = portalUserName;
             }
         }
     }
@@ -235,5 +242,6 @@ public class CustomerAppService :
         entity.Status = input.Status;
         entity.Notes = input.Notes;
         entity.AccountOwnerUserId = input.AccountOwnerUserId;
+        entity.PortalUserId = input.PortalUserId;
     }
 }

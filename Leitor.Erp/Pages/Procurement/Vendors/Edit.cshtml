@@ -21,6 +21,7 @@
             <abp-input asp-for="Vendor.PostalCode" />
             <abp-input asp-for="Vendor.Country" />
             <abp-input asp-for="Vendor.Notes" />
+            <abp-select asp-for="Vendor.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"]" />
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>

@@ -20,6 +20,7 @@
             <abp-input asp-for="Lead.Status" />
             <abp-select asp-for="Lead.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
             <abp-input asp-for="Lead.Notes" />
+            <abp-input asp-for="Lead.DoNotContact" />
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>

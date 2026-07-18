@@ -29,6 +29,9 @@
                 </select>
             </div>
             <div class="col-auto">
+                <select asp-for="AssignedToUserId" class="form-select" asp-items="Model.UserOptions"></select>
+            </div>
+            <div class="col-auto">
                 <button type="submit" class="btn btn-secondary">@L["Search"]</button>
             </div>
         </form>
@@ -48,7 +51,13 @@
                     @foreach (var lead in Model.Leads)
                     {
                         <tr>
-                            <td><a asp-page="./Detail" asp-route-id="@lead.Id">@lead.Name</a></td>
+                            <td>
+                                <a asp-page="./Detail" asp-route-id="@lead.Id">@lead.Name</a>
+                                @if (lead.DoNotContact)
+                                {
+                                    <span class="badge bg-danger ms-1">@L["DoNotContactShort"]</span>
+                                }
+                            </td>
                             <td>@lead.CompanyName</td>
                             <td>@L[$"Enum:LeadSource:{(int)lead.Source}"]</td>
                             <td>@L[$"Enum:LeadStatus:{(int)lead.Status}"]</td>

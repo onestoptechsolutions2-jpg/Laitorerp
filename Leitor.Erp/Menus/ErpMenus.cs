@@ -18,6 +18,7 @@ public class ErpMenus
     public const string ProcurementVendors = Procurement + ".Vendors";
     public const string ProcurementPurchaseOrders = Procurement + ".PurchaseOrders";
     public const string AuditLogs = Prefix + ".AuditLogs";
+    public const string Portal = Prefix + ".Portal";
 
     //Add your menu items here...
 

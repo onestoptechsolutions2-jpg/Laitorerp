@@ -38,4 +38,6 @@ public class CreateUpdateCustomerDto
     public string? Notes { get; set; }
 
     public Guid? AccountOwnerUserId { get; set; }
+
+    public Guid? PortalUserId { get; set; }
 }

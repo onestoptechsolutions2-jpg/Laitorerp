@@ -17,6 +17,7 @@
             <abp-input asp-for="Customer.PhoneNumber" />
             <abp-input asp-for="Customer.Status" />
             <abp-select asp-for="Customer.AccountOwnerUserId" asp-items="Model.UserOptions" label="@L["AccountOwner"]" />
+            <abp-select asp-for="Customer.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"]" />
             <abp-input asp-for="Customer.AddressLine" />
             <abp-input asp-for="Customer.City" />
             <abp-input asp-for="Customer.State" />

@@ -17,6 +17,11 @@ public class Customer : FullAuditedAggregateRoot<Guid>
     public string? Notes { get; set; }
     public Guid? AccountOwnerUserId { get; set; }
 
+    // Links this Customer to the IdentityUser they log in as on the Client Portal (see
+    // Pages/Portal/Client/Index.cshtml.cs). Presence of this link is itself the portal
+    // authorization - no separate permission is granted for it.
+    public Guid? PortalUserId { get; set; }
+
     protected Customer()
     {
     }

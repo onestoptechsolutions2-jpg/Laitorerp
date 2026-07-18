@@ -1,11 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Procurement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Identity;
 
 namespace Leitor.Erp.Pages.Procurement.Vendors;
 
@@ -13,10 +18,14 @@ namespace Leitor.Erp.Pages.Procurement.Vendors;
 public class EditModel : AbpPageModel
 {
     private readonly VendorAppService _vendorAppService;
+    private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
 
-    public EditModel(VendorAppService vendorAppService)
+    public EditModel(
+        VendorAppService vendorAppService,
+        IRepository<IdentityUser, Guid> identityUserRepository)
     {
         _vendorAppService = vendorAppService;
+        _identityUserRepository = identityUserRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -24,6 +33,8 @@ public class EditModel : AbpPageModel
 
     [BindProperty]
     public CreateUpdateVendorDto Vendor { get; set; } = new();
+
+    public List<SelectListItem> UserOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -38,18 +49,31 @@ public class EditModel : AbpPageModel
             State = vendor.State,
             PostalCode = vendor.PostalCode,
             Country = vendor.Country,
-            Notes = vendor.Notes
+            Notes = vendor.Notes,
+            PortalUserId = vendor.PortalUserId
         };
+
+        await LoadUserOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
+            await LoadUserOptionsAsync();
             return Page();
         }
 
         await _vendorAppService.UpdateAsync(Id, Vendor);
         return RedirectToPage("./Index");
+    }
+
+    private async Task LoadUserOptionsAsync()
+    {
+        var users = await _identityUserRepository.GetListAsync();
+        UserOptions = new List<SelectListItem> { new(L["None"], "") };
+        UserOptions.AddRange(
+            users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
+        );
     }
 }
