@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -21,19 +23,22 @@ public class InvoiceAppService :
     private readonly IRepository<Payment, Guid> _paymentRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IDataFilter _dataFilter;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public InvoiceAppService(
         IRepository<Invoice, Guid> repository,
         IRepository<InvoiceLine, Guid> lineRepository,
         IRepository<Payment, Guid> paymentRepository,
         IRepository<Customer, Guid> customerRepository,
-        IDataFilter dataFilter)
+        IDataFilter dataFilter,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _paymentRepository = paymentRepository;
         _customerRepository = customerRepository;
         _dataFilter = dataFilter;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -47,6 +52,7 @@ public class InvoiceAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Invoice", id);
 
         var lines = await _lineRepository.GetListAsync(x => x.InvoiceId == id);
         await _lineRepository.DeleteManyAsync(lines);

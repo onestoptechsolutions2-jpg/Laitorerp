@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Extensions.DependencyInjection;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
+using Leitor.Erp.BackgroundWorkers;
 using Leitor.Erp.Data;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Localization;
@@ -20,6 +22,7 @@ using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.Autofac;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Mapperly;
 using Volo.Abp.Emailing;
 using Volo.Abp.EntityFrameworkCore;
@@ -375,5 +378,12 @@ public class ErpModule : AbpModule
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
+    }
+
+    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        await base.OnApplicationInitializationAsync(context);
+
+        await context.AddBackgroundWorkerAsync<ContractExpiryAlertWorker>();
     }
 }

@@ -175,6 +175,18 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.DeletionApprovals.Default))
+        {
+            administration.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.DeletionApprovals,
+                    l["Menu:DeletionApprovals"],
+                    "~/Governance/DeletionApprovals",
+                    icon: "fas fa-trash-can-arrow-up"
+                )
+            );
+        }
+
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

@@ -1,0 +1,9 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model bool
+
+@if (Model)
+{
+    <div class="alert alert-warning">@L["PendingDeletionApproval"]</div>
+}

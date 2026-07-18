@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Support;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -24,6 +26,7 @@ public class TicketAppService :
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IClock _clock;
     private readonly IDataFilter _dataFilter;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public TicketAppService(
         IRepository<Ticket, Guid> repository,
@@ -31,7 +34,8 @@ public class TicketAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IClock clock,
-        IDataFilter dataFilter)
+        IDataFilter dataFilter,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _messageRepository = messageRepository;
@@ -39,6 +43,7 @@ public class TicketAppService :
         _identityUserRepository = identityUserRepository;
         _clock = clock;
         _dataFilter = dataFilter;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Support.Default;
         GetListPolicyName = ErpPermissions.Support.Default;
@@ -53,6 +58,7 @@ public class TicketAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Ticket", id);
 
         var messages = await _messageRepository.GetListAsync(x => x.TicketId == id);
         await _messageRepository.DeleteManyAsync(messages);

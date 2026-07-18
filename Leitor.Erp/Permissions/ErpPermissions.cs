@@ -84,4 +84,14 @@ public static class ErpPermissions
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
     }
+
+    // Deletion is permission-based but gated by approval: Decide (Admin/Ops Manager) can delete a
+    // scoped entity immediately; everyone else's delete action files a request here instead - see
+    // Services/Governance/DeletionGate.cs.
+    public static class DeletionApprovals
+    {
+        public const string GroupName = "Erp.DeletionApprovals";
+        public const string Default = GroupName;
+        public const string Decide = Default + ".Decide";
+    }
 }

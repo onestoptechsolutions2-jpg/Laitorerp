@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -23,6 +25,7 @@ public class VendorAppService :
     private readonly IRepository<ProductVendor, Guid> _productVendorRepository;
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public VendorAppService(
         IRepository<Vendor, Guid> repository,
@@ -30,7 +33,8 @@ public class VendorAppService :
         IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
         IRepository<ProductVendor, Guid> productVendorRepository,
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _purchaseOrderRepository = purchaseOrderRepository;
@@ -38,6 +42,7 @@ public class VendorAppService :
         _productVendorRepository = productVendorRepository;
         _fieldServiceJobRepository = fieldServiceJobRepository;
         _identityUserRepository = identityUserRepository;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Vendors.Default;
         GetListPolicyName = ErpPermissions.Vendors.Default;
@@ -53,6 +58,7 @@ public class VendorAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Vendor", id);
 
         var purchaseOrders = await _purchaseOrderRepository.GetListAsync(x => x.VendorId == id);
         if (purchaseOrders.Count > 0)

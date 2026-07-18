@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.FieldService;
+using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Support;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Pages.Customers;
 
@@ -25,6 +28,7 @@ public class DetailModel : AbpPageModel
     private readonly CustomerAttachmentAppService _customerAttachmentAppService;
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly TicketAppService _ticketAppService;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
         CustomerAppService customerAppService,
@@ -34,7 +38,8 @@ public class DetailModel : AbpPageModel
         CustomerTaskAppService customerTaskAppService,
         CustomerAttachmentAppService customerAttachmentAppService,
         FieldServiceJobAppService fieldServiceJobAppService,
-        TicketAppService ticketAppService)
+        TicketAppService ticketAppService,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _customerAppService = customerAppService;
         _customerContactAppService = customerContactAppService;
@@ -44,6 +49,7 @@ public class DetailModel : AbpPageModel
         _customerAttachmentAppService = customerAttachmentAppService;
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _ticketAppService = ticketAppService;
+        _deletionRequestRepository = deletionRequestRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -62,10 +68,12 @@ public class DetailModel : AbpPageModel
     public CreateCustomerNoteDto NewNote { get; set; } = new();
 
     public bool CanEdit { get; set; }
+    public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
+        HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Customer", Id);
 
         await LoadAsync();
     }

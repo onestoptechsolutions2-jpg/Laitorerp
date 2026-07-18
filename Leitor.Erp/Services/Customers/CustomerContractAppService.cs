@@ -55,7 +55,15 @@ public class CustomerContractAppService :
         entity.Type = input.Type;
         entity.Status = input.Status;
         entity.StartDate = input.StartDate;
+
+        // A changed EndDate is effectively a new crossing to alert on (e.g. a renewal) - clear the
+        // stamp so ContractExpiryAlertWorker treats it as unalerted again.
+        if (entity.EndDate != input.EndDate)
+        {
+            entity.LastExpiryAlertSentDate = null;
+        }
         entity.EndDate = input.EndDate;
+
         entity.Value = input.Value;
         entity.Notes = input.Notes;
     }

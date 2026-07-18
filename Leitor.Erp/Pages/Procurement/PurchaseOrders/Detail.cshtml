@@ -23,6 +23,7 @@
         </div>
     </div>
     <div class="card-body">
+        <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
         <dl class="row mb-0">
             <dt class="col-sm-2">@L["Vendor"]</dt>
             <dd class="col-sm-4">@Model.PurchaseOrder.VendorName</dd>

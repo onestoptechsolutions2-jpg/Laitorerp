@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -25,6 +27,7 @@ public class FieldServiceJobAppService :
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IClock _clock;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public FieldServiceJobAppService(
         IRepository<FieldServiceJob, Guid> repository,
@@ -33,7 +36,8 @@ public class FieldServiceJobAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<Vendor, Guid> vendorRepository,
-        IClock clock)
+        IClock clock,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _noteRepository = noteRepository;
@@ -42,6 +46,7 @@ public class FieldServiceJobAppService :
         _identityUserRepository = identityUserRepository;
         _vendorRepository = vendorRepository;
         _clock = clock;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.FieldService.Default;
         GetListPolicyName = ErpPermissions.FieldService.Default;
@@ -56,6 +61,7 @@ public class FieldServiceJobAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "FieldServiceJob", id);
 
         var notes = await _noteRepository.GetListAsync(x => x.JobId == id);
         await _noteRepository.DeleteManyAsync(notes);

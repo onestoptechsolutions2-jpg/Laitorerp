@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.FieldService;
+using Leitor.Erp.Services.Governance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -25,6 +27,7 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
         FieldServiceJobAppService fieldServiceJobAppService,
@@ -32,7 +35,8 @@ public class DetailModel : AbpPageModel
         FieldServiceJobPartAppService fieldServiceJobPartAppService,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions)
+        IOptions<ErpCompanyOptions> companyOptions,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _fieldServiceJobNoteAppService = fieldServiceJobNoteAppService;
@@ -40,6 +44,7 @@ public class DetailModel : AbpPageModel
         _customerRepository = customerRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
+        _deletionRequestRepository = deletionRequestRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -60,10 +65,12 @@ public class DetailModel : AbpPageModel
     };
 
     public bool CanEdit { get; set; }
+    public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.FieldService.Edit);
+        HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "FieldServiceJob", Id);
         await LoadAsync();
     }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
@@ -20,6 +21,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 {
     public DbSet<Lead> Leads { get; set; } = null!;
     public DbSet<LeadTouch> LeadTouches { get; set; } = null!;
+
+    public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
 
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
@@ -339,6 +342,17 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.Text).IsRequired().HasMaxLength(4000);
             b.HasIndex(x => x.TicketId);
+        });
+
+        builder.Entity<DeletionRequest>(b =>
+        {
+            b.ToTable("DeletionRequests");
+            b.ConfigureByConvention();
+            b.Property(x => x.EntityType).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Reason).HasMaxLength(2000);
+            b.Property(x => x.DecisionNotes).HasMaxLength(2000);
+            b.HasIndex(x => new { x.EntityType, x.EntityId });
+            b.HasIndex(x => x.Status);
         });
     }
 }

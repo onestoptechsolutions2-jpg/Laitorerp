@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Procurement;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +34,7 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
         PurchaseOrderAppService purchaseOrderAppService,
@@ -41,7 +44,8 @@ public class DetailModel : AbpPageModel
         IRepository<Order, Guid> orderRepository,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions)
+        IOptions<ErpCompanyOptions> companyOptions,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _purchaseOrderAppService = purchaseOrderAppService;
         _purchaseOrderLineAppService = purchaseOrderLineAppService;
@@ -51,6 +55,7 @@ public class DetailModel : AbpPageModel
         _customerRepository = customerRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
+        _deletionRequestRepository = deletionRequestRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -69,10 +74,12 @@ public class DetailModel : AbpPageModel
     };
 
     public bool CanEdit { get; set; }
+    public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Procurement.Edit);
+        HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "PurchaseOrder", Id);
         await LoadAsync();
     }
 

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -22,6 +24,7 @@ public class OrderAppService :
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
     private readonly IDataFilter _dataFilter;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public OrderAppService(
         IRepository<Order, Guid> repository,
@@ -29,7 +32,8 @@ public class OrderAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<Invoice, Guid> invoiceRepository,
         IRepository<InvoiceLine, Guid> invoiceLineRepository,
-        IDataFilter dataFilter)
+        IDataFilter dataFilter,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _lineRepository = lineRepository;
@@ -37,6 +41,7 @@ public class OrderAppService :
         _invoiceRepository = invoiceRepository;
         _invoiceLineRepository = invoiceLineRepository;
         _dataFilter = dataFilter;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -48,6 +53,7 @@ public class OrderAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Order", id);
 
         var lines = await _lineRepository.GetListAsync(x => x.OrderId == id);
         await _lineRepository.DeleteManyAsync(lines);

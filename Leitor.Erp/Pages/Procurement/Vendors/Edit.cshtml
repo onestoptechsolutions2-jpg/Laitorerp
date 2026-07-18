@@ -9,6 +9,7 @@
         <h5 class="card-title mb-0">@L["EditVendor"]</h5>
     </div>
     <div class="card-body">
+        <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
         <form method="post">
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="All" class="text-danger"></div>

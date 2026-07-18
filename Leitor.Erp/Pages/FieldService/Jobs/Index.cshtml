@@ -56,8 +56,8 @@
                             <td>
                                 @if (Model.CanDelete)
                                 {
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@job.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@job.Id" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
                                     </form>
                                 }
                             </td>

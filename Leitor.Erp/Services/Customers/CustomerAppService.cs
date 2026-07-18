@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -37,6 +39,7 @@ public class CustomerAppService :
     private readonly IRepository<FieldServiceJobPart, Guid> _jobPartRepository;
     private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IRepository<TicketMessage, Guid> _ticketMessageRepository;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public CustomerAppService(
         IRepository<Customer, Guid> repository,
@@ -57,7 +60,8 @@ public class CustomerAppService :
         IRepository<FieldServiceJobNote, Guid> jobNoteRepository,
         IRepository<FieldServiceJobPart, Guid> jobPartRepository,
         IRepository<Ticket, Guid> ticketRepository,
-        IRepository<TicketMessage, Guid> ticketMessageRepository)
+        IRepository<TicketMessage, Guid> ticketMessageRepository,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _contactRepository = contactRepository;
@@ -78,6 +82,7 @@ public class CustomerAppService :
         _jobPartRepository = jobPartRepository;
         _ticketRepository = ticketRepository;
         _ticketMessageRepository = ticketMessageRepository;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
@@ -94,6 +99,7 @@ public class CustomerAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Customer", id);
 
         var contacts = await _contactRepository.GetListAsync(x => x.CustomerId == id);
         await _contactRepository.DeleteManyAsync(contacts);

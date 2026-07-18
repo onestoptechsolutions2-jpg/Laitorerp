@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Procurement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +21,16 @@ public class EditModel : AbpPageModel
 {
     private readonly VendorAppService _vendorAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public EditModel(
         VendorAppService vendorAppService,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _vendorAppService = vendorAppService;
         _identityUserRepository = identityUserRepository;
+        _deletionRequestRepository = deletionRequestRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -35,9 +40,12 @@ public class EditModel : AbpPageModel
     public CreateUpdateVendorDto Vendor { get; set; } = new();
 
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
     {
+        HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Vendor", Id);
+
         var vendor = await _vendorAppService.GetAsync(Id);
         Vendor = new CreateUpdateVendorDto
         {

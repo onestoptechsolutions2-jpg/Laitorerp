@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -21,19 +23,22 @@ public class PurchaseOrderAppService :
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IDataFilter _dataFilter;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public PurchaseOrderAppService(
         IRepository<PurchaseOrder, Guid> repository,
         IRepository<PurchaseOrderLine, Guid> lineRepository,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<Order, Guid> orderRepository,
-        IDataFilter dataFilter)
+        IDataFilter dataFilter,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _vendorRepository = vendorRepository;
         _orderRepository = orderRepository;
         _dataFilter = dataFilter;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Procurement.Default;
         GetListPolicyName = ErpPermissions.Procurement.Default;
@@ -47,6 +52,7 @@ public class PurchaseOrderAppService :
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "PurchaseOrder", id);
 
         var lines = await _lineRepository.GetListAsync(x => x.PurchaseOrderId == id);
         await _lineRepository.DeleteManyAsync(lines);

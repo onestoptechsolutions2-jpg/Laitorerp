@@ -338,6 +338,27 @@
     "Enum:LeadDirection:0": "Outbound",
     "Enum:LeadDirection:1": "Inbound",
     "Dashboard:TouchesThisWeek": "touches this week",
-    "Dashboard:ReplyRate": "reply rate"
+    "Dashboard:ReplyRate": "reply rate",
+    "Menu:Governance": "Governance",
+    "Menu:DeletionApprovals": "Deletion Approvals",
+    "Permission:DeletionApprovals": "Deletion Approvals",
+    "Permission:Decide": "Approve/Reject Deletions",
+    "DeletionApprovals": "Deletion Approvals",
+    "RequestedBy": "Requested By",
+    "RequestedAt": "Requested At",
+    "DecidedBy": "Decided By",
+    "DecidedAt": "Decided At",
+    "DecisionNotes": "Decision Notes",
+    "Reason": "Reason",
+    "Approve": "Approve",
+    "Reject": "Reject",
+    "RequestDeletion": "Request Deletion",
+    "AreYouSureToApprove": "Are you sure you want to approve this deletion? The record will be permanently removed.",
+    "AreYouSureToRequestDeletion": "This will file a deletion request for an administrator to review. Continue?",
+    "DeletionRequestFiled": "Deletion requires approval - a request has been filed and an administrator will review it.",
+    "PendingDeletionApproval": "A deletion request for this record is pending approval.",
+    "Enum:DeletionRequestStatus:0": "Pending",
+    "Enum:DeletionRequestStatus:1": "Approved",
+    "Enum:DeletionRequestStatus:2": "Rejected"
   }
 }

@@ -15,6 +15,11 @@ public class CustomerContract : FullAuditedAggregateRoot<Guid>
     public decimal? Value { get; set; }
     public string? Notes { get; set; }
 
+    // Set by ContractExpiryAlertWorker once it emails the account owner about this EndDate: stops
+    // the daily worker run from re-sending the same alert. Reset to null whenever EndDate changes
+    // (see CustomerContractAppService.CopyToEntity) so a renewal gets its own 30-day alert.
+    public DateTime? LastExpiryAlertSentDate { get; set; }
+
     protected CustomerContract()
     {
     }

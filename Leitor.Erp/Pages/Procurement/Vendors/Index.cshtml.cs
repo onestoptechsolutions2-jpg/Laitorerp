@@ -34,12 +34,14 @@ public class IndexModel : AbpPageModel
     public bool CanCreate { get; set; }
     public bool CanEdit { get; set; }
     public bool CanDelete { get; set; }
+    public bool CanDecideDeletions { get; set; }
 
     public async Task OnGetAsync()
     {
         CanCreate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Vendors.Create);
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Vendors.Edit);
         CanDelete = await AuthorizationService.IsGrantedAsync(ErpPermissions.Vendors.Delete);
+        CanDecideDeletions = await AuthorizationService.IsGrantedAsync(ErpPermissions.DeletionApprovals.Decide);
 
         if (PageIndex < 1)
         {

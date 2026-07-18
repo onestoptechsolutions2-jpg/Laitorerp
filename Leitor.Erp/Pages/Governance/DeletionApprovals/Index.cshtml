@@ -1,0 +1,94 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Governance
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Governance.DeletionApprovals.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["DeletionApprovals"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <select name="Status" class="form-select">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Status == DeletionRequestStatus.Pending)">@L["Enum:DeletionRequestStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == DeletionRequestStatus.Approved)">@L["Enum:DeletionRequestStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == DeletionRequestStatus.Rejected)">@L["Enum:DeletionRequestStatus:2"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["EntityType"]</th>
+                        <th>@L["RequestedBy"]</th>
+                        <th>@L["RequestedAt"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["DecidedBy"]</th>
+                        <th>@L["DecisionNotes"]</th>
+                        @if (Model.CanDecide)
+                        {
+                            <th>@L["Actions"]</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model.Requests)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Leitor.Erp.Pages.Governance.DeletionApprovals.IndexModel.GetEntityDetailUrl(request.EntityType, request.EntityId)">@request.EntityType</a>
+                            </td>
+                            <td>@request.RequestedByUserName</td>
+                            <td>@request.RequestedAt.ToLocalTime()</td>
+                            <td>@L[$"Enum:DeletionRequestStatus:{(int)request.Status}"]</td>
+                            <td>@request.DecidedByUserName</td>
+                            <td>@request.DecisionNotes</td>
+                            @if (Model.CanDecide)
+                            {
+                                <td>
+                                    @if (request.Status == DeletionRequestStatus.Pending)
+                                    {
+                                        <form method="post" asp-page-handler="Approve" asp-route-id="@request.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToApprove"]');">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">@L["Approve"]</button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@request.Id">@L["Reject"]</button>
+
+                                        <div class="modal fade" id="rejectModal-@request.Id" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <form method="post" asp-page-handler="Reject" asp-route-id="@request.Id">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h6 class="modal-title">@L["Reject"] @request.EntityType</h6>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <label class="form-label">@L["DecisionNotes"]</label>
+                                                            <textarea name="notes" class="form-control" rows="3"></textarea>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                                                            <button type="submit" class="btn btn-danger">@L["Reject"]</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

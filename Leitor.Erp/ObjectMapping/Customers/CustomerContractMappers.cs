@@ -10,9 +10,11 @@ public partial class CustomerContractToCustomerContractDtoMapper : MapperBase<Cu
 {
     [MapperIgnoreSource(nameof(CustomerContract.ExtraProperties))]
     [MapperIgnoreSource(nameof(CustomerContract.ConcurrencyStamp))]
+    [MapperIgnoreSource(nameof(CustomerContract.LastExpiryAlertSentDate))]
     public override partial CustomerContractDto Map(CustomerContract source);
 
     [MapperIgnoreSource(nameof(CustomerContract.ExtraProperties))]
     [MapperIgnoreSource(nameof(CustomerContract.ConcurrencyStamp))]
+    [MapperIgnoreSource(nameof(CustomerContract.LastExpiryAlertSentDate))]
     public override partial void Map(CustomerContract source, CustomerContractDto destination);
 }
