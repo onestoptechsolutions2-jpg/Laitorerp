@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Services.Dtos.Procurement;
 using QuestPDF.Fluent;
@@ -14,17 +15,19 @@ public class PurchaseOrderPdfDocument : IDocument
     private readonly IReadOnlyList<PurchaseOrderLineDto> _lines;
     private readonly Vendor _vendor;
     private readonly ErpCompanyOptions _company;
+    private readonly Customer? _shipToCustomer;
 
-    private PurchaseOrderPdfDocument(PurchaseOrderDto purchaseOrder, IReadOnlyList<PurchaseOrderLineDto> lines, Vendor vendor, ErpCompanyOptions company)
+    private PurchaseOrderPdfDocument(PurchaseOrderDto purchaseOrder, IReadOnlyList<PurchaseOrderLineDto> lines, Vendor vendor, ErpCompanyOptions company, Customer? shipToCustomer)
     {
         _purchaseOrder = purchaseOrder;
         _lines = lines;
         _vendor = vendor;
         _company = company;
+        _shipToCustomer = shipToCustomer;
     }
 
-    public static byte[] Generate(PurchaseOrderDto purchaseOrder, IReadOnlyList<PurchaseOrderLineDto> lines, Vendor vendor, ErpCompanyOptions company) =>
-        new PurchaseOrderPdfDocument(purchaseOrder, lines, vendor, company).GeneratePdf();
+    public static byte[] Generate(PurchaseOrderDto purchaseOrder, IReadOnlyList<PurchaseOrderLineDto> lines, Vendor vendor, ErpCompanyOptions company, Customer? shipToCustomer = null) =>
+        new PurchaseOrderPdfDocument(purchaseOrder, lines, vendor, company, shipToCustomer).GeneratePdf();
 
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
@@ -54,18 +57,52 @@ public class PurchaseOrderPdfDocument : IDocument
         {
             column.Spacing(15);
 
-            column.Item().Element(c => PdfLayoutHelpers.ComposePartyBlock(
-                c,
-                "VENDOR",
-                _vendor.Name,
-                _vendor.AddressLine,
-                _vendor.City,
-                _vendor.State,
-                _vendor.PostalCode,
-                _vendor.Country,
-                _vendor.Phone,
-                _vendor.Email
-            ));
+            if (_purchaseOrder.ShipToCustomer && _shipToCustomer != null)
+            {
+                column.Item().Row(row =>
+                {
+                    row.RelativeItem().Element(c => PdfLayoutHelpers.ComposePartyBlock(
+                        c,
+                        "VENDOR",
+                        _vendor.Name,
+                        _vendor.AddressLine,
+                        _vendor.City,
+                        _vendor.State,
+                        _vendor.PostalCode,
+                        _vendor.Country,
+                        _vendor.Phone,
+                        _vendor.Email
+                    ));
+
+                    row.RelativeItem().Element(c => PdfLayoutHelpers.ComposePartyBlock(
+                        c,
+                        "SHIP TO",
+                        _shipToCustomer.Name,
+                        _shipToCustomer.AddressLine,
+                        _shipToCustomer.City,
+                        _shipToCustomer.State,
+                        _shipToCustomer.PostalCode,
+                        _shipToCustomer.Country,
+                        _shipToCustomer.PhoneNumber,
+                        _shipToCustomer.Email
+                    ));
+                });
+            }
+            else
+            {
+                column.Item().Element(c => PdfLayoutHelpers.ComposePartyBlock(
+                    c,
+                    "VENDOR",
+                    _vendor.Name,
+                    _vendor.AddressLine,
+                    _vendor.City,
+                    _vendor.State,
+                    _vendor.PostalCode,
+                    _vendor.Country,
+                    _vendor.Phone,
+                    _vendor.Email
+                ));
+            }
 
             var rows = _lines
                 .Select(x => new LineItemRow(x.Description, x.UnitPrice, x.Quantity, x.DiscountPercent, x.LineTotal))

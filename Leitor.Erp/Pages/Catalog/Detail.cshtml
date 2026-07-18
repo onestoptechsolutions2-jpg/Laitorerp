@@ -1,0 +1,107 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Catalog.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Product.Name</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Product.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Sku"]</dt>
+            <dd class="col-sm-4">@Model.Product.Sku</dd>
+            <dt class="col-sm-2">@L["Type"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:ProductType:{(int)Model.Product.Type}"]</dd>
+
+            <dt class="col-sm-2">@L["UnitPrice"]</dt>
+            <dd class="col-sm-4">@Model.Product.UnitPrice.ToString("N2")</dd>
+            <dt class="col-sm-2">@L["IsActive"]</dt>
+            <dd class="col-sm-4">@(Model.Product.IsActive ? "✓" : "")</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Product.Description))
+            {
+                <dt class="col-sm-2">@L["Description"]</dt>
+                <dd class="col-sm-10">@Model.Product.Description</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Suppliers"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="AddSupplier" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Vendor"]</label>
+                    <select asp-for="NewSupplier.VendorId" asp-items="Model.VendorOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["VendorSku"]</label>
+                    <input asp-for="NewSupplier.VendorSku" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Cost"]</label>
+                    <input asp-for="NewSupplier.Cost" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["LeadTimeDays"]</label>
+                    <input asp-for="NewSupplier.LeadTimeDays" class="form-control" />
+                </div>
+                <div class="col-md-1 form-check mb-2">
+                    <input type="checkbox" asp-for="NewSupplier.IsPreferred" class="form-check-input" />
+                    <label class="form-check-label" asp-for="NewSupplier.IsPreferred">@L["IsPreferred"]</label>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">@L["AddSupplier"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Vendor"]</th>
+                        <th>@L["VendorSku"]</th>
+                        <th>@L["Cost"]</th>
+                        <th>@L["LeadTimeDays"]</th>
+                        <th>@L["IsPreferred"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var supplier in Model.Suppliers)
+                    {
+                        <tr>
+                            <td>@supplier.VendorName</td>
+                            <td>@supplier.VendorSku</td>
+                            <td>@supplier.Cost.ToString("N2")</td>
+                            <td>@supplier.LeadTimeDays</td>
+                            <td>@(supplier.IsPreferred ? "✓" : "")</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="DeleteSupplier" asp-route-supplierId="@supplier.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

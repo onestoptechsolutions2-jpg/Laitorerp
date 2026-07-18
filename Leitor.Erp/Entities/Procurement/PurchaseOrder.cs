@@ -12,6 +12,12 @@ public class PurchaseOrder : FullAuditedAggregateRoot<Guid>
     public DateTime? ExpectedDeliveryDate { get; set; }
     public string? Notes { get; set; }
 
+    // Dropship traceability: which Sales Order this PO is fulfilling, and whether the vendor
+    // ships straight to that order's customer (dropship) or to Leitor itself (normal
+    // procurement) - a per-PO choice, since the same business does both.
+    public Guid? SourceOrderId { get; set; }
+    public bool ShipToCustomer { get; set; }
+
     protected PurchaseOrder()
     {
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Volo.Abp;
@@ -17,15 +18,18 @@ public class PurchaseOrderAppService :
 {
     private readonly IRepository<PurchaseOrderLine, Guid> _lineRepository;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
 
     public PurchaseOrderAppService(
         IRepository<PurchaseOrder, Guid> repository,
         IRepository<PurchaseOrderLine, Guid> lineRepository,
-        IRepository<Vendor, Guid> vendorRepository)
+        IRepository<Vendor, Guid> vendorRepository,
+        IRepository<Order, Guid> orderRepository)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _vendorRepository = vendorRepository;
+        _orderRepository = orderRepository;
 
         GetPolicyName = ErpPermissions.Procurement.Default;
         GetListPolicyName = ErpPermissions.Procurement.Default;
@@ -51,6 +55,7 @@ public class PurchaseOrderAppService :
         var query = await base.CreateFilteredQueryAsync(input);
         return query
             .WhereIf(input.VendorId.HasValue, x => x.VendorId == input.VendorId!.Value)
+            .WhereIf(input.SourceOrderId.HasValue, x => x.SourceOrderId == input.SourceOrderId!.Value)
             .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.PONumber.Contains(input.Filter!));
     }
 
@@ -78,11 +83,26 @@ public class PurchaseOrderAppService :
         var allLines = await _lineRepository.GetListAsync(x => purchaseOrderIds.Contains(x.PurchaseOrderId));
         var linesByPurchaseOrderId = allLines.ToLookup(x => x.PurchaseOrderId);
 
+        var sourceOrderIds = purchaseOrders
+            .Where(x => x.SourceOrderId.HasValue)
+            .Select(x => x.SourceOrderId!.Value)
+            .Distinct()
+            .ToList();
+        var orderNumbersById = sourceOrderIds.Count > 0
+            ? (await _orderRepository.GetListAsync(x => sourceOrderIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.OrderNumber)
+            : new Dictionary<Guid, string>();
+
         foreach (var purchaseOrder in purchaseOrders)
         {
             if (namesById.TryGetValue(purchaseOrder.VendorId, out var vendorName))
             {
                 purchaseOrder.VendorName = vendorName;
+            }
+
+            if (purchaseOrder.SourceOrderId.HasValue &&
+                orderNumbersById.TryGetValue(purchaseOrder.SourceOrderId.Value, out var orderNumber))
+            {
+                purchaseOrder.SourceOrderNumber = orderNumber;
             }
 
             purchaseOrder.Total = linesByPurchaseOrderId[purchaseOrder.Id]
@@ -115,5 +135,7 @@ public class PurchaseOrderAppService :
         entity.OrderDate = input.OrderDate;
         entity.ExpectedDeliveryDate = input.ExpectedDeliveryDate;
         entity.Notes = input.Notes;
+        entity.SourceOrderId = input.SourceOrderId;
+        entity.ShipToCustomer = input.ShipToCustomer;
     }
 }

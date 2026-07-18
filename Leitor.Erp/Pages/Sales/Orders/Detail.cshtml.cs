@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Procurement;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +25,7 @@ public class DetailModel : AbpPageModel
     private readonly OrderAppService _orderAppService;
     private readonly OrderLineAppService _orderLineAppService;
     private readonly ProductAppService _productAppService;
+    private readonly PurchaseOrderAppService _purchaseOrderAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
@@ -31,6 +34,7 @@ public class DetailModel : AbpPageModel
         OrderAppService orderAppService,
         OrderLineAppService orderLineAppService,
         ProductAppService productAppService,
+        PurchaseOrderAppService purchaseOrderAppService,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions)
@@ -38,6 +42,7 @@ public class DetailModel : AbpPageModel
         _orderAppService = orderAppService;
         _orderLineAppService = orderLineAppService;
         _productAppService = productAppService;
+        _purchaseOrderAppService = purchaseOrderAppService;
         _customerRepository = customerRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
@@ -50,6 +55,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<OrderLineDto> Lines { get; set; } = Array.Empty<OrderLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
+    public IReadOnlyList<PurchaseOrderDto> PurchaseOrders { get; set; } = Array.Empty<PurchaseOrderDto>();
 
     [BindProperty]
     public CreateUpdateOrderLineDto NewLine { get; set; } = new()
@@ -86,6 +92,13 @@ public class DetailModel : AbpPageModel
         ProductOptions.AddRange(
             products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.UnitPrice:N2})", x.Id.ToString()))
         );
+
+        var purchaseOrders = await _purchaseOrderAppService.GetListAsync(new GetPurchaseOrderListInput
+        {
+            SourceOrderId = Id,
+            MaxResultCount = 1000
+        });
+        PurchaseOrders = purchaseOrders.Items;
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()

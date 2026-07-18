@@ -11,12 +11,14 @@ public partial class PurchaseOrderToPurchaseOrderDtoMapper : MapperBase<Purchase
     [MapperIgnoreSource(nameof(PurchaseOrder.ExtraProperties))]
     [MapperIgnoreSource(nameof(PurchaseOrder.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.VendorName))]
+    [MapperIgnoreTarget(nameof(PurchaseOrderDto.SourceOrderNumber))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.Total))]
     public override partial PurchaseOrderDto Map(PurchaseOrder source);
 
     [MapperIgnoreSource(nameof(PurchaseOrder.ExtraProperties))]
     [MapperIgnoreSource(nameof(PurchaseOrder.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.VendorName))]
+    [MapperIgnoreTarget(nameof(PurchaseOrderDto.SourceOrderNumber))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.Total))]
     public override partial void Map(PurchaseOrder source, PurchaseOrderDto destination);
 }

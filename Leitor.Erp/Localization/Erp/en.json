@@ -285,6 +285,20 @@
     "AddMessage": "Add Message",
     "MessageText": "Message",
     "IsCustomerMessage": "From Customer",
-    "ResolvedDate": "Resolved Date"
+    "ResolvedDate": "Resolved Date",
+    "Suppliers": "Suppliers",
+    "AddSupplier": "Add Supplier",
+    "VendorSku": "Vendor SKU",
+    "Cost": "Cost",
+    "LeadTimeDays": "Lead Time (days)",
+    "IsPreferred": "Preferred",
+    "Subcontractor": "Subcontractor",
+    "CreatePurchaseOrder": "Create Purchase Order",
+    "SelectVendor": "Select a vendor...",
+    "Continue": "Continue",
+    "SourceOrder": "Source Order",
+    "ShipToCustomer": "Ship to Customer",
+    "ShipTo": "Ship To",
+    "Include": "Include"
   }
 }

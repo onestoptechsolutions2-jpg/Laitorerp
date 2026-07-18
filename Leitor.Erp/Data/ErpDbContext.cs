@@ -26,6 +26,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<CustomerAttachment> CustomerAttachments { get; set; } = null!;
 
     public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
     public DbSet<Quote> Quotes { get; set; } = null!;
     public DbSet<QuoteLine> QuoteLines { get; set; } = null!;
     public DbSet<Order> Orders { get; set; } = null!;
@@ -140,6 +141,17 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
         });
 
+        builder.Entity<ProductVendor>(b =>
+        {
+            b.ToTable("ProductVendors");
+            b.ConfigureByConvention();
+            b.Property(x => x.VendorSku).HasMaxLength(64);
+            b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.ProductId);
+            b.HasIndex(x => x.VendorId);
+        });
+
         builder.Entity<Quote>(b =>
         {
             b.ToTable("Quotes");
@@ -222,6 +234,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Description).HasMaxLength(2000);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.AssignedToUserId);
+            b.HasIndex(x => x.VendorId);
         });
 
         builder.Entity<FieldServiceJobNote>(b =>
@@ -264,6 +277,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => x.VendorId);
             b.HasIndex(x => x.PONumber).IsUnique();
+            b.HasIndex(x => x.SourceOrderId);
         });
 
         builder.Entity<PurchaseOrderLine>(b =>

@@ -12,11 +12,13 @@ public partial class FieldServiceJobToFieldServiceJobDtoMapper : MapperBase<Fiel
     [MapperIgnoreSource(nameof(FieldServiceJob.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(FieldServiceJobDto.CustomerName))]
     [MapperIgnoreTarget(nameof(FieldServiceJobDto.AssignedToUserName))]
+    [MapperIgnoreTarget(nameof(FieldServiceJobDto.VendorName))]
     public override partial FieldServiceJobDto Map(FieldServiceJob source);
 
     [MapperIgnoreSource(nameof(FieldServiceJob.ExtraProperties))]
     [MapperIgnoreSource(nameof(FieldServiceJob.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(FieldServiceJobDto.CustomerName))]
     [MapperIgnoreTarget(nameof(FieldServiceJobDto.AssignedToUserName))]
+    [MapperIgnoreTarget(nameof(FieldServiceJobDto.VendorName))]
     public override partial void Map(FieldServiceJob source, FieldServiceJobDto destination);
 }

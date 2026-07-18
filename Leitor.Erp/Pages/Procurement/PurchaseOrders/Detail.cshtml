@@ -37,6 +37,14 @@
             <dt class="col-sm-2">@L["Total"]</dt>
             <dd class="col-sm-4">@Model.PurchaseOrder.Total.ToString("N2")</dd>
 
+            @if (Model.PurchaseOrder.SourceOrderId.HasValue)
+            {
+                <dt class="col-sm-2">@L["SourceOrder"]</dt>
+                <dd class="col-sm-4"><a asp-page="/Sales/Orders/Detail" asp-route-id="@Model.PurchaseOrder.SourceOrderId">@Model.PurchaseOrder.SourceOrderNumber</a></dd>
+                <dt class="col-sm-2">@L["ShipToCustomer"]</dt>
+                <dd class="col-sm-4">@(Model.PurchaseOrder.ShipToCustomer ? L["Yes"] : L["No"])</dd>
+            }
+
             @if (!string.IsNullOrWhiteSpace(Model.PurchaseOrder.Notes))
             {
                 <dt class="col-sm-2">@L["Notes"]</dt>

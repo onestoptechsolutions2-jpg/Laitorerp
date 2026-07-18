@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Volo.Abp;
@@ -15,15 +17,21 @@ public class VendorAppService :
 {
     private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
     private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
+    private readonly IRepository<ProductVendor, Guid> _productVendorRepository;
+    private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
 
     public VendorAppService(
         IRepository<Vendor, Guid> repository,
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
-        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository)
+        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
+        IRepository<ProductVendor, Guid> productVendorRepository,
+        IRepository<FieldServiceJob, Guid> fieldServiceJobRepository)
         : base(repository)
     {
         _purchaseOrderRepository = purchaseOrderRepository;
         _purchaseOrderLineRepository = purchaseOrderLineRepository;
+        _productVendorRepository = productVendorRepository;
+        _fieldServiceJobRepository = fieldServiceJobRepository;
 
         GetPolicyName = ErpPermissions.Vendors.Default;
         GetListPolicyName = ErpPermissions.Vendors.Default;
@@ -32,8 +40,10 @@ public class VendorAppService :
         DeletePolicyName = ErpPermissions.Vendors.Delete;
     }
 
-    // PurchaseOrders are an independent aggregate root with no FK relationship configured, so
-    // deleting a vendor doesn't cascade automatically - same pattern as CustomerAppService.DeleteAsync.
+    // PurchaseOrders and ProductVendor sourcing rows are independent aggregate roots with no FK
+    // relationship configured, so deleting a vendor doesn't cascade automatically - same pattern
+    // as CustomerAppService.DeleteAsync. FieldServiceJob.VendorId is nullable (a subcontracted
+    // visit is still a real work record without its vendor), so it's cleared, not cascade-deleted.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
@@ -45,6 +55,20 @@ public class VendorAppService :
             await _purchaseOrderLineRepository.DeleteManyAsync(
                 await _purchaseOrderLineRepository.GetListAsync(x => purchaseOrderIds.Contains(x.PurchaseOrderId)));
             await _purchaseOrderRepository.DeleteManyAsync(purchaseOrders);
+        }
+
+        var productVendors = await _productVendorRepository.GetListAsync(x => x.VendorId == id);
+        await _productVendorRepository.DeleteManyAsync(productVendors);
+
+        var jobs = await _fieldServiceJobRepository.GetListAsync(x => x.VendorId == id);
+        if (jobs.Count > 0)
+        {
+            foreach (var job in jobs)
+            {
+                job.VendorId = null;
+            }
+
+            await _fieldServiceJobRepository.UpdateManyAsync(jobs);
         }
 
         await Repository.DeleteAsync(id);

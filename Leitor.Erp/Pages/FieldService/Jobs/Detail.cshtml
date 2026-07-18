@@ -52,6 +52,12 @@
             <dt class="col-sm-2">@L["AssignedTo"]</dt>
             <dd class="col-sm-4">@Model.Job.AssignedToUserName</dd>
 
+            @if (!string.IsNullOrWhiteSpace(Model.Job.VendorName))
+            {
+                <dt class="col-sm-2">@L["Subcontractor"]</dt>
+                <dd class="col-sm-4">@Model.Job.VendorName</dd>
+            }
+
             <dt class="col-sm-2">@L["ScheduledDate"]</dt>
             <dd class="col-sm-4">@Model.Job.ScheduledDate.ToShortDateString()</dd>
             <dt class="col-sm-2">@L["CompletedDate"]</dt>

@@ -1,0 +1,86 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Procurement.PurchaseOrders.CreateFromOrderModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["CreatePurchaseOrder"] - @Model.Order.OrderNumber</h5>
+    </div>
+    <div class="card-body">
+        @if (!Model.VendorId.HasValue)
+        {
+            <form method="get">
+                <input type="hidden" name="OrderId" value="@Model.OrderId" />
+                <div class="mb-3">
+                    <label class="form-label">@L["Vendor"]</label>
+                    <select name="VendorId" class="form-select" required>
+                        <option value="">@L["SelectVendor"]</option>
+                        @foreach (var vendor in Model.VendorOptions)
+                        {
+                            <option value="@vendor.Value">@vendor.Text</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">@L["Continue"]</button>
+                <a asp-page="/Sales/Orders/Detail" asp-route-id="@Model.OrderId" class="btn btn-secondary">@L["Cancel"]</a>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="Create">
+                <input type="hidden" asp-for="OrderId" />
+                <input type="hidden" asp-for="VendorId" />
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>@L["Include"]</th>
+                                <th>@L["Description"]</th>
+                                <th>@L["UnitPrice"]</th>
+                                <th>@L["Quantity"]</th>
+                                <th>@L["DiscountPercent"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.Lines.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" asp-for="Lines[i].OrderLineId" />
+                                        <input type="hidden" asp-for="Lines[i].ProductId" />
+                                        <input type="checkbox" asp-for="Lines[i].Include" class="form-check-input" />
+                                    </td>
+                                    <td><input asp-for="Lines[i].Description" class="form-control" /></td>
+                                    <td><input asp-for="Lines[i].UnitPrice" class="form-control" /></td>
+                                    <td><input asp-for="Lines[i].Quantity" class="form-control" /></td>
+                                    <td><input asp-for="Lines[i].DiscountPercent" class="form-control" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-auto form-check mt-2">
+                        <input type="checkbox" asp-for="ShipToCustomer" class="form-check-input" id="shipToCustomer" />
+                        <label class="form-check-label" for="shipToCustomer">@L["ShipToCustomer"]</label>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">@L["ExpectedDeliveryDate"]</label>
+                        <input asp-for="ExpectedDeliveryDate" class="form-control" />
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">@L["Notes"]</label>
+                        <input asp-for="Notes" class="form-control" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">@L["CreatePurchaseOrder"]</button>
+                <a asp-page="/Sales/Orders/Detail" asp-route-id="@Model.OrderId" class="btn btn-secondary">@L["Cancel"]</a>
+            </form>
+        }
+    </div>
+</div>

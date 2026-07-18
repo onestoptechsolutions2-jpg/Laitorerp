@@ -18,6 +18,7 @@
             <abp-input asp-for="Job.Status" />
             <abp-input asp-for="Job.ScheduledDate" />
             <abp-select asp-for="Job.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-select asp-for="Job.VendorId" asp-items="Model.VendorOptions" label="@L["Subcontractor"]" />
             <abp-input asp-for="Job.SiteAddress" />
             <abp-input asp-for="Job.Description" />
 

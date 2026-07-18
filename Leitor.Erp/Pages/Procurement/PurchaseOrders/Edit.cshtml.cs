@@ -59,6 +59,13 @@ public class EditModel : AbpPageModel
             return Page();
         }
 
+        // SourceOrderId/ShipToCustomer aren't editable fields on this form (set once by
+        // CreateFromOrder.cshtml.cs) - preserve the existing values rather than letting them be
+        // wiped to the DTO's defaults by model binding.
+        var existing = await _purchaseOrderAppService.GetAsync(Id);
+        PurchaseOrder.SourceOrderId = existing.SourceOrderId;
+        PurchaseOrder.ShipToCustomer = existing.ShipToCustomer;
+
         await _purchaseOrderAppService.UpdateAsync(Id, PurchaseOrder);
         return RedirectToPage("./Detail", new { id = Id });
     }

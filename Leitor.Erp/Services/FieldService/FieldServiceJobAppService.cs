@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Volo.Abp;
@@ -22,6 +23,7 @@ public class FieldServiceJobAppService :
     private readonly IRepository<FieldServiceJobPart, Guid> _partRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IClock _clock;
 
     public FieldServiceJobAppService(
@@ -30,6 +32,7 @@ public class FieldServiceJobAppService :
         IRepository<FieldServiceJobPart, Guid> partRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Vendor, Guid> vendorRepository,
         IClock clock)
         : base(repository)
     {
@@ -37,6 +40,7 @@ public class FieldServiceJobAppService :
         _partRepository = partRepository;
         _customerRepository = customerRepository;
         _identityUserRepository = identityUserRepository;
+        _vendorRepository = vendorRepository;
         _clock = clock;
 
         GetPolicyName = ErpPermissions.FieldService.Default;
@@ -107,6 +111,15 @@ public class FieldServiceJobAppService :
             ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
+        var vendorIds = jobs
+            .Where(x => x.VendorId.HasValue)
+            .Select(x => x.VendorId!.Value)
+            .Distinct()
+            .ToList();
+        var vendorNamesById = vendorIds.Count > 0
+            ? (await _vendorRepository.GetListAsync(x => vendorIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
         foreach (var job in jobs)
         {
             if (customerNamesById.TryGetValue(job.CustomerId, out var customerName))
@@ -117,6 +130,11 @@ public class FieldServiceJobAppService :
             if (job.AssignedToUserId.HasValue && usersById.TryGetValue(job.AssignedToUserId.Value, out var userName))
             {
                 job.AssignedToUserName = userName;
+            }
+
+            if (job.VendorId.HasValue && vendorNamesById.TryGetValue(job.VendorId.Value, out var vendorName))
+            {
+                job.VendorName = vendorName;
             }
         }
     }
@@ -144,6 +162,7 @@ public class FieldServiceJobAppService :
         entity.Type = input.Type;
         entity.ScheduledDate = input.ScheduledDate;
         entity.AssignedToUserId = input.AssignedToUserId;
+        entity.VendorId = input.VendorId;
         entity.SiteAddress = input.SiteAddress;
         entity.Description = input.Description;
 

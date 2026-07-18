@@ -22,6 +22,8 @@ public class CreateUpdateFieldServiceJobDto
 
     public Guid? AssignedToUserId { get; set; }
 
+    public Guid? VendorId { get; set; }
+
     [StringLength(512)]
     public string? SiteAddress { get; set; }
 

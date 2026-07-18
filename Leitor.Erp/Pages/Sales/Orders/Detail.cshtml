@@ -14,6 +14,7 @@
                 <form method="post" asp-page-handler="ConvertToInvoice" class="d-inline" onsubmit="return confirm('@L["ConvertToInvoice"]?');">
                     <button type="submit" class="btn btn-success">@L["ConvertToInvoice"]</button>
                 </form>
+                <a asp-page="/Procurement/PurchaseOrders/CreateFromOrder" asp-route-orderId="@Model.Order.Id" class="btn btn-outline-primary">@L["CreatePurchaseOrder"]</a>
             }
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Order.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
@@ -108,6 +109,39 @@
                                     </form>
                                 }
                             </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["PurchaseOrders"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["PONumber"]</th>
+                        <th>@L["Vendor"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["ShipToCustomer"]</th>
+                        <th>@L["Total"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var purchaseOrder in Model.PurchaseOrders)
+                    {
+                        <tr>
+                            <td><a asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
+                            <td>@purchaseOrder.VendorName</td>
+                            <td>@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</td>
+                            <td>@(purchaseOrder.ShipToCustomer ? L["Yes"] : L["No"])</td>
+                            <td>@purchaseOrder.Total.ToString("N2")</td>
                         </tr>
                     }
                 </tbody>

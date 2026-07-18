@@ -99,6 +99,7 @@ public class DetailModel : AbpPageModel
             Status = status,
             ScheduledDate = job.ScheduledDate,
             AssignedToUserId = job.AssignedToUserId,
+            VendorId = job.VendorId,
             SiteAddress = job.SiteAddress,
             Description = job.Description
         });

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
@@ -24,19 +25,22 @@ public class CreateModel : AbpPageModel
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<CustomerContract, Guid> _contractRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Vendor, Guid> _vendorRepository;
 
     public CreateModel(
         FieldServiceJobAppService fieldServiceJobAppService,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<CustomerContract, Guid> contractRepository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Vendor, Guid> vendorRepository)
     {
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _customerRepository = customerRepository;
         _orderRepository = orderRepository;
         _contractRepository = contractRepository;
         _identityUserRepository = identityUserRepository;
+        _vendorRepository = vendorRepository;
     }
 
     [BindProperty]
@@ -49,6 +53,7 @@ public class CreateModel : AbpPageModel
     public List<SelectListItem> OrderOptions { get; set; } = new();
     public List<SelectListItem> ContractOptions { get; set; } = new();
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public List<SelectListItem> VendorOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -98,6 +103,12 @@ public class CreateModel : AbpPageModel
         UserOptions = new List<SelectListItem> { new(L["None"], "") };
         UserOptions.AddRange(
             users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
+        );
+
+        var vendors = await _vendorRepository.GetListAsync();
+        VendorOptions = new List<SelectListItem> { new(L["None"], "") };
+        VendorOptions.AddRange(
+            vendors.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
         );
     }
 }

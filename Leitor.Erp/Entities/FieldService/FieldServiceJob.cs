@@ -13,6 +13,11 @@ public class FieldServiceJob : FullAuditedAggregateRoot<Guid>
     public DateTime ScheduledDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public Guid? AssignedToUserId { get; set; }
+
+    // Subcontracted visits: dispatched to an external Vendor's technician instead of Leitor's own
+    // staff. Independent of AssignedToUserId - either, both, or neither may be set.
+    public Guid? VendorId { get; set; }
+
     public string? SiteAddress { get; set; }
     public string? Description { get; set; }
 

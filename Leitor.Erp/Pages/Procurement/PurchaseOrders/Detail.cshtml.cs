@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -26,6 +28,8 @@ public class DetailModel : AbpPageModel
     private readonly PurchaseOrderLineAppService _purchaseOrderLineAppService;
     private readonly ProductAppService _productAppService;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
 
@@ -34,6 +38,8 @@ public class DetailModel : AbpPageModel
         PurchaseOrderLineAppService purchaseOrderLineAppService,
         ProductAppService productAppService,
         IRepository<Vendor, Guid> vendorRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions)
     {
@@ -41,6 +47,8 @@ public class DetailModel : AbpPageModel
         _purchaseOrderLineAppService = purchaseOrderLineAppService;
         _productAppService = productAppService;
         _vendorRepository = vendorRepository;
+        _orderRepository = orderRepository;
+        _customerRepository = customerRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
     }
@@ -52,6 +60,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<PurchaseOrderLineDto> Lines { get; set; } = Array.Empty<PurchaseOrderLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
     public Vendor Vendor { get; set; } = null!;
+    public Customer? ShipToCustomer { get; set; }
 
     [BindProperty]
     public CreateUpdatePurchaseOrderLineDto NewLine { get; set; } = new()
@@ -71,6 +80,13 @@ public class DetailModel : AbpPageModel
     {
         PurchaseOrder = await _purchaseOrderAppService.GetAsync(Id);
         Vendor = await _vendorRepository.GetAsync(PurchaseOrder.VendorId);
+
+        ShipToCustomer = null;
+        if (PurchaseOrder.ShipToCustomer && PurchaseOrder.SourceOrderId.HasValue)
+        {
+            var sourceOrder = await _orderRepository.GetAsync(PurchaseOrder.SourceOrderId.Value);
+            ShipToCustomer = await _customerRepository.GetAsync(sourceOrder.CustomerId);
+        }
 
         var lines = await _purchaseOrderLineAppService.GetListAsync(new GetPurchaseOrderLineListInput
         {
@@ -106,7 +122,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnGetPdfAsync()
     {
         await LoadAsync();
-        var pdfBytes = PurchaseOrderPdfDocument.Generate(PurchaseOrder, Lines, Vendor, _companyOptions);
+        var pdfBytes = PurchaseOrderPdfDocument.Generate(PurchaseOrder, Lines, Vendor, _companyOptions, ShipToCustomer);
         return File(pdfBytes, "application/pdf", $"{PurchaseOrder.PONumber}.pdf");
     }
 
@@ -116,7 +132,7 @@ public class DetailModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(Vendor.Email))
         {
-            var pdfBytes = PurchaseOrderPdfDocument.Generate(PurchaseOrder, Lines, Vendor, _companyOptions);
+            var pdfBytes = PurchaseOrderPdfDocument.Generate(PurchaseOrder, Lines, Vendor, _companyOptions, ShipToCustomer);
             await _emailSender.SendAsync(
                 Vendor.Email,
                 $"Purchase Order {PurchaseOrder.PONumber}",
