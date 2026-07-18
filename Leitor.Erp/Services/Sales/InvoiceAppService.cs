@@ -9,6 +9,7 @@ using Leitor.Erp.Services.Dtos.Sales;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Services.Sales;
@@ -19,17 +20,20 @@ public class InvoiceAppService :
     private readonly IRepository<InvoiceLine, Guid> _lineRepository;
     private readonly IRepository<Payment, Guid> _paymentRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IDataFilter _dataFilter;
 
     public InvoiceAppService(
         IRepository<Invoice, Guid> repository,
         IRepository<InvoiceLine, Guid> lineRepository,
         IRepository<Payment, Guid> paymentRepository,
-        IRepository<Customer, Guid> customerRepository)
+        IRepository<Customer, Guid> customerRepository,
+        IDataFilter dataFilter)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _paymentRepository = paymentRepository;
         _customerRepository = customerRepository;
+        _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -123,8 +127,7 @@ public class InvoiceAppService :
 
     protected override async Task<Invoice> MapToEntityAsync(CreateUpdateInvoiceDto createInput)
     {
-        var count = await Repository.GetCountAsync();
-        var invoiceNumber = $"INV-{count + 1:D6}";
+        var invoiceNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "INV-");
 
         var entity = new Invoice(GuidGenerator.Create(), createInput.CustomerId, invoiceNumber);
         CopyToEntity(createInput, entity);

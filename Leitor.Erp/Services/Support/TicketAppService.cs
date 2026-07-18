@@ -9,6 +9,7 @@ using Leitor.Erp.Services.Dtos.Support;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using Volo.Abp.Timing;
@@ -22,19 +23,22 @@ public class TicketAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IClock _clock;
+    private readonly IDataFilter _dataFilter;
 
     public TicketAppService(
         IRepository<Ticket, Guid> repository,
         IRepository<TicketMessage, Guid> messageRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
-        IClock clock)
+        IClock clock,
+        IDataFilter dataFilter)
         : base(repository)
     {
         _messageRepository = messageRepository;
         _customerRepository = customerRepository;
         _identityUserRepository = identityUserRepository;
         _clock = clock;
+        _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Support.Default;
         GetListPolicyName = ErpPermissions.Support.Default;
@@ -120,8 +124,7 @@ public class TicketAppService :
     // resolve from the DTO).
     protected override async Task<Ticket> MapToEntityAsync(CreateUpdateTicketDto createInput)
     {
-        var count = await Repository.GetCountAsync();
-        var ticketNumber = $"TKT-{count + 1:D6}";
+        var ticketNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "TKT-");
 
         var entity = new Ticket(GuidGenerator.Create(), createInput.CustomerId, ticketNumber, createInput.Subject);
         CopyToEntity(createInput, entity);

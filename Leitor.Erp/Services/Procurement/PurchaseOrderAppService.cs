@@ -9,6 +9,7 @@ using Leitor.Erp.Services.Dtos.Procurement;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Services.Procurement;
@@ -19,17 +20,20 @@ public class PurchaseOrderAppService :
     private readonly IRepository<PurchaseOrderLine, Guid> _lineRepository;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IDataFilter _dataFilter;
 
     public PurchaseOrderAppService(
         IRepository<PurchaseOrder, Guid> repository,
         IRepository<PurchaseOrderLine, Guid> lineRepository,
         IRepository<Vendor, Guid> vendorRepository,
-        IRepository<Order, Guid> orderRepository)
+        IRepository<Order, Guid> orderRepository,
+        IDataFilter dataFilter)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _vendorRepository = vendorRepository;
         _orderRepository = orderRepository;
+        _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Procurement.Default;
         GetListPolicyName = ErpPermissions.Procurement.Default;
@@ -114,8 +118,7 @@ public class PurchaseOrderAppService :
     // same reason as every other entity in this app (protected Id setter).
     protected override async Task<PurchaseOrder> MapToEntityAsync(CreateUpdatePurchaseOrderDto createInput)
     {
-        var count = await Repository.GetCountAsync();
-        var poNumber = $"PO-{count + 1:D6}";
+        var poNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "PO-");
 
         var entity = new PurchaseOrder(GuidGenerator.Create(), createInput.VendorId, poNumber);
         CopyToEntity(createInput, entity);

@@ -9,6 +9,7 @@ using Leitor.Erp.Services.Dtos.Sales;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Services.Sales;
@@ -20,19 +21,22 @@ public class OrderAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
+    private readonly IDataFilter _dataFilter;
 
     public OrderAppService(
         IRepository<Order, Guid> repository,
         IRepository<OrderLine, Guid> lineRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Invoice, Guid> invoiceRepository,
-        IRepository<InvoiceLine, Guid> invoiceLineRepository)
+        IRepository<InvoiceLine, Guid> invoiceLineRepository,
+        IDataFilter dataFilter)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _customerRepository = customerRepository;
         _invoiceRepository = invoiceRepository;
         _invoiceLineRepository = invoiceLineRepository;
+        _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -97,8 +101,7 @@ public class OrderAppService :
 
     protected override async Task<Order> MapToEntityAsync(CreateUpdateOrderDto createInput)
     {
-        var count = await Repository.GetCountAsync();
-        var orderNumber = $"SO-{count + 1:D6}";
+        var orderNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "SO-");
 
         var entity = new Order(GuidGenerator.Create(), createInput.CustomerId, orderNumber);
         CopyToEntity(createInput, entity);
@@ -130,8 +133,7 @@ public class OrderAppService :
         var order = await Repository.GetAsync(orderId);
         var orderLines = await _lineRepository.GetListAsync(x => x.OrderId == orderId);
 
-        var invoiceCount = await _invoiceRepository.GetCountAsync();
-        var invoiceNumber = $"INV-{invoiceCount + 1:D6}";
+        var invoiceNumber = await DocumentNumbering.NextAsync(_invoiceRepository, _dataFilter, "INV-");
 
         var invoice = new Invoice(GuidGenerator.Create(), order.CustomerId, invoiceNumber)
         {

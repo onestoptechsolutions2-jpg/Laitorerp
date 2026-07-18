@@ -9,6 +9,7 @@ using Leitor.Erp.Services.Dtos.Sales;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Services.Sales;
@@ -20,19 +21,22 @@ public class QuoteAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<OrderLine, Guid> _orderLineRepository;
+    private readonly IDataFilter _dataFilter;
 
     public QuoteAppService(
         IRepository<Quote, Guid> repository,
         IRepository<QuoteLine, Guid> lineRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Order, Guid> orderRepository,
-        IRepository<OrderLine, Guid> orderLineRepository)
+        IRepository<OrderLine, Guid> orderLineRepository,
+        IDataFilter dataFilter)
         : base(repository)
     {
         _lineRepository = lineRepository;
         _customerRepository = customerRepository;
         _orderRepository = orderRepository;
         _orderLineRepository = orderLineRepository;
+        _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -103,8 +107,7 @@ public class QuoteAppService :
     // resolve from the DTO).
     protected override async Task<Quote> MapToEntityAsync(CreateUpdateQuoteDto createInput)
     {
-        var count = await Repository.GetCountAsync();
-        var quoteNumber = $"Q-{count + 1:D6}";
+        var quoteNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "Q-");
 
         var entity = new Quote(GuidGenerator.Create(), createInput.CustomerId, quoteNumber, createInput.Title);
         CopyToEntity(createInput, entity);
@@ -136,8 +139,7 @@ public class QuoteAppService :
         var quote = await Repository.GetAsync(quoteId);
         var quoteLines = await _lineRepository.GetListAsync(x => x.QuoteId == quoteId);
 
-        var orderCount = await _orderRepository.GetCountAsync();
-        var orderNumber = $"SO-{orderCount + 1:D6}";
+        var orderNumber = await DocumentNumbering.NextAsync(_orderRepository, _dataFilter, "SO-");
 
         var order = new Order(GuidGenerator.Create(), quote.CustomerId, orderNumber)
         {
