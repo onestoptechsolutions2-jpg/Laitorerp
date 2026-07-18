@@ -33,6 +33,19 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
+        if (await context.IsGrantedAsync(ErpPermissions.Leads.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.Leads,
+                    l["Menu:Leads"],
+                    "~/Leads",
+                    icon: "fas fa-user-plus",
+                    order: 1
+                )
+            );
+        }
+
         if (await context.IsGrantedAsync(ErpPermissions.Customers.Default))
         {
             context.Menu.Items.Add(
@@ -41,7 +54,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:Customers"],
                     "~/Customers",
                     icon: "fas fa-users",
-                    order: 1
+                    order: 2
                 )
             );
         }
@@ -54,7 +67,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:Catalog"],
                     "~/Catalog",
                     icon: "fas fa-boxes-stacked",
-                    order: 2
+                    order: 3
                 )
             );
         }
@@ -65,7 +78,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Sales,
                 l["Menu:Sales"],
                 icon: "fas fa-file-invoice-dollar",
-                order: 3
+                order: 4
             );
 
             salesMenu.AddItem(
@@ -89,7 +102,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:FieldService"],
                     "~/FieldService/Jobs",
                     icon: "fas fa-truck-fast",
-                    order: 4
+                    order: 5
                 )
             );
         }
@@ -102,7 +115,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:Support"],
                     "~/Support/Tickets",
                     icon: "fas fa-headset",
-                    order: 5
+                    order: 6
                 )
             );
         }
@@ -116,7 +129,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Procurement,
                 l["Menu:Procurement"],
                 icon: "fas fa-truck-ramp-box",
-                order: 6
+                order: 7
             );
 
             if (canViewVendors)

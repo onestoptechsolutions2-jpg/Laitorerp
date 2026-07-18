@@ -18,6 +18,8 @@ namespace Leitor.Erp.Data;
 
 public class ErpDbContext : AbpDbContext<ErpDbContext>
 {
+    public DbSet<Lead> Leads { get; set; } = null!;
+
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
     public DbSet<CustomerContract> CustomerContracts { get; set; } = null!;
@@ -66,6 +68,19 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
         builder.ConfigureTenantManagement();
 
         /* Configure your own entities here */
+
+        builder.Entity<Lead>(b =>
+        {
+            b.ToTable("Leads");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.CompanyName).HasMaxLength(256);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.Phone).HasMaxLength(32);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.AssignedToUserId);
+            b.HasIndex(x => x.ConvertedCustomerId);
+        });
 
         builder.Entity<Customer>(b =>
         {

@@ -1,0 +1,29 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Leads.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewLead"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="Lead.Name" />
+            <abp-input asp-for="Lead.CompanyName" />
+            <abp-input asp-for="Lead.Email" />
+            <abp-input asp-for="Lead.Phone" />
+            <abp-input asp-for="Lead.Source" />
+            <abp-input asp-for="Lead.Status" />
+            <abp-select asp-for="Lead.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-input asp-for="Lead.Notes" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

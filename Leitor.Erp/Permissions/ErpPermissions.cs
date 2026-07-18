@@ -2,6 +2,15 @@ namespace Leitor.Erp.Permissions;
 
 public static class ErpPermissions
 {
+    public static class Leads
+    {
+        public const string GroupName = "Erp.Leads";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     public static class Customers
     {
         public const string GroupName = "Erp.Customers";

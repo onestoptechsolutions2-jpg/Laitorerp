@@ -1,0 +1,53 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Customers
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Leads.DetailModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Lead.Name</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Lead.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+                @if (Model.Lead.Status == LeadStatus.Converted)
+                {
+                    <a asp-page="/Customers/Detail" asp-route-id="@Model.Lead.ConvertedCustomerId" class="btn btn-success">@L["ViewCustomer"]</a>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="ConvertToCustomer" class="d-inline" onsubmit="return confirm('@L["ConvertToCustomer"]?');">
+                        <button type="submit" class="btn btn-success">@L["ConvertToCustomer"]</button>
+                    </form>
+                }
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["CompanyName"]</dt>
+            <dd class="col-sm-4">@Model.Lead.CompanyName</dd>
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:LeadStatus:{(int)Model.Lead.Status}"]</dd>
+
+            <dt class="col-sm-2">@L["Email"]</dt>
+            <dd class="col-sm-4">@Model.Lead.Email</dd>
+            <dt class="col-sm-2">@L["PhoneNumber"]</dt>
+            <dd class="col-sm-4">@Model.Lead.Phone</dd>
+
+            <dt class="col-sm-2">@L["Source"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:LeadSource:{(int)Model.Lead.Source}"]</dd>
+            <dt class="col-sm-2">@L["AssignedTo"]</dt>
+            <dd class="col-sm-4">@Model.Lead.AssignedToUserName</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Lead.Notes))
+            {
+                <dt class="col-sm-2">@L["Notes"]</dt>
+                <dd class="col-sm-10">@Model.Lead.Notes</dd>
+            }
+        </dl>
+    </div>
+</div>

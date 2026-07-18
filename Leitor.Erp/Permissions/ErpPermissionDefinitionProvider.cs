@@ -8,6 +8,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
 {
     public override void Define(IPermissionDefinitionContext context)
     {
+        var leadsGroup = context.AddGroup(ErpPermissions.Leads.GroupName, L("Permission:Leads"));
+        var leadsPermission = leadsGroup.AddPermission(ErpPermissions.Leads.Default, L("Permission:Leads"));
+        leadsPermission.AddChild(ErpPermissions.Leads.Create, L("Permission:Create"));
+        leadsPermission.AddChild(ErpPermissions.Leads.Edit, L("Permission:Edit"));
+        leadsPermission.AddChild(ErpPermissions.Leads.Delete, L("Permission:Delete"));
+
         var customersGroup = context.AddGroup(ErpPermissions.Customers.GroupName, L("Permission:Customers"));
 
         var customersPermission = customersGroup.AddPermission(ErpPermissions.Customers.Default, L("Permission:Customers"));

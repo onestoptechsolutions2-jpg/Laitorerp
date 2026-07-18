@@ -1,0 +1,71 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Customers
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Leads.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Leads"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewLead"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Name"]" />
+            </div>
+            <div class="col-auto">
+                <select name="Status" class="form-select">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Status == LeadStatus.New)">@L["Enum:LeadStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == LeadStatus.Contacted)">@L["Enum:LeadStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == LeadStatus.Qualified)">@L["Enum:LeadStatus:2"]</option>
+                    <option value="3" selected="@(Model.Status == LeadStatus.Converted)">@L["Enum:LeadStatus:3"]</option>
+                    <option value="4" selected="@(Model.Status == LeadStatus.Lost)">@L["Enum:LeadStatus:4"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["CompanyName"]</th>
+                        <th>@L["Source"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["AssignedTo"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var lead in Model.Leads)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@lead.Id">@lead.Name</a></td>
+                            <td>@lead.CompanyName</td>
+                            <td>@L[$"Enum:LeadSource:{(int)lead.Source}"]</td>
+                            <td>@L[$"Enum:LeadStatus:{(int)lead.Status}"]</td>
+                            <td>@lead.AssignedToUserName</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@lead.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

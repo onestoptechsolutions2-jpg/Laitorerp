@@ -4,6 +4,7 @@ public class ErpMenus
 {
     private const string Prefix = "Erp";
     public const string Home = Prefix + ".Home";
+    public const string Leads = Prefix + ".Leads";
     public const string Customers = Prefix + ".Customers";
     public const string Catalog = Prefix + ".Catalog";
     public const string Sales = Prefix + ".Sales";

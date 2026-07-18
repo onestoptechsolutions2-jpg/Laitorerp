@@ -299,6 +299,24 @@
     "SourceOrder": "Source Order",
     "ShipToCustomer": "Ship to Customer",
     "ShipTo": "Ship To",
-    "Include": "Include"
+    "Include": "Include",
+    "Menu:Leads": "Leads",
+    "Permission:Leads": "Lead Management",
+    "Leads": "Leads",
+    "NewLead": "New Lead",
+    "EditLead": "Edit Lead",
+    "CompanyName": "Company",
+    "Source": "Source",
+    "Enum:LeadSource:0": "Website",
+    "Enum:LeadSource:1": "Referral",
+    "Enum:LeadSource:2": "Walk-in",
+    "Enum:LeadSource:3": "Other",
+    "Enum:LeadStatus:0": "New",
+    "Enum:LeadStatus:1": "Contacted",
+    "Enum:LeadStatus:2": "Qualified",
+    "Enum:LeadStatus:3": "Converted",
+    "Enum:LeadStatus:4": "Lost",
+    "ConvertToCustomer": "Convert to Customer",
+    "ViewCustomer": "View Customer"
   }
 }
