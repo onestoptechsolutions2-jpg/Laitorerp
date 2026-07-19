@@ -12,12 +12,15 @@ public class ErpMenus
     public const string SalesQuotes = Sales + ".Quotes";
     public const string SalesOrders = Sales + ".Orders";
     public const string SalesInvoices = Sales + ".Invoices";
+    public const string SalesAnalytics = Sales + ".Analytics";
     public const string FieldService = Prefix + ".FieldService";
     public const string FieldServiceJobs = FieldService + ".Jobs";
     public const string SupportTickets = Prefix + ".Support.Tickets";
+    public const string SupportWarrantyClaims = Prefix + ".Support.WarrantyClaims";
     public const string Procurement = Prefix + ".Procurement";
     public const string ProcurementVendors = Procurement + ".Vendors";
     public const string ProcurementPurchaseOrders = Procurement + ".PurchaseOrders";
+    public const string ProcurementSupplierInvoices = Procurement + ".SupplierInvoices";
     public const string AuditLogs = Prefix + ".AuditLogs";
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";

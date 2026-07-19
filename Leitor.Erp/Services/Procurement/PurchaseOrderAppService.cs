@@ -22,6 +22,11 @@ public class PurchaseOrderAppService :
     private readonly IRepository<PurchaseOrderLine, Guid> _lineRepository;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<GoodsReceipt, Guid> _goodsReceiptRepository;
+    private readonly IRepository<GoodsReceiptLine, Guid> _goodsReceiptLineRepository;
+    private readonly IRepository<SupplierInvoice, Guid> _supplierInvoiceRepository;
+    private readonly IRepository<SupplierInvoiceLine, Guid> _supplierInvoiceLineRepository;
+    private readonly IRepository<VendorPayment, Guid> _vendorPaymentRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -30,6 +35,11 @@ public class PurchaseOrderAppService :
         IRepository<PurchaseOrderLine, Guid> lineRepository,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<Order, Guid> orderRepository,
+        IRepository<GoodsReceipt, Guid> goodsReceiptRepository,
+        IRepository<GoodsReceiptLine, Guid> goodsReceiptLineRepository,
+        IRepository<SupplierInvoice, Guid> supplierInvoiceRepository,
+        IRepository<SupplierInvoiceLine, Guid> supplierInvoiceLineRepository,
+        IRepository<VendorPayment, Guid> vendorPaymentRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -37,6 +47,11 @@ public class PurchaseOrderAppService :
         _lineRepository = lineRepository;
         _vendorRepository = vendorRepository;
         _orderRepository = orderRepository;
+        _goodsReceiptRepository = goodsReceiptRepository;
+        _goodsReceiptLineRepository = goodsReceiptLineRepository;
+        _supplierInvoiceRepository = supplierInvoiceRepository;
+        _supplierInvoiceLineRepository = supplierInvoiceLineRepository;
+        _vendorPaymentRepository = vendorPaymentRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -47,8 +62,9 @@ public class PurchaseOrderAppService :
         DeletePolicyName = ErpPermissions.Procurement.Delete;
     }
 
-    // PurchaseOrderLines are an independent aggregate root with no FK relationship configured, so
-    // deleting a PO doesn't cascade automatically - same pattern as OrderAppService.DeleteAsync.
+    // PurchaseOrderLines/GoodsReceipts/SupplierInvoices are independent aggregate roots with no FK
+    // relationship configured, so deleting a PO doesn't cascade automatically - same pattern as
+    // OrderAppService.DeleteAsync/InvoiceAppService.DeleteAsync.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
@@ -56,6 +72,23 @@ public class PurchaseOrderAppService :
 
         var lines = await _lineRepository.GetListAsync(x => x.PurchaseOrderId == id);
         await _lineRepository.DeleteManyAsync(lines);
+
+        var receipts = await _goodsReceiptRepository.GetListAsync(x => x.PurchaseOrderId == id);
+        if (receipts.Count > 0)
+        {
+            var receiptIds = receipts.Select(x => x.Id).ToList();
+            await _goodsReceiptLineRepository.DeleteManyAsync(await _goodsReceiptLineRepository.GetListAsync(x => receiptIds.Contains(x.GoodsReceiptId)));
+            await _goodsReceiptRepository.DeleteManyAsync(receipts);
+        }
+
+        var supplierInvoices = await _supplierInvoiceRepository.GetListAsync(x => x.PurchaseOrderId == id);
+        if (supplierInvoices.Count > 0)
+        {
+            var supplierInvoiceIds = supplierInvoices.Select(x => x.Id).ToList();
+            await _supplierInvoiceLineRepository.DeleteManyAsync(await _supplierInvoiceLineRepository.GetListAsync(x => supplierInvoiceIds.Contains(x.SupplierInvoiceId)));
+            await _vendorPaymentRepository.DeleteManyAsync(await _vendorPaymentRepository.GetListAsync(x => supplierInvoiceIds.Contains(x.SupplierInvoiceId)));
+            await _supplierInvoiceRepository.DeleteManyAsync(supplierInvoices);
+        }
 
         await Repository.DeleteAsync(id);
     }
@@ -102,6 +135,13 @@ public class PurchaseOrderAppService :
             ? (await _orderRepository.GetListAsync(x => sourceOrderIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.OrderNumber)
             : new Dictionary<Guid, string>();
 
+        var poLineIds = allLines.Select(x => x.Id).ToList();
+        var receivedByPoLineId = poLineIds.Count > 0
+            ? (await _goodsReceiptLineRepository.GetListAsync(x => poLineIds.Contains(x.PurchaseOrderLineId)))
+                .GroupBy(x => x.PurchaseOrderLineId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.QuantityReceived))
+            : new Dictionary<Guid, decimal>();
+
         foreach (var purchaseOrder in purchaseOrders)
         {
             if (namesById.TryGetValue(purchaseOrder.VendorId, out var vendorName))
@@ -115,8 +155,13 @@ public class PurchaseOrderAppService :
                 purchaseOrder.SourceOrderNumber = orderNumber;
             }
 
-            purchaseOrder.Total = linesByPurchaseOrderId[purchaseOrder.Id]
-                .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            var lines = linesByPurchaseOrderId[purchaseOrder.Id].ToList();
+            purchaseOrder.Total = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+
+            var orderedQuantity = lines.Sum(x => x.Quantity);
+            var receivedQuantity = lines.Sum(x => Math.Min(receivedByPoLineId.GetValueOrDefault(x.Id), x.Quantity));
+            purchaseOrder.ReceivedPercent = orderedQuantity > 0 ? receivedQuantity / orderedQuantity * 100m : 0;
+            purchaseOrder.IsFullyReceived = lines.Count > 0 && lines.All(x => receivedByPoLineId.GetValueOrDefault(x.Id) >= x.Quantity);
         }
     }
 

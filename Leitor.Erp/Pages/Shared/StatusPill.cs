@@ -83,6 +83,14 @@ public static class StatusPill
         _ => Neutral
     };
 
+    public static string For(SupplierInvoiceStatus status) => status switch
+    {
+        SupplierInvoiceStatus.Draft => Neutral,
+        SupplierInvoiceStatus.Issued => Info,
+        SupplierInvoiceStatus.Cancelled => Neutral,
+        _ => Neutral
+    };
+
     public static string For(InvoicePaymentStatus status) => status switch
     {
         InvoicePaymentStatus.Unpaid => Neutral,
@@ -118,6 +126,15 @@ public static class StatusPill
         DeletionRequestStatus.Pending => Warning,
         DeletionRequestStatus.Approved => Success,
         DeletionRequestStatus.Rejected => Danger,
+        _ => Neutral
+    };
+
+    public static string For(WarrantyClaimStatus status) => status switch
+    {
+        WarrantyClaimStatus.Open => Info,
+        WarrantyClaimStatus.Approved => Warning,
+        WarrantyClaimStatus.Rejected => Danger,
+        WarrantyClaimStatus.Resolved => Success,
         _ => Neutral
     };
 

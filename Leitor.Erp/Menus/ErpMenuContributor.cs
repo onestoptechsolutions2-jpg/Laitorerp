@@ -117,6 +117,9 @@ public class ErpMenuContributor : IMenuContributor
             salesMenu.AddItem(
                 new ApplicationMenuItem(ErpMenus.SalesInvoices, l["Menu:Invoices"], "~/Sales/Invoices", order: 3)
             );
+            salesMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SalesAnalytics, l["Menu:SalesAnalytics"], "~/Sales/Analytics", order: 4)
+            );
 
             context.Menu.Items.Add(salesMenu);
         }
@@ -145,6 +148,15 @@ public class ErpMenuContributor : IMenuContributor
                     order: 7
                 )
             );
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.SupportWarrantyClaims,
+                    l["Menu:WarrantyClaims"],
+                    "~/Support/WarrantyClaims",
+                    icon: "fas fa-shield-halved",
+                    order: 7
+                )
+            );
         }
 
         var canViewVendors = await context.IsGrantedAsync(ErpPermissions.Vendors.Default);
@@ -170,6 +182,9 @@ public class ErpMenuContributor : IMenuContributor
             {
                 procurementMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ProcurementPurchaseOrders, l["Menu:PurchaseOrders"], "~/Procurement/PurchaseOrders", order: 2)
+                );
+                procurementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ProcurementSupplierInvoices, l["Menu:SupplierInvoices"], "~/Procurement/SupplierInvoices", order: 3)
                 );
             }
 

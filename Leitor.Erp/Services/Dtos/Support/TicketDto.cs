@@ -18,8 +18,12 @@ public class TicketDto : FullAuditedEntityDto<Guid>
     public Guid? AssignedToUserId { get; set; }
     public DateTime? ResolvedDate { get; set; }
     public int? CustomerSatisfactionRating { get; set; }
+    public DateTime? SlaDueDate { get; set; }
 
     // Resolved by TicketAppService from Customer/IdentityUser repositories - not stored columns.
     public string? CustomerName { get; set; }
     public string? AssignedToUserName { get; set; }
+
+    // Computed by TicketAppService, never stored - same convention as InvoicePaymentStatus.
+    public bool IsSlaBreached { get; set; }
 }

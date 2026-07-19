@@ -13,6 +13,8 @@ public partial class PurchaseOrderToPurchaseOrderDtoMapper : MapperBase<Purchase
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.VendorName))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.SourceOrderNumber))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.Total))]
+    [MapperIgnoreTarget(nameof(PurchaseOrderDto.ReceivedPercent))]
+    [MapperIgnoreTarget(nameof(PurchaseOrderDto.IsFullyReceived))]
     public override partial PurchaseOrderDto Map(PurchaseOrder source);
 
     [MapperIgnoreSource(nameof(PurchaseOrder.ExtraProperties))]
@@ -20,5 +22,7 @@ public partial class PurchaseOrderToPurchaseOrderDtoMapper : MapperBase<Purchase
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.VendorName))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.SourceOrderNumber))]
     [MapperIgnoreTarget(nameof(PurchaseOrderDto.Total))]
+    [MapperIgnoreTarget(nameof(PurchaseOrderDto.ReceivedPercent))]
+    [MapperIgnoreTarget(nameof(PurchaseOrderDto.IsFullyReceived))]
     public override partial void Map(PurchaseOrder source, PurchaseOrderDto destination);
 }

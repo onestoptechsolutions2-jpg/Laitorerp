@@ -20,6 +20,10 @@ public class Opportunity : FullAuditedAggregateRoot<Guid>
     public string? LostReason { get; set; }
     public string? Notes { get; set; }
 
+    // Auto-tracked by OpportunityAppService the moment Status transitions into Won/Lost, cleared
+    // if reopened - same pattern as Ticket.ResolvedDate/FieldServiceJob.CompletedDate.
+    public DateTime? ClosedDate { get; set; }
+
     protected Opportunity()
     {
     }

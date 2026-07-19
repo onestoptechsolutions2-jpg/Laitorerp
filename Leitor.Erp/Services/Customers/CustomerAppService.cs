@@ -39,6 +39,7 @@ public class CustomerAppService :
     private readonly IRepository<FieldServiceJobPart, Guid> _jobPartRepository;
     private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IRepository<TicketMessage, Guid> _ticketMessageRepository;
+    private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public CustomerAppService(
@@ -61,6 +62,7 @@ public class CustomerAppService :
         IRepository<FieldServiceJobPart, Guid> jobPartRepository,
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<TicketMessage, Guid> ticketMessageRepository,
+        IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
@@ -82,6 +84,7 @@ public class CustomerAppService :
         _jobPartRepository = jobPartRepository;
         _ticketRepository = ticketRepository;
         _ticketMessageRepository = ticketMessageRepository;
+        _warrantyClaimRepository = warrantyClaimRepository;
         _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Customers.Default;
@@ -157,6 +160,9 @@ public class CustomerAppService :
             await _ticketMessageRepository.DeleteManyAsync(await _ticketMessageRepository.GetListAsync(x => ticketIds.Contains(x.TicketId)));
             await _ticketRepository.DeleteManyAsync(tickets);
         }
+
+        var warrantyClaims = await _warrantyClaimRepository.GetListAsync(x => x.CustomerId == id);
+        await _warrantyClaimRepository.DeleteManyAsync(warrantyClaims);
 
         await Repository.DeleteAsync(id);
     }

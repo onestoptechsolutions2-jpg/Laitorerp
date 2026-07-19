@@ -65,6 +65,15 @@
             <dt class="col-sm-2">@L["ResolvedDate"]</dt>
             <dd class="col-sm-4">@(Model.Ticket.ResolvedDate?.ToString("g"))</dd>
 
+            <dt class="col-sm-2">@L["SlaDueDate"]</dt>
+            <dd class="col-sm-4">
+                @Model.Ticket.SlaDueDate?.ToString("g")
+                @if (Model.Ticket.IsSlaBreached)
+                {
+                    <span class="pill pill-danger ms-1">@L["SlaBreached"]</span>
+                }
+            </dd>
+
             @if (Model.Ticket.CustomerSatisfactionRating.HasValue)
             {
                 <dt class="col-sm-2">@L["CustomerSatisfactionRating"]</dt>

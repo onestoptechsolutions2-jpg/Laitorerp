@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.FieldService;
+using Leitor.Erp.Services.Dtos.Opportunities;
+using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services.Opportunities;
+using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.Support;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +35,12 @@ public class DetailModel : AbpPageModel
     private readonly CustomerAttachmentAppService _customerAttachmentAppService;
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly TicketAppService _ticketAppService;
+    private readonly OpportunityAppService _opportunityAppService;
+    private readonly QuoteAppService _quoteAppService;
+    private readonly OrderAppService _orderAppService;
+    private readonly InvoiceAppService _invoiceAppService;
+    private readonly IRepository<Lead, Guid> _leadRepository;
+    private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
@@ -39,6 +52,12 @@ public class DetailModel : AbpPageModel
         CustomerAttachmentAppService customerAttachmentAppService,
         FieldServiceJobAppService fieldServiceJobAppService,
         TicketAppService ticketAppService,
+        OpportunityAppService opportunityAppService,
+        QuoteAppService quoteAppService,
+        OrderAppService orderAppService,
+        InvoiceAppService invoiceAppService,
+        IRepository<Lead, Guid> leadRepository,
+        IRepository<Proposal, Guid> proposalRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _customerAppService = customerAppService;
@@ -49,6 +68,12 @@ public class DetailModel : AbpPageModel
         _customerAttachmentAppService = customerAttachmentAppService;
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _ticketAppService = ticketAppService;
+        _opportunityAppService = opportunityAppService;
+        _quoteAppService = quoteAppService;
+        _orderAppService = orderAppService;
+        _invoiceAppService = invoiceAppService;
+        _leadRepository = leadRepository;
+        _proposalRepository = proposalRepository;
         _deletionRequestRepository = deletionRequestRepository;
     }
 
@@ -63,6 +88,22 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<CustomerAttachmentDto> Attachments { get; set; } = Array.Empty<CustomerAttachmentDto>();
     public IReadOnlyList<FieldServiceJobDto> FieldServiceJobs { get; set; } = Array.Empty<FieldServiceJobDto>();
     public IReadOnlyList<TicketDto> Tickets { get; set; } = Array.Empty<TicketDto>();
+
+    // 360 pipeline/finance view - the Quote/Order/Invoice repositories already existed in
+    // CustomerAppService for cascade-delete; this surfaces the same data for display instead.
+    public Lead? OriginatingLead { get; set; }
+    public IReadOnlyList<OpportunityDto> Opportunities { get; set; } = Array.Empty<OpportunityDto>();
+    public IReadOnlyList<Proposal> Proposals { get; set; } = Array.Empty<Proposal>();
+    public IReadOnlyList<QuoteDto> Quotes { get; set; } = Array.Empty<QuoteDto>();
+    public IReadOnlyList<OrderDto> Orders { get; set; } = Array.Empty<OrderDto>();
+    public IReadOnlyList<InvoiceDto> Invoices { get; set; } = Array.Empty<InvoiceDto>();
+
+    public decimal LifetimeRevenue { get; set; }
+    public decimal OutstandingBalance { get; set; }
+    public int TotalOrders { get; set; }
+    public int OpenOpportunities { get; set; }
+    public decimal? WinRate { get; set; }
+    public decimal? AverageDealSize { get; set; }
 
     [BindProperty]
     public CreateCustomerNoteDto NewNote { get; set; } = new();
@@ -125,6 +166,63 @@ public class DetailModel : AbpPageModel
             MaxResultCount = 1000
         });
         Tickets = tickets.Items;
+
+        OriginatingLead = (await _leadRepository.GetListAsync(x => x.ConvertedCustomerId == Id)).FirstOrDefault();
+
+        // Opportunities.Default and Sales.Default aren't granted to every role that holds
+        // Customers.Default (e.g. Procurement/Dispatcher can view Customers but not
+        // Opportunities) - gate each section the same way DashboardAppService already gates its
+        // own sections, rather than letting GetListAsync throw for those roles.
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Default))
+        {
+            var opportunities = await _opportunityAppService.GetListAsync(new GetOpportunityListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            Opportunities = opportunities.Items;
+
+            var opportunityIds = Opportunities.Select(x => x.Id).ToList();
+            Proposals = opportunityIds.Count > 0
+                ? (await _proposalRepository.GetListAsync(x => opportunityIds.Contains(x.OpportunityId)))
+                    .OrderByDescending(x => x.CreationTime)
+                    .ToList()
+                : Array.Empty<Proposal>();
+        }
+
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Default))
+        {
+            var quotes = await _quoteAppService.GetListAsync(new GetQuoteListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            Quotes = quotes.Items;
+
+            var orders = await _orderAppService.GetListAsync(new GetOrderListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            Orders = orders.Items;
+
+            var invoices = await _invoiceAppService.GetListAsync(new GetInvoiceListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            Invoices = invoices.Items;
+        }
+
+        LifetimeRevenue = Invoices.Sum(x => x.Total);
+        OutstandingBalance = Invoices.Sum(x => Math.Max(0, x.Total - x.AmountPaid));
+        TotalOrders = Orders.Count;
+        OpenOpportunities = Opportunities.Count(x => x.Status == OpportunityStatus.Open);
+
+        var won = Opportunities.Count(x => x.Status == OpportunityStatus.Won);
+        var lost = Opportunities.Count(x => x.Status == OpportunityStatus.Lost);
+        WinRate = won + lost > 0 ? (decimal)won / (won + lost) : null;
+        AverageDealSize = Orders.Count > 0 ? Orders.Average(x => x.Total) : null;
     }
 
     public async Task<IActionResult> OnPostDeleteContactAsync(Guid contactId)

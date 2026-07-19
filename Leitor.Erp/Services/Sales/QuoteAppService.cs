@@ -132,6 +132,15 @@ public class QuoteAppService :
     // resolve from the DTO).
     protected override async Task<Quote> MapToEntityAsync(CreateUpdateQuoteDto createInput)
     {
+        // Mirrors the same check ConvertToQuoteAsync makes - without this, the standalone New
+        // Quote page (which also accepts an optional ProposalId) could silently create a second
+        // Quote against a Proposal that's already been converted.
+        if (createInput.ProposalId.HasValue &&
+            (await Repository.GetListAsync(x => x.ProposalId == createInput.ProposalId.Value)).Any())
+        {
+            throw new UserFriendlyException("This proposal has already been converted to a quote.");
+        }
+
         var quoteNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "Q-");
 
         var entity = new Quote(GuidGenerator.Create(), createInput.CustomerId, quoteNumber, createInput.Title);

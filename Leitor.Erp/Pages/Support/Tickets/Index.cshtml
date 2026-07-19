@@ -65,7 +65,13 @@
                             <td><a class="doc-no" asp-page="./Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
                             <td>@ticket.Subject</td>
                             <td>@ticket.CustomerName</td>
-                            <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
+                            <td>
+                                <span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span>
+                                @if (ticket.IsSlaBreached)
+                                {
+                                    <span class="pill pill-danger">@L["SlaBreached"]</span>
+                                }
+                            </td>
                             <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
                             <td>@ticket.AssignedToUserName</td>
                             <td>

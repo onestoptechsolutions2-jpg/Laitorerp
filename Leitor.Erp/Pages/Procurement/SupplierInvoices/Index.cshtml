@@ -1,0 +1,64 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Procurement.SupplierInvoices.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["SupplierInvoices"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["SupplierInvoiceNumber"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["SupplierInvoiceNumber"]</th>
+                        <th>@L["Vendor"]</th>
+                        <th>@L["SourceOrder"]</th>
+                        <th>@L["DueDate"]</th>
+                        <th>@L["Total"]</th>
+                        <th>@L["AmountPaid"]</th>
+                        <th>@L["PaymentStatus"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.SupplierInvoices.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var invoice in Model.SupplierInvoices)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@invoice.Id">@invoice.SupplierInvoiceNumber</a></td>
+                            <td>@invoice.VendorName</td>
+                            <td><a class="doc-no" asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@invoice.PurchaseOrderId">@invoice.PONumber</a></td>
+                            <td>@invoice.DueDate.ToShortDateString()</td>
+                            <td>@invoice.Total.ToString("N2")</td>
+                            <td>@invoice.AmountPaid.ToString("N2")</td>
+                            <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@invoice.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

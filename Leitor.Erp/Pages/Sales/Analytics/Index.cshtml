@@ -1,0 +1,106 @@
+@page
+@using System
+@using System.Linq
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Sales.Analytics.IndexModel
+
+@{
+    var maxLeadCount = Model.LeadFunnel.Count > 0 ? Model.LeadFunnel.Max(x => x.Count) : 0;
+}
+
+@if (Model.CanViewLeadFunnel)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["LeadFunnel"]</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.LeadFunnel.Count == 0)
+            {
+                <p class="text-muted mb-0">@L["NoneYet"]</p>
+            }
+            else
+            {
+                @foreach (var stage in Model.LeadFunnel)
+                {
+                    var widthPercent = maxLeadCount > 0 ? stage.Count * 100 / maxLeadCount : 0;
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small">
+                            <span>@L[$"Enum:LeadStatus:{(int)stage.Status}"]</span>
+                            <span class="text-muted">@stage.Count</span>
+                        </div>
+                        <div class="progress" style="height: 0.5rem;">
+                            <div class="progress-bar" role="progressbar" style="width: @(widthPercent)%;"></div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+
+@if (Model.CanViewWinRateTrend)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["WinRateTrend"]</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["Month"]</th>
+                            <th>@L["Enum:OpportunityStatus:1"]</th>
+                            <th>@L["Enum:OpportunityStatus:2"]</th>
+                            <th>@L["WinRate"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var month in Model.WinRateTrend)
+                        {
+                            var total = month.WonCount + month.LostCount;
+                            <tr>
+                                <td>@(new DateTime(month.Year, month.Month, 1).ToString("MMM yyyy"))</td>
+                                <td>@month.WonCount</td>
+                                <td>@month.LostCount</td>
+                                <td>@(total > 0 ? (month.WonCount * 100m / total).ToString("N0") + "%" : "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["SalesAging"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Age"]</th>
+                        <th>@L["Quotes"]</th>
+                        <th>@L["Orders"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var bucket in Model.Aging)
+                    {
+                        <tr>
+                            <td>@bucket.Bucket @L["Days"]</td>
+                            <td>@bucket.QuoteCount</td>
+                            <td>@bucket.OrderCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

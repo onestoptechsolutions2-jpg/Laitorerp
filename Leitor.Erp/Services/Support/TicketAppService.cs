@@ -111,6 +111,8 @@ public class TicketAppService :
             ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
+        var now = _clock.Now;
+
         foreach (var ticket in tickets)
         {
             if (customerNamesById.TryGetValue(ticket.CustomerId, out var customerName))
@@ -122,8 +124,21 @@ public class TicketAppService :
             {
                 ticket.AssignedToUserName = userName;
             }
+
+            var isOpen = ticket.Status is not (TicketStatus.Resolved or TicketStatus.Closed);
+            ticket.IsSlaBreached = isOpen && ticket.SlaDueDate.HasValue && ticket.SlaDueDate.Value < now;
         }
     }
+
+    // Fixed priority -> response-time table, set once at creation and never recomputed on update
+    // (changing Priority later doesn't retroactively move an already-set target).
+    private static TimeSpan SlaWindow(TicketPriority priority) => priority switch
+    {
+        TicketPriority.Urgent => TimeSpan.FromHours(4),
+        TicketPriority.High => TimeSpan.FromHours(24),
+        TicketPriority.Medium => TimeSpan.FromHours(72),
+        _ => TimeSpan.FromHours(168)
+    };
 
     // CreateUpdateTicketDto -> Ticket is mapped manually rather than via Mapperly - same reason as
     // every other entity in this app (protected Id setter + constructor args Mapperly can't
@@ -134,6 +149,7 @@ public class TicketAppService :
 
         var entity = new Ticket(GuidGenerator.Create(), createInput.CustomerId, ticketNumber, createInput.Subject);
         CopyToEntity(createInput, entity);
+        entity.SlaDueDate = _clock.Now.Add(SlaWindow(entity.Priority));
         return entity;
     }
 

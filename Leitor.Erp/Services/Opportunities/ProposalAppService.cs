@@ -57,6 +57,16 @@ public class ProposalAppService :
 
     protected override async Task<Proposal> MapToEntityAsync(CreateUpdateProposalDto createInput)
     {
+        // Only one "live" Proposal per Opportunity at a time - a Rejected one doesn't block a
+        // fresh attempt (that's the intended supersede path), but Draft/Sent/Accepted do, so
+        // proposals can't silently accumulate against the same Opportunity.
+        var hasLiveProposal = (await Repository.GetListAsync(x => x.OpportunityId == createInput.OpportunityId))
+            .Any(x => x.Status != ProposalStatus.Rejected);
+        if (hasLiveProposal)
+        {
+            throw new UserFriendlyException("This opportunity already has an active proposal. Edit or reject the existing one before creating a new one.");
+        }
+
         var proposalNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "PROP-");
 
         var entity = new Proposal(GuidGenerator.Create(), createInput.OpportunityId, proposalNumber, createInput.Title);

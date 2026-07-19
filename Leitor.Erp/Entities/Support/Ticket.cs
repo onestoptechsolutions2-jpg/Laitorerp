@@ -18,6 +18,12 @@ public class Ticket : FullAuditedAggregateRoot<Guid>
     public DateTime? ResolvedDate { get; set; }
     public int? CustomerSatisfactionRating { get; set; }
 
+    // Set once at creation from Priority via a fixed hours table (see TicketAppService) - never
+    // recomputed on update, so changing Priority later doesn't retroactively move the target.
+    // Breach itself is computed, not stored (see TicketDto.IsSlaBreached), same convention as
+    // InvoicePaymentStatus.
+    public DateTime? SlaDueDate { get; set; }
+
     protected Ticket()
     {
     }

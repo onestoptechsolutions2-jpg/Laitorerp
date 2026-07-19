@@ -1,0 +1,28 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Support.WarrantyClaims.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewWarrantyClaim"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="WarrantyClaim.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-select asp-for="WarrantyClaim.ContractId" asp-items="Model.ContractOptions" label="@L["Contract"]" />
+            <abp-select asp-for="WarrantyClaim.JobId" asp-items="Model.JobOptions" label="@L["Job"]" />
+            <abp-select asp-for="WarrantyClaim.TicketId" asp-items="Model.TicketOptions" label="@L["Tickets"]" />
+            <abp-input asp-for="WarrantyClaim.Description" />
+            <abp-input asp-for="WarrantyClaim.Status" />
+            <abp-input asp-for="WarrantyClaim.FiledDate" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

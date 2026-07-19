@@ -139,6 +139,15 @@ public class OrderAppService :
 
     protected override async Task<Order> MapToEntityAsync(CreateUpdateOrderDto createInput)
     {
+        // Mirrors the same check QuoteAppService.ConvertToOrderAsync makes - without this, the
+        // standalone New Order page (which also accepts an optional QuoteId) could silently
+        // create a second Order against a Quote that's already been converted.
+        if (createInput.QuoteId.HasValue &&
+            (await Repository.GetListAsync(x => x.QuoteId == createInput.QuoteId.Value)).Any())
+        {
+            throw new UserFriendlyException("This quote has already been converted to an order.");
+        }
+
         var orderNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "SO-");
 
         var entity = new Order(GuidGenerator.Create(), createInput.CustomerId, orderNumber);

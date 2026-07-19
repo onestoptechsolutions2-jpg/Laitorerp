@@ -28,7 +28,10 @@
             <dt class="col-sm-2">@L["Vendor"]</dt>
             <dd class="col-sm-4">@Model.PurchaseOrder.VendorName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.PurchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)Model.PurchaseOrder.Status}"]</span></dd>
+            <dd class="col-sm-4">
+                <span class="pill @StatusPill.For(Model.PurchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)Model.PurchaseOrder.Status}"]</span>
+                <span class="small text-muted ms-1">(@Model.PurchaseOrder.ReceivedPercent.ToString("N0")% @L["Received"])</span>
+            </dd>
 
             <dt class="col-sm-2">@L["OrderDate"]</dt>
             <dd class="col-sm-4">@Model.PurchaseOrder.OrderDate.ToShortDateString()</dd>
@@ -122,5 +125,120 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["GoodsReceipts"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit && Model.Lines.Count > 0)
+        {
+            <form method="post" asp-page-handler="RecordReceipt" class="mb-3">
+                <input type="hidden" asp-for="NewReceipt.PurchaseOrderId" />
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                        <label class="form-label">@L["ReceivedDate"]</label>
+                        <input asp-for="NewReceipt.ReceivedDate" type="date" class="form-control" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">@L["Notes"]</label>
+                        <input asp-for="NewReceipt.Notes" class="form-control" />
+                    </div>
+                </div>
+                <div class="table-responsive mb-2">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>@L["Description"]</th>
+                                <th>@L["Quantity"]</th>
+                                <th>@L["QuantityToReceive"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.Lines.Count; i++)
+                            {
+                                <tr>
+                                    <td>@Model.Lines[i].Description</td>
+                                    <td>@Model.Lines[i].Quantity</td>
+                                    <td>
+                                        <input type="hidden" asp-for="NewReceipt.Lines[i].PurchaseOrderLineId" />
+                                        <input asp-for="NewReceipt.Lines[i].QuantityReceived" class="form-control form-control-sm" style="max-width: 8rem;" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-primary">@L["RecordReceipt"]</button>
+            </form>
+            <hr />
+        }
+        @if (Model.Receipts.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            @foreach (var receipt in Model.Receipts)
+            {
+                <div class="mb-2">
+                    <strong>@receipt.ReceivedDate.ToShortDateString()</strong>
+                    @if (!string.IsNullOrWhiteSpace(receipt.Notes))
+                    {
+                        <span class="text-muted small">- @receipt.Notes</span>
+                    }
+                    <ul class="small mb-0">
+                        @foreach (var line in receipt.Lines)
+                        {
+                            <li>@line.PurchaseOrderLineDescription: @line.QuantityReceived.ToString("N2")</li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["SupplierInvoices"]</h5>
+        @if (Model.CanEdit)
+        {
+            <a asp-page="/Procurement/SupplierInvoices/Create" asp-route-purchaseOrderId="@Model.PurchaseOrder.Id" class="btn btn-primary btn-sm">@L["NewSupplierInvoice"]</a>
+        }
+    </div>
+    <div class="card-body">
+        @if (Model.SupplierInvoices.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["SupplierInvoiceNumber"]</th>
+                            <th>@L["PaymentStatus"]</th>
+                            <th>@L["Total"]</th>
+                            <th>@L["AmountPaid"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var invoice in Model.SupplierInvoices)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/Procurement/SupplierInvoices/Detail" asp-route-id="@invoice.Id">@invoice.SupplierInvoiceNumber</a></td>
+                                <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
+                                <td>@invoice.Total.ToString("N2")</td>
+                                <td>@invoice.AmountPaid.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     </div>
 </div>

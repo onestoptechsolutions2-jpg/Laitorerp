@@ -52,6 +52,211 @@
 </div>
 
 <div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["PipelineAndFinance"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-lg-2 col-md-4 d-flex mb-3 mb-lg-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-sack-dollar"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted small">@L["LifetimeRevenue"]</div>
+                            <div class="h4 mb-0">@Model.LifetimeRevenue.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 d-flex mb-3 mb-lg-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted small">@L["OutstandingBalance"]</div>
+                            <div class="h4 mb-0">@Model.OutstandingBalance.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 d-flex mb-3 mb-lg-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted small">@L["TotalOrders"]</div>
+                            <div class="h4 mb-0">@Model.TotalOrders</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 d-flex mb-3 mb-lg-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted small">@L["OpenOpportunities"]</div>
+                            <div class="h4 mb-0">@Model.OpenOpportunities</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 d-flex mb-3 mb-lg-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-percent"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted small">@L["WinRate"]</div>
+                            <div class="h4 mb-0">@(Model.WinRate.HasValue ? (Model.WinRate.Value * 100).ToString("N0") + "%" : "-")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 d-flex mb-3 mb-lg-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-scale-balanced"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted small">@L["AverageDealSize"]</div>
+                            <div class="h4 mb-0">@(Model.AverageDealSize.HasValue ? Model.AverageDealSize.Value.ToString("N2") : "-")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.OriginatingLead != null)
+        {
+            <dl class="row mb-3">
+                <dt class="col-sm-2">@L["FromLead"]</dt>
+                <dd class="col-sm-10">@Model.OriginatingLead.Name (@L[$"Enum:LeadSource:{(int)Model.OriginatingLead.Source}"])</dd>
+            </dl>
+        }
+
+        <h6>@L["Opportunities"]</h6>
+        @if (Model.Opportunities.Count == 0)
+        {
+            <p class="text-muted small">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-striped">
+                    <thead><tr><th>@L["Name"]</th><th>@L["Status"]</th><th>@L["EstimatedValue"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var opportunity in Model.Opportunities)
+                        {
+                            <tr>
+                                <td><a asp-page="/Opportunities/Detail" asp-route-id="@opportunity.Id">@opportunity.Name</a></td>
+                                <td><span class="pill @StatusPill.For(opportunity.Status)">@L[$"Enum:OpportunityStatus:{(int)opportunity.Status}"]</span></td>
+                                <td>@opportunity.EstimatedValue?.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <h6>@L["Proposals"]</h6>
+        @if (Model.Proposals.Count == 0)
+        {
+            <p class="text-muted small">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-striped">
+                    <thead><tr><th>@L["ProposalNumber"]</th><th>@L["Title"]</th><th>@L["Status"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var proposal in Model.Proposals)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/Opportunities/Proposals/Edit" asp-route-id="@proposal.Id" asp-route-opportunityId="@proposal.OpportunityId">@proposal.ProposalNumber</a></td>
+                                <td>@proposal.Title</td>
+                                <td><span class="pill @StatusPill.For(proposal.Status)">@L[$"Enum:ProposalStatus:{(int)proposal.Status}"]</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <h6>@L["Quotes"]</h6>
+        @if (Model.Quotes.Count == 0)
+        {
+            <p class="text-muted small">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-striped">
+                    <thead><tr><th>@L["QuoteNumber"]</th><th>@L["Status"]</th><th>@L["Total"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var quote in Model.Quotes)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/Sales/Quotes/Detail" asp-route-id="@quote.Id">@quote.QuoteNumber</a></td>
+                                <td><span class="pill @StatusPill.For(quote.Status)">@L[$"Enum:QuoteStatus:{(int)quote.Status}"]</span></td>
+                                <td>@quote.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <h6>@L["Orders"]</h6>
+        @if (Model.Orders.Count == 0)
+        {
+            <p class="text-muted small">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-striped">
+                    <thead><tr><th>@L["OrderNumber"]</th><th>@L["Status"]</th><th>@L["Total"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/Sales/Orders/Detail" asp-route-id="@order.Id">@order.OrderNumber</a></td>
+                                <td><span class="pill @StatusPill.For(order.Status)">@L[$"Enum:OrderStatus:{(int)order.Status}"]</span></td>
+                                <td>@order.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <h6>@L["Invoices"]</h6>
+        @if (Model.Invoices.Count == 0)
+        {
+            <p class="text-muted small mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead><tr><th>@L["InvoiceNumber"]</th><th>@L["PaymentStatus"]</th><th>@L["Total"]</th><th>@L["AmountPaid"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var invoice in Model.Invoices)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/Sales/Invoices/Detail" asp-route-id="@invoice.Id">@invoice.InvoiceNumber</a></td>
+                                <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
+                                <td>@invoice.Total.ToString("N2")</td>
+                                <td>@invoice.AmountPaid.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Contacts"]</h5>
         <a asp-page="/Customers/Contacts/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["NewContact"]</a>
@@ -292,7 +497,10 @@
 <div class="card mt-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Tickets"]</h5>
-        <a asp-page="/Support/Tickets/Create" class="btn btn-primary btn-sm">@L["NewTicket"]</a>
+        <div>
+            <a asp-page="/Support/WarrantyClaims/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-outline-primary btn-sm">@L["NewWarrantyClaim"]</a>
+            <a asp-page="/Support/Tickets/Create" class="btn btn-primary btn-sm">@L["NewTicket"]</a>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">

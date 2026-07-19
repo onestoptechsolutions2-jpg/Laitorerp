@@ -1,0 +1,181 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Procurement.SupplierInvoices.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.SupplierInvoice.SupplierInvoiceNumber</span></h5>
+        <a asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@Model.SupplierInvoice.PurchaseOrderId" class="btn btn-secondary">@L["BackToList"]</a>
+    </div>
+    <div class="card-body">
+        <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Vendor"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.VendorName</dd>
+            <dt class="col-sm-2">@L["SourceOrder"]</dt>
+            <dd class="col-sm-4"><a class="doc-no" asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@Model.SupplierInvoice.PurchaseOrderId">@Model.SupplierInvoice.PONumber</a></dd>
+
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.SupplierInvoice.Status)">@L[$"Enum:SupplierInvoiceStatus:{(int)Model.SupplierInvoice.Status}"]</span></dd>
+            <dt class="col-sm-2">@L["PaymentStatus"]</dt>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.SupplierInvoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)Model.SupplierInvoice.PaymentStatus}"]</span></dd>
+
+            <dt class="col-sm-2">@L["IssueDate"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.IssueDate.ToShortDateString()</dd>
+            <dt class="col-sm-2">@L["DueDate"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.DueDate.ToShortDateString()</dd>
+
+            <dt class="col-sm-2">@L["Total"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.Total.ToString("N2")</dd>
+            <dt class="col-sm-2">@L["AmountPaid"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.AmountPaid.ToString("N2")</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.SupplierInvoice.Notes))
+            {
+                <dt class="col-sm-2">@L["Notes"]</dt>
+                <dd class="col-sm-10">@Model.SupplierInvoice.Notes</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Lines"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="AddLine" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Product"]</label>
+                    <select asp-for="NewLine.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["Description"]</label>
+                    <input asp-for="NewLine.Description" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["UnitPrice"]</label>
+                    <input asp-for="NewLine.UnitPrice" class="form-control" />
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">@L["Quantity"]</label>
+                    <input asp-for="NewLine.Quantity" class="form-control" />
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">@L["DiscountPercent"]</label>
+                    <input asp-for="NewLine.DiscountPercent" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">@L["AddLine"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Description"]</th>
+                        <th>@L["UnitPrice"]</th>
+                        <th>@L["Quantity"]</th>
+                        <th>@L["DiscountPercent"]</th>
+                        <th>@L["LineTotal"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in Model.Lines)
+                    {
+                        <tr>
+                            <td>@line.Description</td>
+                            <td>@line.UnitPrice.ToString("N2")</td>
+                            <td>@line.Quantity</td>
+                            <td>@line.DiscountPercent</td>
+                            <td>@line.LineTotal.ToString("N2")</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="DeleteLine" asp-route-lineId="@line.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Payments"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="AddPayment" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">@L["Amount"]</label>
+                    <input asp-for="NewPayment.Amount" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["PaymentDate"]</label>
+                    <input asp-for="NewPayment.PaymentDate" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Method"]</label>
+                    <select asp-for="NewPayment.Method" class="form-select">
+                        <option value="0">@L["Enum:PaymentMethod:0"]</option>
+                        <option value="1">@L["Enum:PaymentMethod:1"]</option>
+                        <option value="2">@L["Enum:PaymentMethod:2"]</option>
+                        <option value="3">@L["Enum:PaymentMethod:3"]</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["Reference"]</label>
+                    <input asp-for="NewPayment.Reference" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">@L["NewPayment"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["PaymentDate"]</th>
+                        <th>@L["Amount"]</th>
+                        <th>@L["Method"]</th>
+                        <th>@L["Reference"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in Model.Payments)
+                    {
+                        <tr>
+                            <td>@payment.PaymentDate.ToShortDateString()</td>
+                            <td>@payment.Amount.ToString("N2")</td>
+                            <td>@L[$"Enum:PaymentMethod:{(int)payment.Method}"]</td>
+                            <td>@payment.Reference</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="DeletePayment" asp-route-paymentId="@payment.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

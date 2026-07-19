@@ -152,7 +152,23 @@ public class OpportunityAppService :
 
     protected override Task MapToEntityAsync(CreateUpdateOpportunityDto updateInput, Opportunity entity)
     {
+        // Auto-tracked the same way Ticket.ResolvedDate/FieldServiceJob.CompletedDate already are -
+        // set the moment Status transitions into Won/Lost, cleared if reopened to Open. This is
+        // what makes a real win-rate-over-time trend possible (see SalesAnalyticsAppService).
+        var wasClosed = entity.Status is OpportunityStatus.Won or OpportunityStatus.Lost;
+        var isClosed = updateInput.Status is OpportunityStatus.Won or OpportunityStatus.Lost;
+
         CopyToEntity(updateInput, entity);
+
+        if (isClosed && !wasClosed)
+        {
+            entity.ClosedDate = Clock.Now;
+        }
+        else if (!isClosed)
+        {
+            entity.ClosedDate = null;
+        }
+
         return Task.CompletedTask;
     }
 

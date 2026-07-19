@@ -57,9 +57,15 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Vendor> Vendors { get; set; } = null!;
     public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
     public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; } = null!;
+    public DbSet<GoodsReceipt> GoodsReceipts { get; set; } = null!;
+    public DbSet<GoodsReceiptLine> GoodsReceiptLines { get; set; } = null!;
+    public DbSet<SupplierInvoice> SupplierInvoices { get; set; } = null!;
+    public DbSet<SupplierInvoiceLine> SupplierInvoiceLines { get; set; } = null!;
+    public DbSet<VendorPayment> VendorPayments { get; set; } = null!;
 
     public DbSet<Ticket> Tickets { get; set; } = null!;
     public DbSet<TicketMessage> TicketMessages { get; set; } = null!;
+    public DbSet<WarrantyClaim> WarrantyClaims { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -407,6 +413,54 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.PurchaseOrderId);
         });
 
+        builder.Entity<GoodsReceipt>(b =>
+        {
+            b.ToTable("GoodsReceipts");
+            b.ConfigureByConvention();
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.PurchaseOrderId);
+        });
+
+        builder.Entity<GoodsReceiptLine>(b =>
+        {
+            b.ToTable("GoodsReceiptLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.QuantityReceived).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.GoodsReceiptId);
+            b.HasIndex(x => x.PurchaseOrderLineId);
+        });
+
+        builder.Entity<SupplierInvoice>(b =>
+        {
+            b.ToTable("SupplierInvoices");
+            b.ConfigureByConvention();
+            b.Property(x => x.SupplierInvoiceNumber).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.PurchaseOrderId);
+            b.HasIndex(x => x.VendorId);
+        });
+
+        builder.Entity<SupplierInvoiceLine>(b =>
+        {
+            b.ToTable("SupplierInvoiceLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.HasIndex(x => x.SupplierInvoiceId);
+        });
+
+        builder.Entity<VendorPayment>(b =>
+        {
+            b.ToTable("VendorPayments");
+            b.ConfigureByConvention();
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Reference).HasMaxLength(128);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.SupplierInvoiceId);
+        });
+
         builder.Entity<Ticket>(b =>
         {
             b.ToTable("Tickets");
@@ -427,6 +481,19 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.Text).IsRequired().HasMaxLength(4000);
             b.HasIndex(x => x.TicketId);
+        });
+
+        builder.Entity<WarrantyClaim>(b =>
+        {
+            b.ToTable("WarrantyClaims");
+            b.ConfigureByConvention();
+            b.Property(x => x.ClaimNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Description).IsRequired().HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.ContractId);
+            b.HasIndex(x => x.JobId);
+            b.HasIndex(x => x.TicketId);
+            b.HasIndex(x => x.ClaimNumber).IsUnique();
         });
 
         builder.Entity<DeletionRequest>(b =>

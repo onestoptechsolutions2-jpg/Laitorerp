@@ -29,9 +29,12 @@ public class DetailModel : AbpPageModel
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
     private readonly PurchaseOrderLineAppService _purchaseOrderLineAppService;
     private readonly ProductAppService _productAppService;
+    private readonly GoodsReceiptAppService _goodsReceiptAppService;
+    private readonly SupplierInvoiceAppService _supplierInvoiceAppService;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<GoodsReceiptLine, Guid> _goodsReceiptLineRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -40,9 +43,12 @@ public class DetailModel : AbpPageModel
         PurchaseOrderAppService purchaseOrderAppService,
         PurchaseOrderLineAppService purchaseOrderLineAppService,
         ProductAppService productAppService,
+        GoodsReceiptAppService goodsReceiptAppService,
+        SupplierInvoiceAppService supplierInvoiceAppService,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<Customer, Guid> customerRepository,
+        IRepository<GoodsReceiptLine, Guid> goodsReceiptLineRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -50,9 +56,12 @@ public class DetailModel : AbpPageModel
         _purchaseOrderAppService = purchaseOrderAppService;
         _purchaseOrderLineAppService = purchaseOrderLineAppService;
         _productAppService = productAppService;
+        _goodsReceiptAppService = goodsReceiptAppService;
+        _supplierInvoiceAppService = supplierInvoiceAppService;
         _vendorRepository = vendorRepository;
         _orderRepository = orderRepository;
         _customerRepository = customerRepository;
+        _goodsReceiptLineRepository = goodsReceiptLineRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
         _deletionRequestRepository = deletionRequestRepository;
@@ -71,6 +80,15 @@ public class DetailModel : AbpPageModel
     public CreateUpdatePurchaseOrderLineDto NewLine { get; set; } = new()
     {
         Quantity = 1
+    };
+
+    public IReadOnlyList<GoodsReceiptDto> Receipts { get; set; } = Array.Empty<GoodsReceiptDto>();
+    public IReadOnlyList<SupplierInvoiceDto> SupplierInvoices { get; set; } = Array.Empty<SupplierInvoiceDto>();
+
+    [BindProperty]
+    public CreateGoodsReceiptDto NewReceipt { get; set; } = new()
+    {
+        ReceivedDate = DateTime.Today
     };
 
     public bool CanEdit { get; set; }
@@ -111,6 +129,32 @@ public class DetailModel : AbpPageModel
         ProductOptions.AddRange(
             products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.UnitPrice:N2})", x.Id.ToString()))
         );
+
+        var receipts = await _goodsReceiptAppService.GetListAsync(new GetGoodsReceiptListInput { PurchaseOrderId = Id });
+        Receipts = receipts;
+
+        var supplierInvoices = await _supplierInvoiceAppService.GetListAsync(new GetSupplierInvoiceListInput
+        {
+            PurchaseOrderId = Id,
+            MaxResultCount = 1000
+        });
+        SupplierInvoices = supplierInvoices.Items;
+
+        var lineIds = Lines.Select(x => x.Id).ToList();
+        var receivedByLineId = lineIds.Count > 0
+            ? (await _goodsReceiptLineRepository.GetListAsync(x => lineIds.Contains(x.PurchaseOrderLineId)))
+                .GroupBy(x => x.PurchaseOrderLineId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.QuantityReceived))
+            : new Dictionary<Guid, decimal>();
+
+        NewReceipt.PurchaseOrderId = Id;
+        NewReceipt.Lines = Lines
+            .Select(line => new CreateGoodsReceiptLineDto
+            {
+                PurchaseOrderLineId = line.Id,
+                QuantityReceived = Math.Max(0, line.Quantity - receivedByLineId.GetValueOrDefault(line.Id))
+            })
+            .ToList();
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()
@@ -123,6 +167,13 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostDeleteLineAsync(Guid lineId)
     {
         await _purchaseOrderLineAppService.DeleteAsync(lineId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostRecordReceiptAsync()
+    {
+        NewReceipt.PurchaseOrderId = Id;
+        await _goodsReceiptAppService.CreateAsync(NewReceipt);
         return RedirectToPage(new { id = Id });
     }
 

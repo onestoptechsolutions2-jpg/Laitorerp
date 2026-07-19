@@ -19,4 +19,9 @@ public class PurchaseOrderDto : FullAuditedEntityDto<Guid>
     public string? VendorName { get; set; }
     public string? SourceOrderNumber { get; set; }
     public decimal Total { get; set; }
+
+    // Summed from GoodsReceiptLines - lets the UI show receiving progress without a dedicated
+    // "PartiallyReceived" PurchaseOrderStatus value.
+    public decimal ReceivedPercent { get; set; }
+    public bool IsFullyReceived { get; set; }
 }
