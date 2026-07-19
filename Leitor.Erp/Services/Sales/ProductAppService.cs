@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
@@ -13,9 +15,15 @@ namespace Leitor.Erp.Services.Sales;
 public class ProductAppService :
     CrudAppService<Product, ProductDto, Guid, GetProductListInput, CreateUpdateProductDto>
 {
-    public ProductAppService(IRepository<Product, Guid> repository)
+    private readonly IRepository<ProductCategory, Guid> _categoryRepository;
+
+    public ProductAppService(
+        IRepository<Product, Guid> repository,
+        IRepository<ProductCategory, Guid> categoryRepository)
         : base(repository)
     {
+        _categoryRepository = categoryRepository;
+
         GetPolicyName = ErpPermissions.Catalog.Default;
         GetListPolicyName = ErpPermissions.Catalog.Default;
         CreatePolicyName = ErpPermissions.Catalog.Create;
@@ -28,7 +36,38 @@ public class ProductAppService :
         var query = await base.CreateFilteredQueryAsync(input);
         return query
             .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!))
-            .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive!.Value);
+            .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive!.Value)
+            .WhereIf(input.CategoryId.HasValue, x => x.CategoryId == input.CategoryId!.Value);
+    }
+
+    public override async Task<ProductDto> GetAsync(Guid id)
+    {
+        var dto = await base.GetAsync(id);
+        await ResolveExtrasAsync(new[] { dto });
+        return dto;
+    }
+
+    public override async Task<PagedResultDto<ProductDto>> GetListAsync(GetProductListInput input)
+    {
+        var result = await base.GetListAsync(input);
+        await ResolveExtrasAsync(result.Items);
+        return result;
+    }
+
+    private async Task ResolveExtrasAsync(IReadOnlyCollection<ProductDto> products)
+    {
+        var categoryIds = products.Where(x => x.CategoryId.HasValue).Select(x => x.CategoryId!.Value).Distinct().ToList();
+        var namesById = categoryIds.Count > 0
+            ? (await _categoryRepository.GetListAsync(x => categoryIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
+        foreach (var product in products)
+        {
+            if (product.CategoryId.HasValue && namesById.TryGetValue(product.CategoryId.Value, out var categoryName))
+            {
+                product.CategoryName = categoryName;
+            }
+        }
     }
 
     // CreateUpdateProductDto -> Product is mapped manually rather than via Mapperly - same reason
@@ -57,5 +96,7 @@ public class ProductAppService :
         entity.IsActive = input.IsActive;
         entity.Cost = input.Cost;
         entity.TaxRateId = input.TaxRateId;
+        entity.CategoryId = input.CategoryId;
+        entity.IsBundle = input.IsBundle;
     }
 }

@@ -22,8 +22,15 @@
                     <option value="">@L["UseDefaultTaxRate"]</option>
                 </select>
             </div>
+            <div class="mb-3">
+                <label class="form-label">@L["Category"]</label>
+                <select asp-for="Product.CategoryId" asp-items="Model.CategoryOptions" class="form-select">
+                    <option value="">@L["None"]</option>
+                </select>
+            </div>
             <abp-input asp-for="Product.Description" />
             <abp-input asp-for="Product.IsActive" />
+            <abp-input asp-for="Product.IsBundle" />
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>

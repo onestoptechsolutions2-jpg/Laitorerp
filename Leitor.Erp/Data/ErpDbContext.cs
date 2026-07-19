@@ -41,6 +41,10 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<TaxRate> TaxRates { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
+    public DbSet<ProductCategory> ProductCategories { get; set; } = null!;
+    public DbSet<ProductBundleItem> ProductBundleItems { get; set; } = null!;
+    public DbSet<PriceList> PriceLists { get; set; } = null!;
+    public DbSet<PriceListItem> PriceListItems { get; set; } = null!;
     public DbSet<Quote> Quotes { get; set; } = null!;
     public DbSet<QuoteLine> QuoteLines { get; set; } = null!;
     public DbSet<Order> Orders { get; set; } = null!;
@@ -125,6 +129,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Country).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => x.PortalUserId);
+            b.HasIndex(x => x.DefaultPriceListId);
         });
 
         builder.Entity<CustomerContact>(b =>
@@ -244,6 +249,39 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Description).HasMaxLength(2000);
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.CategoryId);
+        });
+
+        builder.Entity<ProductCategory>(b =>
+        {
+            b.ToTable("ProductCategories");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+        });
+
+        builder.Entity<ProductBundleItem>(b =>
+        {
+            b.ToTable("ProductBundleItems");
+            b.ConfigureByConvention();
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.BundleProductId);
+            b.HasIndex(x => x.ComponentProductId);
+        });
+
+        builder.Entity<PriceList>(b =>
+        {
+            b.ToTable("PriceLists");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+        });
+
+        builder.Entity<PriceListItem>(b =>
+        {
+            b.ToTable("PriceListItems");
+            b.ConfigureByConvention();
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.PriceListId);
+            b.HasIndex(x => x.ProductId);
         });
 
         builder.Entity<ProductVendor>(b =>

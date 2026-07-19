@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Sales;
@@ -16,21 +17,70 @@ public class OrderLineAppService :
 {
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<Product, Guid> _productRepository;
+    private readonly IRepository<ProductBundleItem, Guid> _bundleItemRepository;
 
     public OrderLineAppService(
         IRepository<OrderLine, Guid> repository,
         IRepository<TaxRate, Guid> taxRateRepository,
-        IRepository<Product, Guid> productRepository)
+        IRepository<Product, Guid> productRepository,
+        IRepository<ProductBundleItem, Guid> bundleItemRepository)
         : base(repository)
     {
         _taxRateRepository = taxRateRepository;
         _productRepository = productRepository;
+        _bundleItemRepository = bundleItemRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
         CreatePolicyName = ErpPermissions.Sales.Edit;
         UpdatePolicyName = ErpPermissions.Sales.Edit;
         DeletePolicyName = ErpPermissions.Sales.Edit;
+    }
+
+    // Same bundle-explosion behavior as QuoteLineAppService.CreateAsync - see its comment for the
+    // full rationale. Non-bundle lines (the overwhelming majority) fall straight through unchanged.
+    public override async Task<OrderLineDto> CreateAsync(CreateUpdateOrderLineDto input)
+    {
+        await CheckCreatePolicyAsync();
+
+        if (!input.ProductId.HasValue)
+        {
+            return await base.CreateAsync(input);
+        }
+
+        var product = await _productRepository.FindAsync(input.ProductId.Value);
+        if (product is not { IsBundle: true })
+        {
+            return await base.CreateAsync(input);
+        }
+
+        var bundleItems = await _bundleItemRepository.GetListAsync(x => x.BundleProductId == product.Id);
+        if (bundleItems.Count == 0)
+        {
+            throw new UserFriendlyException("This bundle has no components configured.");
+        }
+
+        OrderLine? lastLine = null;
+        foreach (var bundleItem in bundleItems)
+        {
+            var component = await _productRepository.GetAsync(bundleItem.ComponentProductId);
+            var (taxRateId, taxRatePercent) = await TaxRateResolver.ResolveAsync(_taxRateRepository, _productRepository, null, component.Id);
+
+            var line = new OrderLine(GuidGenerator.Create(), input.OrderId, component.Name, component.UnitPrice)
+            {
+                ProductId = component.Id,
+                Quantity = bundleItem.Quantity,
+                Cost = component.Cost,
+                TaxRateId = taxRateId,
+                TaxRatePercent = taxRatePercent
+            };
+            await Repository.InsertAsync(line, autoSave: true);
+            lastLine = line;
+        }
+
+        var dto = await MapToGetOutputDtoAsync(lastLine!);
+        ComputeLineTotal(dto);
+        return dto;
     }
 
     protected override async Task<IQueryable<OrderLine>> CreateFilteredQueryAsync(GetOrderLineListInput input)

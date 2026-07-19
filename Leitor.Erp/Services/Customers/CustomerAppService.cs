@@ -256,5 +256,6 @@ public class CustomerAppService :
         entity.AccountOwnerUserId = input.AccountOwnerUserId;
         entity.PortalUserId = input.PortalUserId;
         entity.DefaultPaymentTerms = input.DefaultPaymentTerms;
+        entity.DefaultPriceListId = input.DefaultPriceListId;
     }
 }

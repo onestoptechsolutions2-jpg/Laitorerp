@@ -18,11 +18,16 @@ public class EditModel : AbpPageModel
 {
     private readonly ProductAppService _productAppService;
     private readonly TaxRateAppService _taxRateAppService;
+    private readonly ProductCategoryAppService _productCategoryAppService;
 
-    public EditModel(ProductAppService productAppService, TaxRateAppService taxRateAppService)
+    public EditModel(
+        ProductAppService productAppService,
+        TaxRateAppService taxRateAppService,
+        ProductCategoryAppService productCategoryAppService)
     {
         _productAppService = productAppService;
         _taxRateAppService = taxRateAppService;
+        _productCategoryAppService = productCategoryAppService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -32,6 +37,7 @@ public class EditModel : AbpPageModel
     public CreateUpdateProductDto Product { get; set; } = new();
 
     public List<SelectListItem> TaxRateOptions { get; set; } = new();
+    public List<SelectListItem> CategoryOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -45,22 +51,27 @@ public class EditModel : AbpPageModel
             UnitPrice = product.UnitPrice,
             IsActive = product.IsActive,
             Cost = product.Cost,
-            TaxRateId = product.TaxRateId
+            TaxRateId = product.TaxRateId,
+            CategoryId = product.CategoryId,
+            IsBundle = product.IsBundle
         };
-        await LoadTaxRateOptionsAsync();
+        await LoadOptionsAsync();
     }
 
-    private async Task LoadTaxRateOptionsAsync()
+    private async Task LoadOptionsAsync()
     {
         var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
         TaxRateOptions = taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList();
+
+        var categories = await _productCategoryAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+        CategoryOptions = categories.Items.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
-            await LoadTaxRateOptionsAsync();
+            await LoadOptionsAsync();
             return Page();
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Sales;
@@ -16,21 +17,76 @@ public class QuoteLineAppService :
 {
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<Product, Guid> _productRepository;
+    private readonly IRepository<ProductBundleItem, Guid> _bundleItemRepository;
 
     public QuoteLineAppService(
         IRepository<QuoteLine, Guid> repository,
         IRepository<TaxRate, Guid> taxRateRepository,
-        IRepository<Product, Guid> productRepository)
+        IRepository<Product, Guid> productRepository,
+        IRepository<ProductBundleItem, Guid> bundleItemRepository)
         : base(repository)
     {
         _taxRateRepository = taxRateRepository;
         _productRepository = productRepository;
+        _bundleItemRepository = bundleItemRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
         CreatePolicyName = ErpPermissions.Sales.Edit;
         UpdatePolicyName = ErpPermissions.Sales.Edit;
         DeletePolicyName = ErpPermissions.Sales.Edit;
+    }
+
+    // When the selected Product is a bundle, explode it into one line per component instead of
+    // one opaque bundle line - each component keeps its own price/cost/tax, so the actual document
+    // itemizes what's being delivered (installation packages: hardware + labor sold together but
+    // billed/costed individually). Every other Create call (the overwhelming majority - a regular,
+    // non-bundle product or no product at all) falls straight through to the unchanged base
+    // behavior. Returns the DTO of the last line inserted, matching the base method's single-DTO
+    // return shape - the only caller (Pages/Sales/Quotes/Detail.cshtml.cs's OnPostAddLineAsync)
+    // discards the return value and just redirects back to the Quote.
+    public override async Task<QuoteLineDto> CreateAsync(CreateUpdateQuoteLineDto input)
+    {
+        await CheckCreatePolicyAsync();
+
+        if (!input.ProductId.HasValue)
+        {
+            return await base.CreateAsync(input);
+        }
+
+        var product = await _productRepository.FindAsync(input.ProductId.Value);
+        if (product is not { IsBundle: true })
+        {
+            return await base.CreateAsync(input);
+        }
+
+        var bundleItems = await _bundleItemRepository.GetListAsync(x => x.BundleProductId == product.Id);
+        if (bundleItems.Count == 0)
+        {
+            throw new UserFriendlyException("This bundle has no components configured.");
+        }
+
+        QuoteLine? lastLine = null;
+        foreach (var bundleItem in bundleItems)
+        {
+            var component = await _productRepository.GetAsync(bundleItem.ComponentProductId);
+            var (taxRateId, taxRatePercent) = await TaxRateResolver.ResolveAsync(_taxRateRepository, _productRepository, null, component.Id);
+
+            var line = new QuoteLine(GuidGenerator.Create(), input.QuoteId, component.Name, component.UnitPrice)
+            {
+                ProductId = component.Id,
+                Quantity = bundleItem.Quantity,
+                Cost = component.Cost,
+                TaxRateId = taxRateId,
+                TaxRatePercent = taxRatePercent
+            };
+            await Repository.InsertAsync(line, autoSave: true);
+            lastLine = line;
+        }
+
+        var dto = await MapToGetOutputDtoAsync(lastLine!);
+        ComputeLineTotal(dto);
+        return dto;
     }
 
     protected override async Task<IQueryable<QuoteLine>> CreateFilteredQueryAsync(GetQuoteLineListInput input)

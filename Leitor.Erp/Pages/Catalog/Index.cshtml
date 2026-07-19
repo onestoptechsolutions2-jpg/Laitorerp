@@ -8,6 +8,8 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Products"]</h5>
         <div>
+            <a asp-page="./Categories/Index" class="btn btn-outline-secondary">@L["Categories"]</a>
+            <a asp-page="./PriceLists/Index" class="btn btn-outline-secondary">@L["PriceLists"]</a>
             <a asp-page="./TaxRates/Index" class="btn btn-outline-secondary">@L["TaxRates"]</a>
             @if (Model.CanCreate)
             {
@@ -21,6 +23,14 @@
                 <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Name"]" />
             </div>
             <div class="col-auto">
+                <select name="CategoryId" class="form-select" onchange="this.form.submit()">
+                    @foreach (var item in Model.CategoryOptions)
+                    {
+                        <option value="@item.Value" selected="@(item.Value == (Model.CategoryId.HasValue ? Model.CategoryId.ToString() : ""))">@item.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
                 <button type="submit" class="btn btn-secondary">@L["Search"]</button>
             </div>
         </form>
@@ -30,6 +40,7 @@
                     <tr>
                         <th>@L["Name"]</th>
                         <th>@L["Sku"]</th>
+                        <th>@L["Category"]</th>
                         <th>@L["Type"]</th>
                         <th>@L["UnitPrice"]</th>
                         <th>@L["IsActive"]</th>
@@ -39,13 +50,14 @@
                 <tbody>
                     @if (!Model.Products.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var product in Model.Products)
                     {
                         <tr>
                             <td><a asp-page="./Detail" asp-route-id="@product.Id">@product.Name</a></td>
                             <td>@product.Sku</td>
+                            <td>@product.CategoryName</td>
                             <td>@L[$"Enum:ProductType:{(int)product.Type}"]</td>
                             <td>@product.UnitPrice.ToString("N2")</td>
                             <td><span class="pill @(product.IsActive ? "pill-success" : "pill-neutral")">@(product.IsActive ? L["Active"] : L["Inactive"])</span></td>

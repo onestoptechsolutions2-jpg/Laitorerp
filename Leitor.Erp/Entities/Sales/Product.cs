@@ -14,6 +14,13 @@ public class Product : FullAuditedAggregateRoot<Guid>
     public ProductType Type { get; set; } = ProductType.Product;
     public decimal UnitPrice { get; set; }
     public bool IsActive { get; set; } = true;
+    public Guid? CategoryId { get; set; }
+
+    // A bundle explodes into one QuoteLine/OrderLine per ProductBundleItem when added to a
+    // document (see QuoteLineAppService/OrderLineAppService.CreateAsync), rather than being sold
+    // as a single opaque line - serves "installation packages" (hardware + labor sold together but
+    // itemized on the actual document).
+    public bool IsBundle { get; set; }
 
     // Standard/default cost used for margin calc on Quote/Order lines when there's no
     // ProductVendor row yet - distinct from ProductVendor.Cost (a specific vendor's price).

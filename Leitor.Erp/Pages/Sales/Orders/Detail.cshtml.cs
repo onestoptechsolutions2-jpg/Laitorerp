@@ -36,6 +36,7 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
+    private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -50,6 +51,7 @@ public class DetailModel : AbpPageModel
         IRepository<Customer, Guid> customerRepository,
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
         IRepository<Invoice, Guid> invoiceRepository,
+        IRepository<PriceListItem, Guid> priceListItemRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -63,6 +65,7 @@ public class DetailModel : AbpPageModel
         _customerRepository = customerRepository;
         _fieldServiceJobRepository = fieldServiceJobRepository;
         _invoiceRepository = invoiceRepository;
+        _priceListItemRepository = priceListItemRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
         _deletionRequestRepository = deletionRequestRepository;
@@ -117,9 +120,20 @@ public class DetailModel : AbpPageModel
             IsActive = true,
             MaxResultCount = 1000
         });
+
+        // Suggests the customer's price-list price where one exists, rather than the product's
+        // standard price - purely a label/starting-point change, UnitPrice stays a plain editable
+        // field on the Add Line form either way.
+        var priceOverridesByProductId = Customer.DefaultPriceListId.HasValue
+            ? (await _priceListItemRepository.GetListAsync(x => x.PriceListId == Customer.DefaultPriceListId.Value))
+                .ToDictionary(x => x.ProductId, x => x.UnitPrice)
+            : new Dictionary<Guid, decimal>();
+
         ProductOptions = new List<SelectListItem> { new(L["None"], "") };
         ProductOptions.AddRange(
-            products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.UnitPrice:N2})", x.Id.ToString()))
+            products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem(
+                $"{x.Name} ({priceOverridesByProductId.GetValueOrDefault(x.Id, x.UnitPrice):N2})",
+                x.Id.ToString()))
         );
 
         var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });

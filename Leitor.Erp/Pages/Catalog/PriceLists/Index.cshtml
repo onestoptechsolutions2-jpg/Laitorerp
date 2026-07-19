@@ -1,0 +1,50 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Catalog.PriceLists.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["PriceLists"]</h5>
+        <div>
+            <a asp-page="../Index" class="btn btn-outline-secondary">@L["BackToCatalog"]</a>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewPriceList"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.PriceLists.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="2">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var priceList in Model.PriceLists)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@priceList.Id">@priceList.Name</a></td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@priceList.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

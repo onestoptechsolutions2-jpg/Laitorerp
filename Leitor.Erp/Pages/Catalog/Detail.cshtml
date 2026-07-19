@@ -27,6 +27,17 @@
             <dt class="col-sm-2">@L["IsActive"]</dt>
             <dd class="col-sm-4"><span class="pill @(Model.Product.IsActive ? "pill-success" : "pill-neutral")">@(Model.Product.IsActive ? L["Active"] : L["Inactive"])</span></dd>
 
+            @if (!string.IsNullOrWhiteSpace(Model.Product.CategoryName))
+            {
+                <dt class="col-sm-2">@L["Category"]</dt>
+                <dd class="col-sm-4">@Model.Product.CategoryName</dd>
+            }
+            @if (Model.Product.IsBundle)
+            {
+                <dt class="col-sm-2">@L["IsBundle"]</dt>
+                <dd class="col-sm-4"><span class="pill pill-info">@L["Yes"]</span></dd>
+            }
+
             @if (!string.IsNullOrWhiteSpace(Model.Product.Description))
             {
                 <dt class="col-sm-2">@L["Description"]</dt>
@@ -105,3 +116,58 @@
         </div>
     </div>
 </div>
+
+@if (Model.Product.IsBundle)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["BundleComponents"]</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.CanEdit)
+            {
+                <form method="post" asp-page-handler="AddBundleItem" class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label">@L["Product"]</label>
+                        <select asp-for="NewBundleItem.ComponentProductId" asp-items="Model.ComponentProductOptions" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Quantity"]</label>
+                        <input asp-for="NewBundleItem.Quantity" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary">@L["AddBundleComponent"]</button>
+                    </div>
+                </form>
+            }
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["Product"]</th>
+                            <th>@L["Quantity"]</th>
+                            <th>@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.BundleItems)
+                        {
+                            <tr>
+                                <td>@item.ComponentProductName</td>
+                                <td>@item.Quantity</td>
+                                <td>
+                                    @if (Model.CanEdit)
+                                    {
+                                        <form method="post" asp-page-handler="DeleteBundleItem" asp-route-bundleItemId="@item.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

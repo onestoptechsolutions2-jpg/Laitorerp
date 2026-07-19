@@ -27,4 +27,6 @@ public class CreateUpdateProductDto
     public decimal Cost { get; set; }
 
     public Guid? TaxRateId { get; set; }
+    public Guid? CategoryId { get; set; }
+    public bool IsBundle { get; set; }
 }

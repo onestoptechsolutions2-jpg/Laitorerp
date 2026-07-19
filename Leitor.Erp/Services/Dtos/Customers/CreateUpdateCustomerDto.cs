@@ -43,4 +43,6 @@ public class CreateUpdateCustomerDto
     public Guid? PortalUserId { get; set; }
 
     public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
+
+    public Guid? DefaultPriceListId { get; set; }
 }

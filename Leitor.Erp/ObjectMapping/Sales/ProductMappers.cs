@@ -10,9 +10,11 @@ public partial class ProductToProductDtoMapper : MapperBase<Product, ProductDto>
 {
     [MapperIgnoreSource(nameof(Product.ExtraProperties))]
     [MapperIgnoreSource(nameof(Product.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(ProductDto.CategoryName))]
     public override partial ProductDto Map(Product source);
 
     [MapperIgnoreSource(nameof(Product.ExtraProperties))]
     [MapperIgnoreSource(nameof(Product.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(ProductDto.CategoryName))]
     public override partial void Map(Product source, ProductDto destination);
 }

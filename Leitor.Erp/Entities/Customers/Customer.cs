@@ -22,6 +22,12 @@ public class Customer : FullAuditedAggregateRoot<Guid>
     // per-document afterwards (see OrderAppService.MapToEntityAsync/CopyToEntity).
     public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
 
+    // Suggests a per-customer default price when adding a Quote/Order line for a Product that has
+    // an entry in this list (see Pages/Sales/Quotes/Detail.cshtml.cs's ProductOptions building) -
+    // the line's UnitPrice stays a plain editable field either way, this only changes the
+    // suggested starting number.
+    public Guid? DefaultPriceListId { get; set; }
+
     // Links this Customer to the IdentityUser they log in as on the Client Portal (see
     // Pages/Portal/Client/Index.cshtml.cs). Presence of this link is itself the portal
     // authorization - no separate permission is granted for it.

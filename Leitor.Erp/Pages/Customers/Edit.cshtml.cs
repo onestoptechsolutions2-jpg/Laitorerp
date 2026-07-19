@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -19,13 +20,16 @@ public class EditModel : AbpPageModel
 {
     private readonly CustomerAppService _customerAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<PriceList, Guid> _priceListRepository;
 
     public EditModel(
         CustomerAppService customerAppService,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<PriceList, Guid> priceListRepository)
     {
         _customerAppService = customerAppService;
         _identityUserRepository = identityUserRepository;
+        _priceListRepository = priceListRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -35,6 +39,7 @@ public class EditModel : AbpPageModel
     public CreateUpdateCustomerDto Customer { get; set; } = new();
 
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public List<SelectListItem> PriceListOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -53,10 +58,12 @@ public class EditModel : AbpPageModel
             Notes = customer.Notes,
             AccountOwnerUserId = customer.AccountOwnerUserId,
             PortalUserId = customer.PortalUserId,
-            DefaultPaymentTerms = customer.DefaultPaymentTerms
+            DefaultPaymentTerms = customer.DefaultPaymentTerms,
+            DefaultPriceListId = customer.DefaultPriceListId
         };
 
         await LoadUserOptionsAsync();
+        await LoadPriceListOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -64,6 +71,7 @@ public class EditModel : AbpPageModel
         if (!ModelState.IsValid)
         {
             await LoadUserOptionsAsync();
+            await LoadPriceListOptionsAsync();
             return Page();
         }
 
@@ -77,6 +85,15 @@ public class EditModel : AbpPageModel
         UserOptions = new List<SelectListItem> { new(L["None"], "") };
         UserOptions.AddRange(
             users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
+        );
+    }
+
+    private async Task LoadPriceListOptionsAsync()
+    {
+        var priceLists = await _priceListRepository.GetListAsync();
+        PriceListOptions = new List<SelectListItem> { new(L["None"], "") };
+        PriceListOptions.AddRange(
+            priceLists.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
         );
     }
 }
