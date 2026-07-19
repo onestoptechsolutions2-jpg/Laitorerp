@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
@@ -26,6 +27,7 @@ public class DetailModel : AbpPageModel
     private readonly ProductAppService _productAppService;
     private readonly TaxRateAppService _taxRateAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
 
@@ -35,6 +37,7 @@ public class DetailModel : AbpPageModel
         ProductAppService productAppService,
         TaxRateAppService taxRateAppService,
         IRepository<Customer, Guid> customerRepository,
+        IRepository<Order, Guid> orderRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions)
     {
@@ -43,6 +46,7 @@ public class DetailModel : AbpPageModel
         _productAppService = productAppService;
         _taxRateAppService = taxRateAppService;
         _customerRepository = customerRepository;
+        _orderRepository = orderRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
     }
@@ -64,6 +68,12 @@ public class DetailModel : AbpPageModel
 
     public bool CanEdit { get; set; }
 
+    // Once a Quote already has an Order (or is Rejected/Expired), attempting the conversion again
+    // would just throw - hide the button and show a link to the existing Order instead, so the
+    // quote reads as effectively read-only for this action rather than dead-ending in an error.
+    public Guid? ExistingOrderId { get; set; }
+    public bool CanConvertToOrder => !ExistingOrderId.HasValue && Quote.Status is not (QuoteStatus.Rejected or QuoteStatus.Expired);
+
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Edit);
@@ -74,6 +84,9 @@ public class DetailModel : AbpPageModel
     {
         Quote = await _quoteAppService.GetAsync(Id);
         Customer = await _customerRepository.GetAsync(Quote.CustomerId);
+
+        var existingOrder = (await _orderRepository.GetListAsync(x => x.QuoteId == Id)).FirstOrDefault();
+        ExistingOrderId = existingOrder?.Id;
 
         var lines = await _quoteLineAppService.GetListAsync(new GetQuoteLineListInput
         {
@@ -114,6 +127,15 @@ public class DetailModel : AbpPageModel
 
     public async Task<IActionResult> OnPostConvertToOrderAsync()
     {
+        // Defends against a double-click/back-button resubmit/second tab hitting this after the
+        // button should have been hidden - redirect to the existing Order instead of letting
+        // ConvertToOrderAsync's guard throw into a raw error page.
+        var existingOrder = (await _orderRepository.GetListAsync(x => x.QuoteId == Id)).FirstOrDefault();
+        if (existingOrder != null)
+        {
+            return RedirectToPage("/Sales/Orders/Detail", new { id = existingOrder.Id });
+        }
+
         var order = await _quoteAppService.ConvertToOrderAsync(Id);
         return RedirectToPage("/Sales/Orders/Detail", new { id = order.Id });
     }

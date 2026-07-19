@@ -116,11 +116,15 @@
                             <td>
                                 <a asp-page="/Opportunities/Proposals/Edit" asp-route-id="@proposal.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
                                 <a asp-page="/Opportunities/Proposals/Edit" asp-page-handler="Pdf" asp-route-id="@proposal.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-secondary">@L["DownloadPdf"]</a>
-                                @if (Model.CanEdit)
+                                @if (Model.CanEdit && Model.CanConvertProposal(proposal))
                                 {
                                     <form method="post" asp-page-handler="ConvertToQuote" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["ConvertToQuote"]?');">
                                         <button type="submit" class="btn btn-sm btn-success">@L["ConvertToQuote"]</button>
                                     </form>
+                                }
+                                else if (Model.QuoteIdByProposalId.TryGetValue(proposal.Id, out var existingQuoteId))
+                                {
+                                    <a asp-page="/Sales/Quotes/Detail" asp-route-id="@existingQuoteId" class="btn btn-sm btn-outline-success">@L["Quote"]</a>
                                 }
                                 <form method="post" asp-page-handler="DeleteProposal" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>

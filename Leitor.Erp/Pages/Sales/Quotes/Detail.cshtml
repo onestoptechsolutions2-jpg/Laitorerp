@@ -11,9 +11,16 @@
             @if (Model.CanEdit)
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Quote.Id" class="btn btn-outline-primary">@L["Edit"]</a>
-                <form method="post" asp-page-handler="ConvertToOrder" class="d-inline" onsubmit="return confirm('@L["ConvertToOrder"]?');">
-                    <button type="submit" class="btn btn-success">@L["ConvertToOrder"]</button>
-                </form>
+                @if (Model.CanConvertToOrder)
+                {
+                    <form method="post" asp-page-handler="ConvertToOrder" class="d-inline" onsubmit="return confirm('@L["ConvertToOrder"]?');">
+                        <button type="submit" class="btn btn-success">@L["ConvertToOrder"]</button>
+                    </form>
+                }
+                else if (Model.ExistingOrderId.HasValue)
+                {
+                    <a asp-page="/Sales/Orders/Detail" asp-route-id="@Model.ExistingOrderId" class="btn btn-outline-success">@L["ViewOrder"]</a>
+                }
             }
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Quote.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))

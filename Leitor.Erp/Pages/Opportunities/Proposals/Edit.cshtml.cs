@@ -6,6 +6,7 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Opportunities;
@@ -24,6 +25,7 @@ public class EditModel : AbpPageModel
     private readonly ProposalAppService _proposalAppService;
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<Quote, Guid> _quoteRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
 
@@ -31,12 +33,14 @@ public class EditModel : AbpPageModel
         ProposalAppService proposalAppService,
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<Customer, Guid> customerRepository,
+        IRepository<Quote, Guid> quoteRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions)
     {
         _proposalAppService = proposalAppService;
         _opportunityRepository = opportunityRepository;
         _customerRepository = customerRepository;
+        _quoteRepository = quoteRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
     }
@@ -58,6 +62,11 @@ public class EditModel : AbpPageModel
     public IReadOnlyList<WorkflowStageEvent> DeliveryHistory { get; set; } = Array.Empty<WorkflowStageEvent>();
     public bool CanUnlock { get; set; }
 
+    // Once this Proposal already has a Quote (or was Rejected), attempting the conversion again
+    // would just throw - hide the button and link to the existing Quote instead.
+    public Guid? ExistingQuoteId { get; set; }
+    public bool CanConvertToQuote => !ExistingQuoteId.HasValue && ProposalDetails.Status != ProposalStatus.Rejected;
+
     public async Task OnGetAsync()
     {
         CanUnlock = await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Unlock);
@@ -66,6 +75,9 @@ public class EditModel : AbpPageModel
         Customer = await _customerRepository.GetAsync(opportunity.CustomerId);
         var history = await _proposalAppService.GetDeliveryHistoryAsync(Id);
         DeliveryHistory = history.Where(x => x.Stage == WorkflowStage.ProposalSent).ToList();
+
+        var existingQuote = (await _quoteRepository.GetListAsync(x => x.ProposalId == Id)).FirstOrDefault();
+        ExistingQuoteId = existingQuote?.Id;
         Proposal = new CreateUpdateProposalDto
         {
             OpportunityId = ProposalDetails.OpportunityId,
@@ -103,6 +115,15 @@ public class EditModel : AbpPageModel
 
     public async Task<IActionResult> OnPostConvertToQuoteAsync()
     {
+        // Defends against a double-click/back-button resubmit/second tab hitting this after the
+        // button should have been hidden - redirect to the existing Quote instead of letting
+        // ConvertToQuoteAsync's guard throw into a raw error page.
+        var existingQuote = (await _quoteRepository.GetListAsync(x => x.ProposalId == Id)).FirstOrDefault();
+        if (existingQuote != null)
+        {
+            return RedirectToPage("/Sales/Quotes/Detail", new { id = existingQuote.Id });
+        }
+
         var quote = await _proposalAppService.ConvertToQuoteAsync(Id);
         return RedirectToPage("/Sales/Quotes/Detail", new { id = quote.Id });
     }

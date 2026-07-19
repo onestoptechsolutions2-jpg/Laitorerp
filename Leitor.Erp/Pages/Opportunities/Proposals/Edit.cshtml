@@ -22,9 +22,16 @@
             <form method="post" asp-page-handler="MarkSentWhatsApp" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["MarkSentWhatsAppConfirm"]');">
                 <button type="submit" class="btn btn-outline-secondary">@L["MarkSentWhatsApp"]</button>
             </form>
-            <form method="post" asp-page-handler="ConvertToQuote" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["ConvertToQuote"]?');">
-                <button type="submit" class="btn btn-success">@L["ConvertToQuote"]</button>
-            </form>
+            @if (Model.CanConvertToQuote)
+            {
+                <form method="post" asp-page-handler="ConvertToQuote" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["ConvertToQuote"]?');">
+                    <button type="submit" class="btn btn-success">@L["ConvertToQuote"]</button>
+                </form>
+            }
+            else if (Model.ExistingQuoteId.HasValue)
+            {
+                <a asp-page="/Sales/Quotes/Detail" asp-route-id="@Model.ExistingQuoteId" class="btn btn-outline-success">@L["Quote"]</a>
+            }
         </div>
     </div>
     <div class="card-body">
