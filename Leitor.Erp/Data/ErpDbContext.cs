@@ -349,6 +349,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.AssignedToUserId);
             b.HasIndex(x => x.VendorId);
+            b.HasIndex(x => x.OrderId);
         });
 
         builder.Entity<FieldServiceJobNote>(b =>

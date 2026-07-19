@@ -438,6 +438,21 @@
     "UnlockReason": "Reason for Revision",
     "Unlock": "Unlock",
     "UnlockedBy": "Unlocked By",
-    "Version": "Version"
+    "Version": "Version",
+    "DeliveryHistory": "Delivery History",
+    "SentVia": "Sent via {0} on {1}",
+    "MarkSentWhatsApp": "Mark Sent via WhatsApp",
+    "MarkSentWhatsAppConfirm": "Confirm you've sent this proposal to the customer via WhatsApp - this will be logged.",
+    "Kind": "Kind",
+    "Enum:OrderPaymentMilestoneKind:0": "Progress",
+    "Enum:OrderPaymentMilestoneKind:1": "Deposit",
+    "Enum:OrderPaymentMilestoneKind:2": "Final",
+    "FromQuote": "From Quote",
+    "WorkflowMonitor": "Workflow Monitor",
+    "Menu:WorkflowMonitor": "Workflow Monitor",
+    "StageHistory": "Stage History",
+    "CurrentStage": "Current Stage",
+    "PendingActions": "Pending Actions",
+    "NoOpportunities": "No opportunities to show."
   }
 }

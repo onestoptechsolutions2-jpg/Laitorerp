@@ -43,6 +43,12 @@
             <dt class="col-sm-2">@L["PaymentTerms"]</dt>
             <dd class="col-sm-4">@L[$"Enum:PaymentTerms:{(int)Model.Order.PaymentTerms}"]</dd>
 
+            @if (!string.IsNullOrWhiteSpace(Model.Order.QuoteNumber))
+            {
+                <dt class="col-sm-2">@L["FromQuote"]</dt>
+                <dd class="col-sm-10"><span class="doc-no">@Model.Order.QuoteNumber</span></dd>
+            }
+
             <dt class="col-sm-2">@L["Subtotal"]</dt>
             <dd class="col-sm-4">@Model.Order.Subtotal.ToString("N2")</dd>
             <dt class="col-sm-2">@L["Tax"]</dt>
@@ -185,15 +191,23 @@
             @if (Model.CanEdit)
             {
                 <form method="post" asp-page-handler="AddMilestone" class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label class="form-label">@L["Description"]</label>
                         <input asp-for="NewMilestone.Description" class="form-control" />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">@L["Percent"]</label>
                         <input asp-for="NewMilestone.Percent" class="form-control" />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Kind"]</label>
+                        <select asp-for="NewMilestone.Kind" class="form-select">
+                            <option value="0">@L["Enum:OrderPaymentMilestoneKind:0"]</option>
+                            <option value="1">@L["Enum:OrderPaymentMilestoneKind:1"]</option>
+                            <option value="2">@L["Enum:OrderPaymentMilestoneKind:2"]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <button type="submit" class="btn btn-primary">@L["AddMilestone"]</button>
                     </div>
                 </form>
@@ -204,6 +218,7 @@
                         <tr>
                             <th>@L["Description"]</th>
                             <th>@L["Percent"]</th>
+                            <th>@L["Kind"]</th>
                             <th>@L["Amount"]</th>
                             <th>@L["Status"]</th>
                             <th>@L["Actions"]</th>
@@ -215,6 +230,7 @@
                             <tr>
                                 <td>@milestone.Description</td>
                                 <td>@milestone.Percent.ToString("N0")%</td>
+                                <td>@L[$"Enum:OrderPaymentMilestoneKind:{(int)milestone.Kind}"]</td>
                                 <td>@((Model.Order.Subtotal * milestone.Percent / 100m).ToString("N2"))</td>
                                 <td>@(milestone.IsInvoiced ? L["Invoiced"] : L["NotInvoiced"])</td>
                                 <td>

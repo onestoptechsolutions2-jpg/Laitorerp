@@ -34,19 +34,25 @@ public class EditModel : AbpPageModel
     [BindProperty]
     public CreateUpdateOrderDto Order { get; set; } = new();
 
+    [BindProperty]
+    public string UnlockReason { get; set; } = string.Empty;
+
+    public OrderDto OrderDetails { get; set; } = null!;
+    public bool CanUnlock { get; set; }
     public List<SelectListItem> CustomerOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
-        var order = await _orderAppService.GetAsync(Id);
+        CanUnlock = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Unlock);
+        OrderDetails = await _orderAppService.GetAsync(Id);
         Order = new CreateUpdateOrderDto
         {
-            CustomerId = order.CustomerId,
-            QuoteId = order.QuoteId,
-            Status = order.Status,
-            OrderDate = order.OrderDate,
-            Notes = order.Notes,
-            PaymentTerms = order.PaymentTerms
+            CustomerId = OrderDetails.CustomerId,
+            QuoteId = OrderDetails.QuoteId,
+            Status = OrderDetails.Status,
+            OrderDate = OrderDetails.OrderDate,
+            Notes = OrderDetails.Notes,
+            PaymentTerms = OrderDetails.PaymentTerms
         };
 
         await LoadCustomerOptionsAsync();
@@ -62,6 +68,12 @@ public class EditModel : AbpPageModel
 
         await _orderAppService.UpdateAsync(Id, Order);
         return RedirectToPage("./Detail", new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostUnlockAsync()
+    {
+        await _orderAppService.UnlockForRevisionAsync(Id, UnlockReason);
+        return RedirectToPage(new { id = Id });
     }
 
     private async Task LoadCustomerOptionsAsync()

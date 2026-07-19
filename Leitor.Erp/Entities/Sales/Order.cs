@@ -21,6 +21,17 @@ public class Order : FullAuditedAggregateRoot<Guid>
     // OrderAppService.ConvertMilestoneToInvoiceAsync instead of the single full-order path.
     public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
 
+    public int Version { get; set; } = 1;
+
+    // Locked once it leaves Submitted (Confirmed/Fulfilled/Cancelled) - same lock/single-use-
+    // unlock mechanism as Quote.IsLocked/Proposal.IsLocked, enforced in
+    // OrderAppService.MapToEntityAsync.
+    public bool IsLocked => Status != OrderStatus.Submitted;
+
+    public Guid? UnlockedByUserId { get; set; }
+    public DateTime? UnlockedAt { get; set; }
+    public string? UnlockReason { get; set; }
+
     protected Order()
     {
     }

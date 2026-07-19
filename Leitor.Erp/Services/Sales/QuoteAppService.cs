@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -23,6 +25,7 @@ public class QuoteAppService :
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<OrderLine, Guid> _orderLineRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
+    private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IDataFilter _dataFilter;
 
     public QuoteAppService(
@@ -32,6 +35,7 @@ public class QuoteAppService :
         IRepository<Order, Guid> orderRepository,
         IRepository<OrderLine, Guid> orderLineRepository,
         IRepository<Proposal, Guid> proposalRepository,
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
@@ -40,6 +44,7 @@ public class QuoteAppService :
         _orderRepository = orderRepository;
         _orderLineRepository = orderLineRepository;
         _proposalRepository = proposalRepository;
+        _stageEventRepository = stageEventRepository;
         _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Sales.Default;
@@ -189,12 +194,27 @@ public class QuoteAppService :
     }
 
     // The concrete mechanism behind "quote becomes an order" - carries line items and pricing
-    // forward instead of the user re-entering them, then marks the quote Accepted.
+    // forward instead of the user re-entering them, then marks the quote Accepted (conversion IS
+    // the acceptance action, same pattern as ProposalAppService.ConvertToQuoteAsync). Blocked:
+    // converting a Quote the customer already rejected or that expired, and converting the same
+    // Quote twice (one Quote -> one Order).
     public async Task<OrderDto> ConvertToOrderAsync(Guid quoteId)
     {
         await CheckCreatePolicyAsync();
 
         var quote = await Repository.GetAsync(quoteId);
+
+        if (quote.Status is QuoteStatus.Rejected or QuoteStatus.Expired)
+        {
+            throw new UserFriendlyException("This quote was rejected or has expired and can't be converted to an order.");
+        }
+
+        var alreadyConverted = (await _orderRepository.GetListAsync(x => x.QuoteId == quote.Id)).Any();
+        if (alreadyConverted)
+        {
+            throw new UserFriendlyException("This quote has already been converted to an order.");
+        }
+
         var quoteLines = await _lineRepository.GetListAsync(x => x.QuoteId == quoteId);
 
         var orderNumber = await DocumentNumbering.NextAsync(_orderRepository, _dataFilter, "SO-");

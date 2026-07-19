@@ -176,6 +176,19 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(procurementMenu);
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Opportunities.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.WorkflowMonitor,
+                    l["Menu:WorkflowMonitor"],
+                    "~/Governance/WorkflowMonitor",
+                    icon: "fas fa-diagram-project",
+                    order: 9
+                )
+            );
+        }
+
         if (await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default))
         {
             administration.Items.Add(

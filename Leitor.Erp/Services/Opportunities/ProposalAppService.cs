@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
@@ -126,6 +127,29 @@ public class ProposalAppService :
         await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Proposal", entity.Id, WorkflowStage.Unlocked, notes: reason);
     }
 
+    // Called after the PDF is actually emailed (Channel: "Email") or after a staff member confirms
+    // they've sent it manually over WhatsApp (Channel: "WhatsApp", log-only - no API integration,
+    // per the workflow-governance scope decision). Draft -> Sent on the first delivery of either
+    // kind; later re-sends (e.g. after a revision) just add another history entry.
+    public async Task MarkSentAsync(Guid id, string channel)
+    {
+        await CheckPolicyAsync(ErpPermissions.Opportunities.Edit);
+
+        var proposal = await Repository.GetAsync(id);
+        if (proposal.Status == ProposalStatus.Draft)
+        {
+            proposal.Status = ProposalStatus.Sent;
+            await Repository.UpdateAsync(proposal, autoSave: true);
+        }
+
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Proposal", proposal.Id, WorkflowStage.ProposalSent, channel: channel);
+    }
+
+    public Task<List<WorkflowStageEvent>> GetDeliveryHistoryAsync(Guid id)
+    {
+        return WorkflowStageLog.GetHistoryAsync(_stageEventRepository, "Proposal", id);
+    }
+
     private static void CopyToEntity(CreateUpdateProposalDto input, Proposal entity)
     {
         entity.OpportunityId = input.OpportunityId;
@@ -144,11 +168,27 @@ public class ProposalAppService :
     // The concrete mechanism behind "proposal becomes a quotation" - same shape as
     // QuoteAppService.ConvertToOrderAsync, except there are no line items to carry forward: the
     // Quote's own lines ARE the proposal's de facto Bill of Materials (see Proposal.cs).
+    // Conversion IS the approval action (sets Status to Accepted below) rather than requiring
+    // Accepted beforehand - matches the same pattern QuoteAppService.ConvertToOrderAsync already
+    // uses. What IS blocked: converting a Proposal the customer already rejected, and converting
+    // the same Proposal twice (one Proposal -> one Quote).
     public async Task<QuoteDto> ConvertToQuoteAsync(Guid proposalId)
     {
         await CheckCreatePolicyAsync();
 
         var proposal = await Repository.GetAsync(proposalId);
+
+        if (proposal.Status == ProposalStatus.Rejected)
+        {
+            throw new UserFriendlyException("This proposal was rejected and can't be converted to a quote.");
+        }
+
+        var alreadyConverted = (await _quoteRepository.GetListAsync(x => x.ProposalId == proposal.Id)).Any();
+        if (alreadyConverted)
+        {
+            throw new UserFriendlyException("This proposal has already been converted to a quote.");
+        }
+
         var opportunity = await _opportunityRepository.GetAsync(proposal.OpportunityId);
         var quoteNumber = await DocumentNumbering.NextAsync(_quoteRepository, _dataFilter, "Q-");
 
@@ -161,6 +201,7 @@ public class ProposalAppService :
 
         proposal.Status = ProposalStatus.Accepted;
         await Repository.UpdateAsync(proposal, autoSave: true);
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Proposal", proposal.Id, WorkflowStage.ProposalApproved);
 
         return ObjectMapper.Map<Quote, QuoteDto>(quote);
     }

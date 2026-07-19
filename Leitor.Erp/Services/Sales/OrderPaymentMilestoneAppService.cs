@@ -36,7 +36,10 @@ public class OrderPaymentMilestoneAppService : ErpAppService
     {
         await CheckPolicyAsync(ErpPermissions.Sales.Edit);
 
-        var entity = new OrderPaymentMilestone(GuidGenerator.Create(), input.OrderId, input.Description, input.Percent);
+        var entity = new OrderPaymentMilestone(GuidGenerator.Create(), input.OrderId, input.Description, input.Percent)
+        {
+            Kind = input.Kind
+        };
         await _repository.InsertAsync(entity, autoSave: true);
 
         return ObjectMapper.Map<OrderPaymentMilestone, OrderPaymentMilestoneDto>(entity);

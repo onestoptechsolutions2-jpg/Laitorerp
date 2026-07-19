@@ -13,8 +13,14 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public DateTime OrderDate { get; set; }
     public string? Notes { get; set; }
     public PaymentTerms PaymentTerms { get; set; }
+    public int Version { get; set; }
+    public bool IsLocked { get; set; }
+    public Guid? UnlockedByUserId { get; set; }
+    public DateTime? UnlockedAt { get; set; }
+    public string? UnlockReason { get; set; }
 
     public string? CustomerName { get; set; }
+    public string? QuoteNumber { get; set; }
     public decimal Subtotal { get; set; }
     public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }

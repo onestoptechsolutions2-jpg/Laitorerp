@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Governance;
@@ -26,6 +27,9 @@ public class FieldServiceJobAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<OrderPaymentMilestone, Guid> _milestoneRepository;
+    private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IClock _clock;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -36,6 +40,9 @@ public class FieldServiceJobAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<Vendor, Guid> vendorRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<OrderPaymentMilestone, Guid> milestoneRepository,
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IClock clock,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -45,6 +52,9 @@ public class FieldServiceJobAppService :
         _customerRepository = customerRepository;
         _identityUserRepository = identityUserRepository;
         _vendorRepository = vendorRepository;
+        _orderRepository = orderRepository;
+        _milestoneRepository = milestoneRepository;
+        _stageEventRepository = stageEventRepository;
         _clock = clock;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -147,20 +157,54 @@ public class FieldServiceJobAppService :
 
     // CreateUpdateFieldServiceJobDto -> FieldServiceJob is mapped manually rather than via
     // Mapperly - same reason as every other entity in this app (protected Id setter).
-    protected override Task<FieldServiceJob> MapToEntityAsync(CreateUpdateFieldServiceJobDto createInput)
+    protected override async Task<FieldServiceJob> MapToEntityAsync(CreateUpdateFieldServiceJobDto createInput)
     {
+        if (createInput.OrderId.HasValue)
+        {
+            await EnsureInstallationGateAsync(createInput.OrderId.Value);
+        }
+
         var entity = new FieldServiceJob(GuidGenerator.Create(), createInput.CustomerId);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+
+        if (createInput.OrderId.HasValue)
+        {
+            await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", createInput.OrderId.Value, WorkflowStage.InstallationScheduled);
+        }
+
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateFieldServiceJobDto updateInput, FieldServiceJob entity)
+    protected override async Task MapToEntityAsync(CreateUpdateFieldServiceJobDto updateInput, FieldServiceJob entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private void CopyToEntity(CreateUpdateFieldServiceJobDto input, FieldServiceJob entity)
+    // A job billed against a Sales Order can't be scheduled until that order's earned the right to
+    // be worked on: for a Milestone-terms order that means the Deposit has actually been invoiced;
+    // for any other order it just means the order has been confirmed (no separate deposit concept
+    // applies - see OrderAppService.OnOrderConfirmedAsync's "deliberate scope cut").
+    private async Task EnsureInstallationGateAsync(Guid orderId)
+    {
+        var order = await _orderRepository.GetAsync(orderId);
+
+        if (order.PaymentTerms == PaymentTerms.Milestone)
+        {
+            var depositInvoiced = (await _milestoneRepository.GetListAsync(x =>
+                x.OrderId == orderId && x.Kind == OrderPaymentMilestoneKind.Deposit && x.IsInvoiced)).Any();
+
+            if (!depositInvoiced)
+            {
+                throw new UserFriendlyException("This order's deposit invoice hasn't been issued yet - installation can't be scheduled until it has.");
+            }
+        }
+        else if (order.Status == OrderStatus.Submitted)
+        {
+            throw new UserFriendlyException("This order hasn't been confirmed yet - installation can't be scheduled until it has.");
+        }
+    }
+
+    private async Task CopyToEntityAsync(CreateUpdateFieldServiceJobDto input, FieldServiceJob entity)
     {
         entity.CustomerId = input.CustomerId;
         entity.OrderId = input.OrderId;
@@ -185,6 +229,11 @@ public class FieldServiceJobAppService :
         else if (!isTerminal)
         {
             entity.CompletedDate = null;
+        }
+
+        if (input.Status == FieldServiceJobStatus.Completed && entity.Status != FieldServiceJobStatus.Completed && entity.OrderId.HasValue)
+        {
+            await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", entity.OrderId.Value, WorkflowStage.InstallationCompleted);
         }
 
         entity.Status = input.Status;

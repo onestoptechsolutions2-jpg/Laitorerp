@@ -1,0 +1,76 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Governance.WorkflowMonitor.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["WorkflowMonitor"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Rows.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoOpportunities"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["Opportunities"]</th>
+                            <th>@L["Customer"]</th>
+                            <th>@L["FromProposal"]</th>
+                            <th>@L["Quote"]</th>
+                            <th>@L["Order"]</th>
+                            <th>@L["CurrentStage"]</th>
+                            <th>@L["PendingActions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td><a asp-page="/Opportunities/Detail" asp-route-id="@row.OpportunityId">@row.OpportunityName</a></td>
+                                <td>@row.CustomerName</td>
+                                <td>
+                                    @if (row.ProposalId.HasValue)
+                                    {
+                                        <a class="doc-no" asp-page="/Opportunities/Proposals/Edit" asp-route-id="@row.ProposalId" asp-route-opportunityId="@row.OpportunityId">@row.ProposalNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (row.QuoteId.HasValue)
+                                    {
+                                        <a class="doc-no" asp-page="/Sales/Quotes/Detail" asp-route-id="@row.QuoteId">@row.QuoteNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (row.OrderId.HasValue)
+                                    {
+                                        <a class="doc-no" asp-page="/Sales/Orders/Detail" asp-route-id="@row.OrderId">@row.OrderNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td><span class="pill pill-info">@row.CurrentStage</span></td>
+                                <td class="small text-muted">@row.PendingAction</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

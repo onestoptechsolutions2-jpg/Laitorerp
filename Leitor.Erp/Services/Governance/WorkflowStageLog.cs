@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
 using Volo.Abp.Domain.Repositories;
@@ -34,5 +36,16 @@ public static class WorkflowStageLog
         };
 
         await repository.InsertAsync(entity, autoSave: true);
+    }
+
+    // Shared by any Detail/Edit page that shows "what's happened to this document" (Proposal
+    // delivery history, the Workflow Monitor page) so the query shape lives in one place.
+    public static async Task<List<WorkflowStageEvent>> GetHistoryAsync(
+        IRepository<WorkflowStageEvent, Guid> repository,
+        string entityType,
+        Guid entityId)
+    {
+        var events = await repository.GetListAsync(x => x.EntityType == entityType && x.EntityId == entityId);
+        return events.OrderBy(x => x.OccurredAt).ToList();
     }
 }

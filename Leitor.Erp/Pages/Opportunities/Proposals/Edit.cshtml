@@ -4,31 +4,85 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Opportunities.Proposals.EditModel
 
+@{
+    var isLockedAndNotUnlocked = Model.ProposalDetails.IsLocked && Model.ProposalDetails.UnlockedByUserId == null;
+}
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">@Model.ProposalDetails.ProposalNumber - @Model.ProposalDetails.Title</h5>
-        <a asp-page="./Edit" asp-page-handler="Pdf" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.ProposalDetails.ProposalNumber</span> - @Model.ProposalDetails.Title</h5>
+        <div>
+            <a asp-page="./Edit" asp-page-handler="Pdf" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
+            @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
+            {
+                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["EmailToCustomer"]?');">
+                    <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
+                </form>
+            }
+            <form method="post" asp-page-handler="MarkSentWhatsApp" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["MarkSentWhatsAppConfirm"]');">
+                <button type="submit" class="btn btn-outline-secondary">@L["MarkSentWhatsApp"]</button>
+            </form>
+        </div>
     </div>
     <div class="card-body">
-        <form method="post">
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="OpportunityId" />
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-input asp-for="Proposal.Title" />
-            <abp-input asp-for="Proposal.Status" />
-            <abp-input asp-for="Proposal.Summary" />
-            <abp-input asp-for="Proposal.ProposedSolution" />
-            <abp-input asp-for="Proposal.Scope" />
-            <abp-input asp-for="Proposal.Timeline" />
-            <abp-input asp-for="Proposal.Assumptions" />
-            <abp-input asp-for="Proposal.Exclusions" />
-            <abp-input asp-for="Proposal.WarrantyAndSupport" />
-            <abp-input asp-for="Proposal.Terms" />
+        @if (isLockedAndNotUnlocked)
+        {
+            <div class="alert alert-warning">@L["LockedMessage"]</div>
+            @if (Model.CanUnlock)
+            {
+                <form method="post" asp-page-handler="Unlock" class="row g-2 mb-3 align-items-end">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="OpportunityId" />
+                    <div class="col-md-8">
+                        <label class="form-label">@L["UnlockReason"]</label>
+                        <input asp-for="UnlockReason" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">@L["UnlockForRevision"]</button>
+                    </div>
+                </form>
+            }
+            <a asp-page="/Opportunities/Detail" asp-route-id="@Model.OpportunityId" class="btn btn-secondary">@L["BackToList"]</a>
+        }
+        else
+        {
+            <form method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="OpportunityId" />
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <abp-input asp-for="Proposal.Title" />
+                <abp-input asp-for="Proposal.Status" />
+                <abp-input asp-for="Proposal.Summary" />
+                <abp-input asp-for="Proposal.ProposedSolution" />
+                <abp-input asp-for="Proposal.Scope" />
+                <abp-input asp-for="Proposal.Timeline" />
+                <abp-input asp-for="Proposal.Assumptions" />
+                <abp-input asp-for="Proposal.Exclusions" />
+                <abp-input asp-for="Proposal.WarrantyAndSupport" />
+                <abp-input asp-for="Proposal.Terms" />
 
-            <div class="mt-3">
-                <button type="submit" class="btn btn-primary">@L["Save"]</button>
-                <a asp-page="/Opportunities/Detail" asp-route-id="@Model.OpportunityId" class="btn btn-secondary">@L["Cancel"]</a>
-            </div>
-        </form>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                    <a asp-page="/Opportunities/Detail" asp-route-id="@Model.OpportunityId" class="btn btn-secondary">@L["Cancel"]</a>
+                </div>
+            </form>
+        }
     </div>
 </div>
+
+@if (Model.DeliveryHistory.Count > 0)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["DeliveryHistory"]</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var delivery in Model.DeliveryHistory.OrderByDescending(x => x.OccurredAt))
+                {
+                    <li class="small text-muted">@L["SentVia", delivery.Channel ?? "", delivery.OccurredAt.ToString("g")]</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
