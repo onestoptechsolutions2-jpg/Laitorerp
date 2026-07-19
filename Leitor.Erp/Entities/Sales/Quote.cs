@@ -12,6 +12,15 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     public DateTime IssueDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public string? Notes { get; set; }
+    public int Version { get; set; } = 1;
+
+    // Locked once it leaves Draft - same lock/single-use-unlock mechanism as Proposal.IsLocked,
+    // enforced in QuoteAppService.MapToEntityAsync.
+    public bool IsLocked => Status != QuoteStatus.Draft;
+
+    public Guid? UnlockedByUserId { get; set; }
+    public DateTime? UnlockedAt { get; set; }
+    public string? UnlockReason { get; set; }
 
     // Set by ProposalAppService.ConvertToQuoteAsync when this Quote was generated from a
     // technical Proposal - null for quotes created directly, same optional-provenance pattern as

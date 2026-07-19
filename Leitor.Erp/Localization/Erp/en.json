@@ -429,6 +429,15 @@
     "PaymentMilestones": "Payment Milestones",
     "AddMilestone": "Add Milestone",
     "Invoiced": "Invoiced",
-    "NotInvoiced": "Not Invoiced"
+    "NotInvoiced": "Not Invoiced",
+    "FromLead": "From Lead",
+    "Permission:Unlock": "Unlock for Revision",
+    "Locked": "Locked",
+    "LockedMessage": "This document is locked because it's no longer a draft. Unlock it for revision to make changes.",
+    "UnlockForRevision": "Unlock for Revision",
+    "UnlockReason": "Reason for Revision",
+    "Unlock": "Unlock",
+    "UnlockedBy": "Unlocked By",
+    "Version": "Version"
   }
 }

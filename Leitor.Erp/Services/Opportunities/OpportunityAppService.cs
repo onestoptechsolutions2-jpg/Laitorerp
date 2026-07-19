@@ -22,6 +22,7 @@ public class OpportunityAppService :
     private readonly IRepository<NeedsAssessment, Guid> _needsAssessmentRepository;
     private readonly IRepository<NeedsAssessmentAttachment, Guid> _needsAssessmentAttachmentRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
+    private readonly IRepository<Lead, Guid> _leadRepository;
 
     public OpportunityAppService(
         IRepository<Opportunity, Guid> repository,
@@ -29,7 +30,8 @@ public class OpportunityAppService :
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<NeedsAssessment, Guid> needsAssessmentRepository,
         IRepository<NeedsAssessmentAttachment, Guid> needsAssessmentAttachmentRepository,
-        IRepository<Proposal, Guid> proposalRepository)
+        IRepository<Proposal, Guid> proposalRepository,
+        IRepository<Lead, Guid> leadRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
@@ -37,6 +39,7 @@ public class OpportunityAppService :
         _needsAssessmentRepository = needsAssessmentRepository;
         _needsAssessmentAttachmentRepository = needsAssessmentAttachmentRepository;
         _proposalRepository = proposalRepository;
+        _leadRepository = leadRepository;
 
         GetPolicyName = ErpPermissions.Opportunities.Default;
         GetListPolicyName = ErpPermissions.Opportunities.Default;
@@ -110,6 +113,15 @@ public class OpportunityAppService :
             ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
+        var leadIds = opportunities
+            .Where(x => x.LeadId.HasValue)
+            .Select(x => x.LeadId!.Value)
+            .Distinct()
+            .ToList();
+        var leadNamesById = leadIds.Count > 0
+            ? (await _leadRepository.GetListAsync(x => leadIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
         foreach (var opportunity in opportunities)
         {
             if (customerNamesById.TryGetValue(opportunity.CustomerId, out var customerName))
@@ -120,6 +132,11 @@ public class OpportunityAppService :
             if (opportunity.AssignedToUserId.HasValue && usersById.TryGetValue(opportunity.AssignedToUserId.Value, out var userName))
             {
                 opportunity.AssignedToUserName = userName;
+            }
+
+            if (opportunity.LeadId.HasValue && leadNamesById.TryGetValue(opportunity.LeadId.Value, out var leadName))
+            {
+                opportunity.LeadDisplayName = leadName;
             }
         }
     }

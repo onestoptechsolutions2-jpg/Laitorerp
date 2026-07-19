@@ -12,11 +12,13 @@ public partial class OpportunityToOpportunityDtoMapper : MapperBase<Opportunity,
     [MapperIgnoreSource(nameof(Opportunity.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(OpportunityDto.CustomerName))]
     [MapperIgnoreTarget(nameof(OpportunityDto.AssignedToUserName))]
+    [MapperIgnoreTarget(nameof(OpportunityDto.LeadDisplayName))]
     public override partial OpportunityDto Map(Opportunity source);
 
     [MapperIgnoreSource(nameof(Opportunity.ExtraProperties))]
     [MapperIgnoreSource(nameof(Opportunity.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(OpportunityDto.CustomerName))]
     [MapperIgnoreTarget(nameof(OpportunityDto.AssignedToUserName))]
+    [MapperIgnoreTarget(nameof(OpportunityDto.LeadDisplayName))]
     public override partial void Map(Opportunity source, OpportunityDto destination);
 }

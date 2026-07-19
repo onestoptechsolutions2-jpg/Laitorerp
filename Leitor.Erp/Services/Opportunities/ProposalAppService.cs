@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
@@ -18,17 +20,20 @@ public class ProposalAppService :
 {
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
+    private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IDataFilter _dataFilter;
 
     public ProposalAppService(
         IRepository<Proposal, Guid> repository,
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<Quote, Guid> quoteRepository,
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
         _opportunityRepository = opportunityRepository;
         _quoteRepository = quoteRepository;
+        _stageEventRepository = stageEventRepository;
         _dataFilter = dataFilter;
 
         // Child reuses the parent Opportunity's permissions, same convention as
@@ -60,6 +65,14 @@ public class ProposalAppService :
 
     protected override Task MapToEntityAsync(CreateUpdateProposalDto updateInput, Proposal entity)
     {
+        // Once a Proposal leaves Draft it's locked - editing requires an explicit unlock first
+        // (see UnlockForRevisionAsync). The unlock is single-use: it's consumed the moment this
+        // edit is saved, so a fresh unlock is required for every subsequent change.
+        if (entity.IsLocked && entity.UnlockedByUserId == null)
+        {
+            throw new UserFriendlyException("This proposal is locked because it's no longer a draft. Unlock it for revision before making changes.");
+        }
+
         // A resend after edits is a new revision of the same document - bump Version whenever the
         // content changes via update, not on every save (e.g. a pure Status flip Draft->Sent isn't
         // a new revision).
@@ -73,6 +86,8 @@ public class ProposalAppService :
             entity.WarrantyAndSupport != updateInput.WarrantyAndSupport ||
             entity.Terms != updateInput.Terms;
 
+        var wasUnlocked = entity.UnlockedByUserId != null;
+
         CopyToEntity(updateInput, entity);
 
         if (contentChanged)
@@ -80,7 +95,35 @@ public class ProposalAppService :
             entity.Version++;
         }
 
+        if (wasUnlocked)
+        {
+            entity.UnlockedByUserId = null;
+            entity.UnlockedAt = null;
+            entity.UnlockReason = null;
+        }
+
         return Task.CompletedTask;
+    }
+
+    // Only a holder of Opportunities.Unlock (Ops Manager) can unlock an approved Proposal for
+    // revision - the reason is mandatory and logged, and the unlock is consumed by the very next
+    // saved edit (see MapToEntityAsync above).
+    public async Task UnlockForRevisionAsync(Guid id, string reason)
+    {
+        await CheckPolicyAsync(ErpPermissions.Opportunities.Unlock);
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new UserFriendlyException("A reason is required to unlock this proposal for revision.");
+        }
+
+        var entity = await Repository.GetAsync(id);
+        entity.UnlockedByUserId = CurrentUser.Id;
+        entity.UnlockedAt = Clock.Now;
+        entity.UnlockReason = reason;
+        await Repository.UpdateAsync(entity, autoSave: true);
+
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Proposal", entity.Id, WorkflowStage.Unlocked, notes: reason);
     }
 
     private static void CopyToEntity(CreateUpdateProposalDto input, Proposal entity)

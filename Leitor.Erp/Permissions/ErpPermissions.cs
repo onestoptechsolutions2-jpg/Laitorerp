@@ -29,6 +29,10 @@ public static class ErpPermissions
         public const string Create = Default + ".Create";
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
+
+        // Separate from Edit: unlocking an approved Proposal for revision is a senior/manager
+        // action, not a routine edit - see Services/Opportunities/ProposalAppService.cs.
+        public const string Unlock = Default + ".Unlock";
     }
 
     public static class Catalog
@@ -47,6 +51,10 @@ public static class ErpPermissions
         public const string Create = Default + ".Create";
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
+
+        // Unlocking an approved Quote/Order for revision is a senior/manager action - see
+        // Services/Sales/QuoteAppService.cs / OrderAppService.cs.
+        public const string Unlock = Default + ".Unlock";
     }
 
     public static class FieldService

@@ -7,6 +7,7 @@ namespace Leitor.Erp.Services.Dtos.Opportunities;
 public class OpportunityDto : FullAuditedEntityDto<Guid>
 {
     public Guid CustomerId { get; set; }
+    public Guid? LeadId { get; set; }
     public string Name { get; set; } = string.Empty;
     public OpportunityStatus Status { get; set; }
     public decimal? EstimatedValue { get; set; }
@@ -18,4 +19,5 @@ public class OpportunityDto : FullAuditedEntityDto<Guid>
     // Resolved by OpportunityAppService - not stored columns.
     public string? CustomerName { get; set; }
     public string? AssignedToUserName { get; set; }
+    public string? LeadDisplayName { get; set; }
 }

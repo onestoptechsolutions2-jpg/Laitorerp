@@ -14,6 +14,11 @@ public class QuoteDto : FullAuditedEntityDto<Guid>
     public DateTime? ExpiryDate { get; set; }
     public string? Notes { get; set; }
     public Guid? ProposalId { get; set; }
+    public int Version { get; set; }
+    public bool IsLocked { get; set; }
+    public Guid? UnlockedByUserId { get; set; }
+    public DateTime? UnlockedAt { get; set; }
+    public string? UnlockReason { get; set; }
 
     // Resolved/computed by QuoteAppService - not stored columns, Mapperly won't map them.
     public string? CustomerName { get; set; }

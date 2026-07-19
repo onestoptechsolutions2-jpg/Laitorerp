@@ -11,6 +11,10 @@ public class ProposalDto : FullAuditedEntityDto<Guid>
     public string Title { get; set; } = string.Empty;
     public ProposalStatus Status { get; set; }
     public int Version { get; set; }
+    public bool IsLocked { get; set; }
+    public Guid? UnlockedByUserId { get; set; }
+    public DateTime? UnlockedAt { get; set; }
+    public string? UnlockReason { get; set; }
 
     public string? Summary { get; set; }
     public string? ProposedSolution { get; set; }

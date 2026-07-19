@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -18,15 +21,21 @@ public class LeadAppService :
 {
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Opportunity, Guid> _opportunityRepository;
+    private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
 
     public LeadAppService(
         IRepository<Lead, Guid> repository,
         IRepository<Customer, Guid> customerRepository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Opportunity, Guid> opportunityRepository,
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
         _identityUserRepository = identityUserRepository;
+        _opportunityRepository = opportunityRepository;
+        _stageEventRepository = stageEventRepository;
 
         GetPolicyName = ErpPermissions.Leads.Default;
         GetListPolicyName = ErpPermissions.Leads.Default;
@@ -87,12 +96,18 @@ public class LeadAppService :
 
     // The concrete mechanism behind "lead becomes a customer" - same shape as
     // QuoteAppService.ConvertToOrderAsync: creates the new entity, carries the obvious fields
-    // forward, then marks the source record converted.
-    public async Task<Guid> ConvertToCustomerAsync(Guid leadId)
+    // forward, then marks the source record converted. Per the workflow-governance spec, a
+    // qualified Lead should only become a Customer once it's a priced opportunity, so this also
+    // auto-opens an Opportunity in the same step rather than leaving that as a separate manual
+    // action - Lead history (LeadTouch rows) stays where it is, tied to LeadId, and both the
+    // Customer and the Opportunity link back via ConvertedCustomerId/LeadId for traceability.
+    public async Task<(Guid CustomerId, Guid OpportunityId)> ConvertToCustomerAsync(Guid leadId)
     {
         await CheckCreatePolicyAsync();
 
         var lead = await Repository.GetAsync(leadId);
+
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Lead", lead.Id, WorkflowStage.LeadQualified);
 
         var customer = new Customer(GuidGenerator.Create(), lead.Name)
         {
@@ -101,12 +116,24 @@ public class LeadAppService :
             Notes = lead.Notes
         };
         await _customerRepository.InsertAsync(customer, autoSave: true);
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Customer", customer.Id, WorkflowStage.CustomerCreated);
 
         lead.Status = LeadStatus.Converted;
         lead.ConvertedCustomerId = customer.Id;
         await Repository.UpdateAsync(lead, autoSave: true);
 
-        return customer.Id;
+        var opportunityName = !string.IsNullOrWhiteSpace(lead.CompanyName)
+            ? $"Opportunity for {lead.CompanyName}"
+            : $"Opportunity for {customer.Name}";
+        var opportunity = new Opportunity(GuidGenerator.Create(), customer.Id, opportunityName)
+        {
+            LeadId = lead.Id,
+            AssignedToUserId = lead.AssignedToUserId
+        };
+        await _opportunityRepository.InsertAsync(opportunity, autoSave: true);
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Opportunity", opportunity.Id, WorkflowStage.OpportunityOpened);
+
+        return (customer.Id, opportunity.Id);
     }
 
     // CreateUpdateLeadDto -> Lead is mapped manually rather than via Mapperly - same reason as

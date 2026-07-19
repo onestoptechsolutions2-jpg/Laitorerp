@@ -5,10 +5,13 @@ namespace Leitor.Erp.Entities.Opportunities;
 
 // Not required to descend from a Lead - CustomerId is set directly so repeat business against an
 // existing Customer doesn't need a fake Lead first (see LeadAppService.ConvertToCustomerAsync for
-// the separate Lead -> Customer conversion, which this doesn't touch).
+// the separate Lead -> Customer conversion). LeadId is populated when this Opportunity WAS opened
+// that way (LeadAppService.ConvertToCustomerAsync auto-creates one), null for direct-entry
+// Opportunities - both paths are supported side by side.
 public class Opportunity : FullAuditedAggregateRoot<Guid>
 {
     public Guid CustomerId { get; set; }
+    public Guid? LeadId { get; set; }
     public string Name { get; set; } = string.Empty;
     public OpportunityStatus Status { get; set; } = OpportunityStatus.Open;
     public decimal? EstimatedValue { get; set; }

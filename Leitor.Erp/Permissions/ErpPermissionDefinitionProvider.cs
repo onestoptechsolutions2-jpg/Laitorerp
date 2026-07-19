@@ -26,6 +26,7 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Create, L("Permission:Create"));
         opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Edit, L("Permission:Edit"));
         opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Delete, L("Permission:Delete"));
+        opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Unlock, L("Permission:Unlock"));
 
         var catalogGroup = context.AddGroup(ErpPermissions.Catalog.GroupName, L("Permission:Catalog"));
         var catalogPermission = catalogGroup.AddPermission(ErpPermissions.Catalog.Default, L("Permission:Catalog"));
@@ -38,6 +39,7 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         salesPermission.AddChild(ErpPermissions.Sales.Create, L("Permission:Create"));
         salesPermission.AddChild(ErpPermissions.Sales.Edit, L("Permission:Edit"));
         salesPermission.AddChild(ErpPermissions.Sales.Delete, L("Permission:Delete"));
+        salesPermission.AddChild(ErpPermissions.Sales.Unlock, L("Permission:Unlock"));
 
         var fieldServiceGroup = context.AddGroup(ErpPermissions.FieldService.GroupName, L("Permission:FieldService"));
         var fieldServicePermission = fieldServiceGroup.AddPermission(ErpPermissions.FieldService.Default, L("Permission:FieldService"));

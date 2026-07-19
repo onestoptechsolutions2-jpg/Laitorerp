@@ -15,6 +15,17 @@ public class Proposal : FullAuditedAggregateRoot<Guid>
     public ProposalStatus Status { get; set; } = ProposalStatus.Draft;
     public int Version { get; set; } = 1;
 
+    // Locked once it leaves Draft (Sent/Accepted/Rejected) - ProposalAppService.MapToEntityAsync
+    // blocks edits unless UnlockedByUserId is set. Single-use: cleared by the app service the
+    // moment the unlocked edit is saved, so a fresh unlock is required for every subsequent
+    // change. Not a stored/mapped column - EF Core's default conventions don't map read-only
+    // computed properties.
+    public bool IsLocked => Status != ProposalStatus.Draft;
+
+    public Guid? UnlockedByUserId { get; set; }
+    public DateTime? UnlockedAt { get; set; }
+    public string? UnlockReason { get; set; }
+
     public string? Summary { get; set; }
     public string? ProposedSolution { get; set; }
     public string? Scope { get; set; }

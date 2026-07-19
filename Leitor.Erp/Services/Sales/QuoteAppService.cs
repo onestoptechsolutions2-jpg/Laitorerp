@@ -136,8 +136,45 @@ public class QuoteAppService :
 
     protected override Task MapToEntityAsync(CreateUpdateQuoteDto updateInput, Quote entity)
     {
+        // Once a Quote leaves Draft it's locked - editing requires an explicit unlock first (see
+        // UnlockForRevisionAsync). Single-use: consumed the moment this edit is saved.
+        if (entity.IsLocked && entity.UnlockedByUserId == null)
+        {
+            throw new UserFriendlyException("This quote is locked because it's no longer a draft. Unlock it for revision before making changes.");
+        }
+
+        var wasUnlocked = entity.UnlockedByUserId != null;
+
         CopyToEntity(updateInput, entity);
+        entity.Version++;
+
+        if (wasUnlocked)
+        {
+            entity.UnlockedByUserId = null;
+            entity.UnlockedAt = null;
+            entity.UnlockReason = null;
+        }
+
         return Task.CompletedTask;
+    }
+
+    // Only a holder of Sales.Unlock (Ops Manager) can unlock an approved Quote for revision.
+    public async Task UnlockForRevisionAsync(Guid id, string reason)
+    {
+        await CheckPolicyAsync(ErpPermissions.Sales.Unlock);
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new UserFriendlyException("A reason is required to unlock this quote for revision.");
+        }
+
+        var entity = await Repository.GetAsync(id);
+        entity.UnlockedByUserId = CurrentUser.Id;
+        entity.UnlockedAt = Clock.Now;
+        entity.UnlockReason = reason;
+        await Repository.UpdateAsync(entity, autoSave: true);
+
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Quote", entity.Id, WorkflowStage.Unlocked, notes: reason);
     }
 
     private static void CopyToEntity(CreateUpdateQuoteDto input, Quote entity)

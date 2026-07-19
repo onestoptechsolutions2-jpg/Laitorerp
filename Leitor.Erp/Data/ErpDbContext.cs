@@ -24,6 +24,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<LeadTouch> LeadTouches { get; set; } = null!;
 
     public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
+    public DbSet<WorkflowStageEvent> WorkflowStageEvents { get; set; } = null!;
 
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
@@ -179,6 +180,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.AssignedToUserId);
+            b.HasIndex(x => x.LeadId);
         });
 
         builder.Entity<NeedsAssessment>(b =>
@@ -435,6 +437,16 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.DecisionNotes).HasMaxLength(2000);
             b.HasIndex(x => new { x.EntityType, x.EntityId });
             b.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<WorkflowStageEvent>(b =>
+        {
+            b.ToTable("WorkflowStageEvents");
+            b.ConfigureByConvention();
+            b.Property(x => x.EntityType).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Channel).HasMaxLength(32);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => new { x.EntityType, x.EntityId });
         });
     }
 }

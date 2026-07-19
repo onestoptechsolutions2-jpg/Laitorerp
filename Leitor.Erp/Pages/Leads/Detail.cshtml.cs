@@ -65,8 +65,8 @@ public class DetailModel : AbpPageModel
 
     public async Task<IActionResult> OnPostConvertToCustomerAsync()
     {
-        var customerId = await _leadAppService.ConvertToCustomerAsync(Id);
-        return RedirectToPage("/Customers/Detail", new { id = customerId });
+        var (_, opportunityId) = await _leadAppService.ConvertToCustomerAsync(Id);
+        return RedirectToPage("/Opportunities/Detail", new { id = opportunityId });
     }
 
     public async Task<IActionResult> OnPostAddTouchAsync()
