@@ -50,7 +50,7 @@
                         <tr>
                             <td><a asp-page="./Detail" asp-route-id="@job.Id">@job.CustomerName</a></td>
                             <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
-                            <td>@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
                             <td>@job.ScheduledDate.ToShortDateString()</td>
                             <td>@job.AssignedToUserName</td>
                             <td>

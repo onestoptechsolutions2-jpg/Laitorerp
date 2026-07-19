@@ -7,7 +7,7 @@
 
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">@Model.Order.OrderNumber</h5>
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.Order.OrderNumber</span></h5>
         <div>
             @if (Model.CanEdit)
             {
@@ -36,7 +36,7 @@
             <dt class="col-sm-2">@L["Customer"]</dt>
             <dd class="col-sm-4">@Model.Order.CustomerName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:OrderStatus:{(int)Model.Order.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Order.Status)">@L[$"Enum:OrderStatus:{(int)Model.Order.Status}"]</span></dd>
 
             <dt class="col-sm-2">@L["OrderDate"]</dt>
             <dd class="col-sm-4">@Model.Order.OrderDate.ToShortDateString()</dd>
@@ -162,9 +162,9 @@
                     @foreach (var purchaseOrder in Model.PurchaseOrders)
                     {
                         <tr>
-                            <td><a asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
+                            <td><a class="doc-no" asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
                             <td>@purchaseOrder.VendorName</td>
-                            <td>@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(purchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</span></td>
                             <td>@(purchaseOrder.ShipToCustomer ? L["Yes"] : L["No"])</td>
                             <td>@purchaseOrder.Total.ToString("N2")</td>
                         </tr>

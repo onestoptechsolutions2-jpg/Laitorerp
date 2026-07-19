@@ -37,9 +37,9 @@
                     @foreach (var order in Model.Orders)
                     {
                         <tr>
-                            <td><a asp-page="./Detail" asp-route-id="@order.Id">@order.OrderNumber</a></td>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@order.Id">@order.OrderNumber</a></td>
                             <td>@order.CustomerName</td>
-                            <td>@L[$"Enum:OrderStatus:{(int)order.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(order.Status)">@L[$"Enum:OrderStatus:{(int)order.Status}"]</span></td>
                             <td>@order.OrderDate.ToShortDateString()</td>
                             <td>@order.Total.ToString("N2")</td>
                             <td>

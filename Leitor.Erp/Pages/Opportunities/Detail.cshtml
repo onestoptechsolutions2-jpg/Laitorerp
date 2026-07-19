@@ -20,7 +20,7 @@
             <dt class="col-sm-2">@L["Customer"]</dt>
             <dd class="col-sm-4">@Model.Opportunity.CustomerName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:OpportunityStatus:{(int)Model.Opportunity.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Opportunity.Status)">@L[$"Enum:OpportunityStatus:{(int)Model.Opportunity.Status}"]</span></dd>
 
             <dt class="col-sm-2">@L["EstimatedValue"]</dt>
             <dd class="col-sm-4">@Model.Opportunity.EstimatedValue?.ToString("N2")</dd>
@@ -103,9 +103,9 @@
                     @foreach (var proposal in Model.Proposals)
                     {
                         <tr>
-                            <td>@proposal.ProposalNumber</td>
+                            <td class="doc-no">@proposal.ProposalNumber</td>
                             <td>@proposal.Title</td>
-                            <td>@L[$"Enum:ProposalStatus:{(int)proposal.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(proposal.Status)">@L[$"Enum:ProposalStatus:{(int)proposal.Status}"]</span></td>
                             <td>@proposal.Version</td>
                             <td>
                                 <a asp-page="/Opportunities/Proposals/Edit" asp-route-id="@proposal.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>

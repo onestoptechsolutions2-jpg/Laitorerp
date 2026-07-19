@@ -11,7 +11,7 @@
 
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">@Model.Ticket.TicketNumber - @Model.Ticket.Subject</h5>
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.Ticket.TicketNumber</span> - @Model.Ticket.Subject</h5>
         <div>
             @if (Model.CanEdit)
             {
@@ -61,7 +61,7 @@
             <dd class="col-sm-4">@L[$"Enum:TicketPriority:{(int)Model.Ticket.Priority}"]</dd>
 
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:TicketStatus:{(int)Model.Ticket.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Ticket.Status)">@L[$"Enum:TicketStatus:{(int)Model.Ticket.Status}"]</span></dd>
             <dt class="col-sm-2">@L["ResolvedDate"]</dt>
             <dd class="col-sm-4">@(Model.Ticket.ResolvedDate?.ToString("g"))</dd>
 

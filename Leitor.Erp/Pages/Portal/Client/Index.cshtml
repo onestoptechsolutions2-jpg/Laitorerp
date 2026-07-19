@@ -33,9 +33,9 @@ else
                         @foreach (var order in Model.Orders)
                         {
                             <tr>
-                                <td>@order.OrderNumber</td>
+                                <td class="doc-no">@order.OrderNumber</td>
                                 <td>@order.OrderDate.ToShortDateString()</td>
-                                <td>@L[$"Enum:OrderStatus:{(int)order.Status}"]</td>
+                                <td><span class="pill @StatusPill.For(order.Status)">@L[$"Enum:OrderStatus:{(int)order.Status}"]</span></td>
                                 <td>@Model.OrderTotals.GetValueOrDefault(order.Id).ToString("N2")</td>
                             </tr>
                         }
@@ -130,9 +130,9 @@ else
                         @foreach (var ticket in Model.Tickets)
                         {
                             <tr>
-                                <td>@ticket.TicketNumber</td>
+                                <td class="doc-no">@ticket.TicketNumber</td>
                                 <td>@ticket.Subject</td>
-                                <td>@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</td>
+                                <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
                             </tr>
                         }
                     </tbody>

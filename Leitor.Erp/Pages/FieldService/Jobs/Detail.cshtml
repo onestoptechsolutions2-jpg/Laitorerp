@@ -49,7 +49,7 @@
         <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
         <dl class="row mb-0">
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:FieldServiceJobStatus:{(int)Model.Job.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)Model.Job.Status}"]</span></dd>
             <dt class="col-sm-2">@L["AssignedTo"]</dt>
             <dd class="col-sm-4">@Model.Job.AssignedToUserName</dd>
 

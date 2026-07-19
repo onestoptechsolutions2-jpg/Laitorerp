@@ -58,10 +58,10 @@
                     @foreach (var ticket in Model.Tickets)
                     {
                         <tr>
-                            <td><a asp-page="./Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
                             <td>@ticket.Subject</td>
                             <td>@ticket.CustomerName</td>
-                            <td>@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
                             <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
                             <td>@ticket.AssignedToUserName</td>
                             <td>

@@ -36,7 +36,7 @@
             <dt class="col-sm-2">@L["CompanyName"]</dt>
             <dd class="col-sm-4">@Model.Lead.CompanyName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:LeadStatus:{(int)Model.Lead.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Lead.Status)">@L[$"Enum:LeadStatus:{(int)Model.Lead.Status}"]</span></dd>
 
             <dt class="col-sm-2">@L["Email"]</dt>
             <dd class="col-sm-4">@Model.Lead.Email</dd>

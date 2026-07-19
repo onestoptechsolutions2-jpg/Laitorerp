@@ -5,22 +5,11 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Sales.Invoices.DetailModel
 
-@{
-    var statusBadgeClass = Model.Invoice.PaymentStatus switch
-    {
-        InvoicePaymentStatus.PaidInFull => "bg-success",
-        InvoicePaymentStatus.PartiallyPaid => "bg-warning text-dark",
-        InvoicePaymentStatus.Overdue => "bg-danger",
-        InvoicePaymentStatus.Overpaid => "bg-info text-dark",
-        _ => "bg-secondary"
-    };
-}
-
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
-            @Model.Invoice.InvoiceNumber
-            <span class="badge @statusBadgeClass ms-2">@L[$"Enum:InvoicePaymentStatus:{(int)Model.Invoice.PaymentStatus}"]</span>
+            <span class="doc-no">@Model.Invoice.InvoiceNumber</span>
+            <span class="pill @StatusPill.For(Model.Invoice.PaymentStatus) ms-2">@L[$"Enum:InvoicePaymentStatus:{(int)Model.Invoice.PaymentStatus}"]</span>
         </h5>
         <div>
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Invoice.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
@@ -39,7 +28,7 @@
             <dt class="col-sm-2">@L["Customer"]</dt>
             <dd class="col-sm-4">@Model.Invoice.CustomerName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:InvoiceStatus:{(int)Model.Invoice.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Invoice.Status)">@L[$"Enum:InvoiceStatus:{(int)Model.Invoice.Status}"]</span></dd>
 
             <dt class="col-sm-2">@L["IssueDate"]</dt>
             <dd class="col-sm-4">@Model.Invoice.IssueDate.ToShortDateString()</dd>

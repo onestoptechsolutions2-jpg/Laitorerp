@@ -6,7 +6,7 @@
 
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">@Model.Quote.QuoteNumber - @Model.Quote.Title</h5>
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.Quote.QuoteNumber</span> - @Model.Quote.Title</h5>
         <div>
             @if (Model.CanEdit)
             {
@@ -30,7 +30,7 @@
             <dt class="col-sm-2">@L["Customer"]</dt>
             <dd class="col-sm-4">@Model.Quote.CustomerName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:QuoteStatus:{(int)Model.Quote.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Quote.Status)">@L[$"Enum:QuoteStatus:{(int)Model.Quote.Status}"]</span></dd>
 
             <dt class="col-sm-2">@L["IssueDate"]</dt>
             <dd class="col-sm-4">@Model.Quote.IssueDate.ToShortDateString()</dd>

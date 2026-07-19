@@ -38,12 +38,12 @@
                     @foreach (var invoice in Model.Invoices)
                     {
                         <tr>
-                            <td><a asp-page="./Detail" asp-route-id="@invoice.Id">@invoice.InvoiceNumber</a></td>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@invoice.Id">@invoice.InvoiceNumber</a></td>
                             <td>@invoice.CustomerName</td>
                             <td>@invoice.DueDate.ToShortDateString()</td>
                             <td>@invoice.Total.ToString("N2")</td>
                             <td>@invoice.AmountPaid.ToString("N2")</td>
-                            <td>@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</td>
+                            <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
                             <td>
                                 @if (Model.CanDelete)
                                 {

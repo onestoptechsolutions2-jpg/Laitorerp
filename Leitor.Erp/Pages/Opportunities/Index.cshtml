@@ -52,7 +52,7 @@
                         <tr>
                             <td><a asp-page="./Detail" asp-route-id="@opportunity.Id">@opportunity.Name</a></td>
                             <td>@opportunity.CustomerName</td>
-                            <td>@L[$"Enum:OpportunityStatus:{(int)opportunity.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(opportunity.Status)">@L[$"Enum:OpportunityStatus:{(int)opportunity.Status}"]</span></td>
                             <td>@opportunity.EstimatedValue?.ToString("N2")</td>
                             <td>@(opportunity.ExpectedCloseDate?.ToShortDateString())</td>
                             <td>@opportunity.AssignedToUserName</td>

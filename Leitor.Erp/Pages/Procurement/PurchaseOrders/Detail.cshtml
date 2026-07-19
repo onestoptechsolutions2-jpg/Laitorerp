@@ -28,7 +28,7 @@
             <dt class="col-sm-2">@L["Vendor"]</dt>
             <dd class="col-sm-4">@Model.PurchaseOrder.VendorName</dd>
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:PurchaseOrderStatus:{(int)Model.PurchaseOrder.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.PurchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)Model.PurchaseOrder.Status}"]</span></dd>
 
             <dt class="col-sm-2">@L["OrderDate"]</dt>
             <dd class="col-sm-4">@Model.PurchaseOrder.OrderDate.ToShortDateString()</dd>

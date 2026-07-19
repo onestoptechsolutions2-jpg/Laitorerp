@@ -48,7 +48,7 @@
                             </td>
                             <td>@request.RequestedByUserName</td>
                             <td>@request.RequestedAt.ToLocalTime()</td>
-                            <td>@L[$"Enum:DeletionRequestStatus:{(int)request.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(request.Status)">@L[$"Enum:DeletionRequestStatus:{(int)request.Status}"]</span></td>
                             <td>@request.DecidedByUserName</td>
                             <td>@request.DecisionNotes</td>
                             @if (Model.CanDecide)

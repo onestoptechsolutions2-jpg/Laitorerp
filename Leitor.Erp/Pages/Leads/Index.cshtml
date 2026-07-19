@@ -60,7 +60,7 @@
                             </td>
                             <td>@lead.CompanyName</td>
                             <td>@L[$"Enum:LeadSource:{(int)lead.Source}"]</td>
-                            <td>@L[$"Enum:LeadStatus:{(int)lead.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(lead.Status)">@L[$"Enum:LeadStatus:{(int)lead.Status}"]</span></td>
                             <td>@lead.AssignedToUserName</td>
                             <td>
                                 @if (Model.CanDelete)

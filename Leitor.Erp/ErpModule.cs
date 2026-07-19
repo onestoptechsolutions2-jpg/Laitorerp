@@ -225,7 +225,7 @@ public class ErpModule : AbpModule
                 LeptonXLiteThemeBundles.Styles.Global,
                 bundle =>
                 {
-                    bundle.AddFiles("/global-styles.css");
+                    bundle.AddFiles("/global-styles.css", "/leitor-theme.css");
                 }
             );
         });

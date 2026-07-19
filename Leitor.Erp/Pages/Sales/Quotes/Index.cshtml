@@ -37,10 +37,10 @@
                     @foreach (var quote in Model.Quotes)
                     {
                         <tr>
-                            <td><a asp-page="./Detail" asp-route-id="@quote.Id">@quote.QuoteNumber</a></td>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@quote.Id">@quote.QuoteNumber</a></td>
                             <td>@quote.Title</td>
                             <td>@quote.CustomerName</td>
-                            <td>@L[$"Enum:QuoteStatus:{(int)quote.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(quote.Status)">@L[$"Enum:QuoteStatus:{(int)quote.Status}"]</span></td>
                             <td>@quote.Total.ToString("N2")</td>
                             <td>
                                 @if (Model.CanDelete)

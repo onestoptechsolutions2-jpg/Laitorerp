@@ -24,7 +24,7 @@
             <dd class="col-sm-4">@Model.Customer.PhoneNumber</dd>
 
             <dt class="col-sm-2">@L["Status"]</dt>
-            <dd class="col-sm-4">@L[$"Enum:CustomerStatus:{(int)Model.Customer.Status}"]</dd>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Customer.Status)">@L[$"Enum:CustomerStatus:{(int)Model.Customer.Status}"]</span></dd>
             <dt class="col-sm-2">@L["Country"]</dt>
             <dd class="col-sm-4">@Model.Customer.Country</dd>
 
@@ -278,7 +278,7 @@
                     {
                         <tr>
                             <td><a asp-page="/FieldService/Jobs/Detail" asp-route-id="@job.Id">@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</a></td>
-                            <td>@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
                             <td>@job.ScheduledDate.ToShortDateString()</td>
                             <td>@job.AssignedToUserName</td>
                         </tr>
@@ -310,9 +310,9 @@
                     @foreach (var ticket in Model.Tickets)
                     {
                         <tr>
-                            <td><a asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
+                            <td><a class="doc-no" asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
                             <td>@ticket.Subject</td>
-                            <td>@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
                             <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
                             <td>@ticket.AssignedToUserName</td>
                         </tr>

@@ -26,15 +26,18 @@ else
         @if (Model.Dashboard.Leads != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
-                <div class="card w-100">
+                <div class="card w-100 kpi-card">
                     <div class="card-body">
-                        <div class="text-muted">@L["Leads"]</div>
-                        <div class="display-6">@Model.Dashboard.Leads.NewCount</div>
-                        <span class="small text-muted">
-                            @Model.Dashboard.Leads.TouchesThisWeek @L["Dashboard:TouchesThisWeek"]
-                            (@Model.Dashboard.Leads.ReplyRate.ToString("N0")% @L["Dashboard:ReplyRate"])
-                        </span>
-                        <a asp-page="/Leads/Index" class="small d-block">@L["Dashboard:ViewAll"]</a>
+                        <div class="kpi-icon"><i class="fas fa-user-plus"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Leads"]</div>
+                            <div class="display-6">@Model.Dashboard.Leads.NewCount</div>
+                            <span class="small text-muted">
+                                @Model.Dashboard.Leads.TouchesThisWeek @L["Dashboard:TouchesThisWeek"]
+                                (@Model.Dashboard.Leads.ReplyRate.ToString("N0")% @L["Dashboard:ReplyRate"])
+                            </span>
+                            <a asp-page="/Leads/Index" class="small d-block">@L["Dashboard:ViewAll"]</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -42,11 +45,14 @@ else
         @if (Model.Dashboard.Customers != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
-                <div class="card w-100">
+                <div class="card w-100 kpi-card">
                     <div class="card-body">
-                        <div class="text-muted">@L["Customers"]</div>
-                        <div class="display-6">@Model.Dashboard.Customers.TotalCount</div>
-                        <a asp-page="/Customers/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                        <div class="kpi-icon"><i class="fas fa-address-card"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Customers"]</div>
+                            <div class="display-6">@Model.Dashboard.Customers.TotalCount</div>
+                            <a asp-page="/Customers/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,15 +60,18 @@ else
         @if (Model.Dashboard.Opportunities != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
-                <div class="card w-100">
+                <div class="card w-100 kpi-card">
                     <div class="card-body">
-                        <div class="text-muted">@L["Opportunities"]</div>
-                        <div class="display-6">@Model.Dashboard.Opportunities.OpenCount</div>
-                        <span class="small text-muted">
-                            @Model.Dashboard.Opportunities.OpenPipelineValue.ToString("N0") @L["Dashboard:OpenPipelineValue"]
-                            (@Model.Dashboard.Opportunities.WinRate.ToString("N0")% @L["Dashboard:WinRate"])
-                        </span>
-                        <a asp-page="/Opportunities/Index" class="small d-block">@L["Dashboard:ViewAll"]</a>
+                        <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Opportunities"]</div>
+                            <div class="display-6">@Model.Dashboard.Opportunities.OpenCount</div>
+                            <span class="small text-muted">
+                                @Model.Dashboard.Opportunities.OpenPipelineValue.ToString("N0") @L["Dashboard:OpenPipelineValue"]
+                                (@Model.Dashboard.Opportunities.WinRate.ToString("N0")% @L["Dashboard:WinRate"])
+                            </span>
+                            <a asp-page="/Opportunities/Index" class="small d-block">@L["Dashboard:ViewAll"]</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -70,11 +79,14 @@ else
         @if (Model.Dashboard.FieldService != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
-                <div class="card w-100">
+                <div class="card w-100 kpi-card">
                     <div class="card-body">
-                        <div class="text-muted">@L["Dashboard:OpenJobs"]</div>
-                        <div class="display-6">@(Model.Dashboard.FieldService.ScheduledCount + Model.Dashboard.FieldService.InProgressCount)</div>
-                        <a asp-page="/FieldService/Jobs/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                        <div class="kpi-icon"><i class="fas fa-truck-fast"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Dashboard:OpenJobs"]</div>
+                            <div class="display-6">@(Model.Dashboard.FieldService.ScheduledCount + Model.Dashboard.FieldService.InProgressCount)</div>
+                            <a asp-page="/FieldService/Jobs/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,11 +94,14 @@ else
         @if (Model.Dashboard.Sales != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
-                <div class="card w-100">
+                <div class="card w-100 kpi-card">
                     <div class="card-body">
-                        <div class="text-muted">@L["Dashboard:OpenQuotesAndOrders"]</div>
-                        <div class="display-6">@(Model.Dashboard.Sales.OpenQuoteCount + Model.Dashboard.Sales.PendingOrderCount)</div>
-                        <a asp-page="/Sales/Quotes/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                        <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Dashboard:OpenQuotesAndOrders"]</div>
+                            <div class="display-6">@(Model.Dashboard.Sales.OpenQuoteCount + Model.Dashboard.Sales.PendingOrderCount)</div>
+                            <a asp-page="/Sales/Quotes/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,14 +109,17 @@ else
         @if (Model.Dashboard.Sales != null)
         {
             <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
-                <div class="card w-100">
+                <div class="card w-100 kpi-card">
                     <div class="card-body">
-                        <div class="text-muted">@L["Dashboard:OutstandingBalance"]</div>
-                        <div class="display-6">@Model.Dashboard.Sales.OutstandingAmount.ToString("N2")</div>
-                        <span class="small text-muted">
-                            @Model.Dashboard.Sales.UnpaidInvoiceCount @L["Dashboard:UnpaidInvoices"]
-                            (@Model.Dashboard.Sales.OverdueInvoiceCount @L["Dashboard:Overdue"])
-                        </span>
+                        <div class="kpi-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Dashboard:OutstandingBalance"]</div>
+                            <div class="display-6">@Model.Dashboard.Sales.OutstandingAmount.ToString("N2")</div>
+                            <span class="small text-muted">
+                                @Model.Dashboard.Sales.UnpaidInvoiceCount @L["Dashboard:UnpaidInvoices"]
+                                (@Model.Dashboard.Sales.OverdueInvoiceCount @L["Dashboard:Overdue"])
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,7 +152,7 @@ else
                                             </td>
                                             <td class="text-end">
                                                 @job.ScheduledDate.ToShortDateString()
-                                                <div class="small text-muted">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</div>
+                                                <div class="small"><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></div>
                                             </td>
                                         </tr>
                                     }
@@ -165,7 +183,7 @@ else
                                     {
                                         <tr>
                                             <td>
-                                                <a asp-page="/Sales/Invoices/Detail" asp-route-id="@invoice.Id">@invoice.InvoiceNumber</a>
+                                                <a class="doc-no" asp-page="/Sales/Invoices/Detail" asp-route-id="@invoice.Id">@invoice.InvoiceNumber</a>
                                                 <div class="small text-muted">@invoice.CustomerName</div>
                                             </td>
                                             <td class="text-end">

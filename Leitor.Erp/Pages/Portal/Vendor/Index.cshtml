@@ -37,10 +37,10 @@ else
                         @foreach (var po in Model.PurchaseOrders)
                         {
                             <tr>
-                                <td>@po.PONumber</td>
+                                <td class="doc-no">@po.PONumber</td>
                                 <td>@po.OrderDate.ToShortDateString()</td>
                                 <td>@(po.ExpectedDeliveryDate?.ToShortDateString())</td>
-                                <td>@L[$"Enum:PurchaseOrderStatus:{(int)po.Status}"]</td>
+                                <td><span class="pill @StatusPill.For(po.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)po.Status}"]</span></td>
                                 <td>@Model.PurchaseOrderTotals.GetValueOrDefault(po.Id).ToString("N2")</td>
                                 <td>
                                     @if (po.Status == PurchaseOrderStatus.Sent)
@@ -79,7 +79,7 @@ else
                                 <td>@Model.JobCustomerNames.GetValueOrDefault(job.CustomerId)</td>
                                 <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
                                 <td>@job.ScheduledDate.ToShortDateString()</td>
-                                <td>@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</td>
+                                <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
                                 <td>
                                     @if (job.Status is FieldServiceJobStatus.Scheduled or FieldServiceJobStatus.InProgress)
                                     {

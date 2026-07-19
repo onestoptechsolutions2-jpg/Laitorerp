@@ -37,10 +37,10 @@
                     @foreach (var purchaseOrder in Model.PurchaseOrders)
                     {
                         <tr>
-                            <td><a asp-page="./Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
                             <td>@purchaseOrder.VendorName</td>
                             <td>@purchaseOrder.OrderDate.ToShortDateString()</td>
-                            <td>@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</td>
+                            <td><span class="pill @StatusPill.For(purchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</span></td>
                             <td>@purchaseOrder.Total.ToString("N2")</td>
                             <td>
                                 @if (Model.CanDelete)
