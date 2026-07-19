@@ -71,13 +71,23 @@ public class WorkflowMonitorAppService : ErpAppService
             .GroupBy(x => x.OpportunityId)
             .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreationTime).First());
 
+        // Grouped rather than a straight ToDictionary: the duplicate-prevention guards added in
+        // ConvertToQuoteAsync/ConvertToOrderAsync only stop *future* duplicates - data created
+        // before those guards existed can still have more than one Quote against the same
+        // Proposal (or Order against the same Quote), and this view has to tolerate that rather
+        // than crash on it. Picks the most recently created one per key, same convention as
+        // latestProposalByOpportunityId above.
         var proposalIds = proposals.Select(x => x.Id).ToList();
         var quotes = await _quoteRepository.GetListAsync(x => x.ProposalId.HasValue && proposalIds.Contains(x.ProposalId.Value));
-        var quoteByProposalId = quotes.ToDictionary(x => x.ProposalId!.Value, x => x);
+        var quoteByProposalId = quotes
+            .GroupBy(x => x.ProposalId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreationTime).First());
 
         var quoteIds = quotes.Select(x => x.Id).ToList();
         var orders = await _orderRepository.GetListAsync(x => x.QuoteId.HasValue && quoteIds.Contains(x.QuoteId.Value));
-        var orderByQuoteId = orders.ToDictionary(x => x.QuoteId!.Value, x => x);
+        var orderByQuoteId = orders
+            .GroupBy(x => x.QuoteId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreationTime).First());
 
         var orderIds = orders.Select(x => x.Id).ToList();
         var milestones = await _milestoneRepository.GetListAsync(x => orderIds.Contains(x.OrderId));
