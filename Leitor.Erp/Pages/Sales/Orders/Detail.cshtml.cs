@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -32,6 +34,8 @@ public class DetailModel : AbpPageModel
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
     private readonly OrderPaymentMilestoneAppService _milestoneAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
+    private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -44,6 +48,8 @@ public class DetailModel : AbpPageModel
         PurchaseOrderAppService purchaseOrderAppService,
         OrderPaymentMilestoneAppService milestoneAppService,
         IRepository<Customer, Guid> customerRepository,
+        IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
+        IRepository<Invoice, Guid> invoiceRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -55,6 +61,8 @@ public class DetailModel : AbpPageModel
         _purchaseOrderAppService = purchaseOrderAppService;
         _milestoneAppService = milestoneAppService;
         _customerRepository = customerRepository;
+        _fieldServiceJobRepository = fieldServiceJobRepository;
+        _invoiceRepository = invoiceRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
         _deletionRequestRepository = deletionRequestRepository;
@@ -70,6 +78,8 @@ public class DetailModel : AbpPageModel
     public Customer Customer { get; set; } = null!;
     public IReadOnlyList<PurchaseOrderDto> PurchaseOrders { get; set; } = Array.Empty<PurchaseOrderDto>();
     public IReadOnlyList<OrderPaymentMilestoneDto> Milestones { get; set; } = Array.Empty<OrderPaymentMilestoneDto>();
+    public IReadOnlyList<FieldServiceJob> Jobs { get; set; } = Array.Empty<FieldServiceJob>();
+    public bool CanIssueFinalInvoice { get; set; }
 
     [BindProperty]
     public CreateUpdateOrderLineDto NewLine { get; set; } = new()
@@ -126,6 +136,15 @@ public class DetailModel : AbpPageModel
         PurchaseOrders = purchaseOrders.Items;
 
         Milestones = await _milestoneAppService.GetListAsync(Id);
+
+        Jobs = (await _fieldServiceJobRepository.GetListAsync(x => x.OrderId == Id))
+            .OrderBy(x => x.ScheduledDate)
+            .ToList();
+
+        var hasFinalInvoice = Order.PaymentTerms == PaymentTerms.Milestone
+            ? Milestones.Any(x => x.Kind == OrderPaymentMilestoneKind.Final && x.IsInvoiced)
+            : (await _invoiceRepository.GetListAsync(x => x.OrderId == Id)).Any();
+        CanIssueFinalInvoice = Order.Status is OrderStatus.Confirmed or OrderStatus.Fulfilled && !hasFinalInvoice;
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()
@@ -141,9 +160,9 @@ public class DetailModel : AbpPageModel
         return RedirectToPage(new { id = Id });
     }
 
-    public async Task<IActionResult> OnPostConvertToInvoiceAsync()
+    public async Task<IActionResult> OnPostIssueFinalInvoiceAsync()
     {
-        var invoice = await _orderAppService.ConvertToInvoiceAsync(Id);
+        var invoice = await _orderAppService.IssueFinalInvoiceAsync(Id);
         return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
     }
 

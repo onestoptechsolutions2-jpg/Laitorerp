@@ -12,10 +12,10 @@
             @if (Model.CanEdit)
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Order.Id" class="btn btn-outline-primary">@L["Edit"]</a>
-                @if (Model.Order.PaymentTerms != PaymentTerms.Milestone)
+                @if (Model.CanIssueFinalInvoice)
                 {
-                    <form method="post" asp-page-handler="ConvertToInvoice" class="d-inline" onsubmit="return confirm('@L["ConvertToInvoice"]?');">
-                        <button type="submit" class="btn btn-success">@L["ConvertToInvoice"]</button>
+                    <form method="post" asp-page-handler="IssueFinalInvoice" class="d-inline" onsubmit="return confirm('@L["IssueFinalInvoice"]?');">
+                        <button type="submit" class="btn btn-success">@L["IssueFinalInvoice"]</button>
                     </form>
                 }
                 <a asp-page="/Procurement/PurchaseOrders/CreateFromOrder" asp-route-orderId="@Model.Order.Id" class="btn btn-outline-primary">@L["CreatePurchaseOrder"]</a>
@@ -252,3 +252,43 @@
         </div>
     </div>
 }
+
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["FieldServiceJobsForOrder"]</h5>
+        @if (Model.CanEdit)
+        {
+            <a asp-page="/FieldService/Jobs/Create" asp-route-orderId="@Model.Order.Id" class="btn btn-primary btn-sm">@L["ScheduleInstallation"]</a>
+        }
+    </div>
+    <div class="card-body">
+        @if (Model.Jobs.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoResultsFound"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["ScheduledDate"]</th>
+                            <th>@L["Type"]</th>
+                            <th>@L["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var job in Model.Jobs)
+                        {
+                            <tr>
+                                <td><a asp-page="/FieldService/Jobs/Detail" asp-route-id="@job.Id">@job.ScheduledDate.ToShortDateString()</a></td>
+                                <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
+                                <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

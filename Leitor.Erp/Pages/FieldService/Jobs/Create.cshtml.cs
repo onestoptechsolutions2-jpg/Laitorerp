@@ -49,6 +49,12 @@ public class CreateModel : AbpPageModel
         ScheduledDate = DateTime.Today
     };
 
+    // Set when navigating here from an Order's "Schedule Installation" link
+    // (Pages/Sales/Orders/Detail.cshtml) - prefills the Order/Customer below instead of the
+    // dropdowns arriving blank.
+    [BindProperty(SupportsGet = true)]
+    public Guid? OrderId { get; set; }
+
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> OrderOptions { get; set; } = new();
     public List<SelectListItem> ContractOptions { get; set; } = new();
@@ -58,6 +64,13 @@ public class CreateModel : AbpPageModel
     public async Task OnGetAsync()
     {
         await LoadOptionsAsync();
+
+        if (OrderId.HasValue)
+        {
+            var order = await _orderRepository.GetAsync(OrderId.Value);
+            Job.CustomerId = order.CustomerId;
+            Job.OrderId = OrderId.Value;
+        }
     }
 
     public async Task<IActionResult> OnPostAsync()

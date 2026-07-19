@@ -36,6 +36,10 @@
                 }
             }
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Job.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
+            @if (Model.Job.OrderId.HasValue)
+            {
+                <a asp-page="/Sales/Orders/Detail" asp-route-id="@Model.Job.OrderId" class="btn btn-outline-secondary">@L["ViewOrder"]</a>
+            }
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
             {
                 <form method="post" asp-page-handler="Email" asp-route-id="@Model.Job.Id" class="d-inline" onsubmit="return confirm('@L["EmailToCustomer"]?');">

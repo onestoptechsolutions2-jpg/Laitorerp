@@ -454,22 +454,9 @@
     "CurrentStage": "Current Stage",
     "PendingActions": "Pending Actions",
     "NoOpportunities": "No opportunities to show.",
-    "Menu:GuidedWorkflow": "Guided Workflow",
-    "GuidedWorkflow": "Guided Workflow",
-    "StartNew": "Start New",
-    "StartGuidedWorkflow": "Start Guided Workflow",
-    "ResumeExisting": "Resume an In-Progress Deal",
-    "ConvertExistingLead": "Or Convert an Existing Lead",
-    "ContinueWorkflow": "Continue",
     "ScheduleInstallation": "Schedule Installation",
-    "SkipInstallation": "No Installation Needed - Issue Final Invoice",
-    "ConfirmOrder": "Confirm Order",
-    "MarkInstallationComplete": "Mark Complete",
     "IssueFinalInvoice": "Issue Final Invoice",
-    "CloseAsWon": "Close as Won",
-    "WorkflowComplete": "Workflow Complete",
-    "WorkflowCompleteHint": "This deal has been carried all the way through to a final invoice.",
-    "ProposalRejectedHint": "This proposal was rejected by the customer. Edit it to revise and re-send, or start a new proposal from the Opportunity.",
-    "QuoteDeadEndHint": "This quote was rejected or has expired. Unlock it for revision to make changes and re-send."
+    "ViewOrder": "View Order",
+    "FieldServiceJobsForOrder": "Field Service Jobs"
   }
 }

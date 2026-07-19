@@ -180,21 +180,11 @@ public class ErpMenuContributor : IMenuContributor
         {
             context.Menu.Items.Add(
                 new ApplicationMenuItem(
-                    ErpMenus.GuidedWorkflow,
-                    l["Menu:GuidedWorkflow"],
-                    "~/Governance/GuidedWorkflow",
-                    icon: "fas fa-route",
-                    order: 9
-                )
-            );
-
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
                     ErpMenus.WorkflowMonitor,
                     l["Menu:WorkflowMonitor"],
                     "~/Governance/WorkflowMonitor",
                     icon: "fas fa-diagram-project",
-                    order: 10
+                    order: 9
                 )
             );
         }

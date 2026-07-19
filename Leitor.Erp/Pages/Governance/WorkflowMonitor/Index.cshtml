@@ -26,7 +26,6 @@
                             <th>@L["Order"]</th>
                             <th>@L["CurrentStage"]</th>
                             <th>@L["PendingActions"]</th>
-                            <th>@L["Actions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,7 +66,6 @@
                                 </td>
                                 <td><span class="pill pill-info">@row.CurrentStage</span></td>
                                 <td class="small text-muted">@row.PendingAction</td>
-                                <td><a asp-page="/Governance/GuidedWorkflow/Index" asp-route-opportunityId="@row.OpportunityId" class="btn btn-sm btn-outline-primary">@L["Continue"]</a></td>
                             </tr>
                         }
                     </tbody>

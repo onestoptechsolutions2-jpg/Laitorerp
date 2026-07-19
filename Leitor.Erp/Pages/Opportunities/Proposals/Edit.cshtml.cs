@@ -101,6 +101,12 @@ public class EditModel : AbpPageModel
         return RedirectToPage(new { id = Id, opportunityId = OpportunityId });
     }
 
+    public async Task<IActionResult> OnPostConvertToQuoteAsync()
+    {
+        var quote = await _proposalAppService.ConvertToQuoteAsync(Id);
+        return RedirectToPage("/Sales/Quotes/Detail", new { id = quote.Id });
+    }
+
     public async Task<IActionResult> OnGetPdfAsync()
     {
         var proposal = await _proposalAppService.GetAsync(Id);
