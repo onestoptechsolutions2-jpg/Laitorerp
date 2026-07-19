@@ -11,10 +11,12 @@ public partial class QuoteLineToQuoteLineDtoMapper : MapperBase<QuoteLine, Quote
     [MapperIgnoreSource(nameof(QuoteLine.ExtraProperties))]
     [MapperIgnoreSource(nameof(QuoteLine.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(QuoteLineDto.LineTotal))]
+    [MapperIgnoreTarget(nameof(QuoteLineDto.MarginPercent))]
     public override partial QuoteLineDto Map(QuoteLine source);
 
     [MapperIgnoreSource(nameof(QuoteLine.ExtraProperties))]
     [MapperIgnoreSource(nameof(QuoteLine.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(QuoteLineDto.LineTotal))]
+    [MapperIgnoreTarget(nameof(QuoteLineDto.MarginPercent))]
     public override partial void Map(QuoteLine source, QuoteLineDto destination);
 }

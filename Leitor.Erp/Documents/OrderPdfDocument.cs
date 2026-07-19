@@ -72,6 +72,8 @@ public class OrderPdfDocument : IDocument
                 .ToList();
             column.Item().Element(c => PdfLayoutHelpers.ComposeLinesTable(c, rows));
 
+            column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Subtotal", _order.Subtotal));
+            column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Tax", _order.TaxAmount));
             column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Total", _order.Total, emphasize: true));
 
             if (!string.IsNullOrWhiteSpace(_order.Notes))

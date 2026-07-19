@@ -93,6 +93,8 @@ public class InvoicePdfDocument : IDocument
                 .ToList();
             column.Item().Element(c => PdfLayoutHelpers.ComposeLinesTable(c, rows));
 
+            column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Subtotal", _invoice.Subtotal));
+            column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Tax", _invoice.TaxAmount));
             column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Total", _invoice.Total, emphasize: true));
             column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Amount Paid", _invoice.AmountPaid));
             column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Balance Due", _invoice.Total - _invoice.AmountPaid));

@@ -15,6 +15,15 @@ public class Product : FullAuditedAggregateRoot<Guid>
     public decimal UnitPrice { get; set; }
     public bool IsActive { get; set; } = true;
 
+    // Standard/default cost used for margin calc on Quote/Order lines when there's no
+    // ProductVendor row yet - distinct from ProductVendor.Cost (a specific vendor's price).
+    public decimal Cost { get; set; }
+
+    // The rate this product normally carries; null falls back to whichever TaxRate has
+    // IsDefault set. Snapshotted onto each line at add-time (see QuoteLine.TaxRatePercent) so a
+    // later edit here never changes an already-issued document.
+    public Guid? TaxRateId { get; set; }
+
     protected Product()
     {
     }

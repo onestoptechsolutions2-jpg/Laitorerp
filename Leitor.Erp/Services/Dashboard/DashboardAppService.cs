@@ -207,7 +207,8 @@ public class DashboardAppService : ApplicationService
 
         foreach (var invoice in invoices)
         {
-            var total = linesByInvoiceId[invoice.Id].Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            var total = linesByInvoiceId[invoice.Id]
+                .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * (1 + x.TaxRatePercent / 100m));
             var amountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
             var amountDue = total - amountPaid;
 

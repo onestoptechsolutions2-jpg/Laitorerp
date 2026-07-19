@@ -12,4 +12,6 @@ public class ProductDto : FullAuditedEntityDto<Guid>
     public ProductType Type { get; set; }
     public decimal UnitPrice { get; set; }
     public bool IsActive { get; set; }
+    public decimal Cost { get; set; }
+    public Guid? TaxRateId { get; set; }
 }

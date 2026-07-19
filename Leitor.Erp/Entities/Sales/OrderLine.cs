@@ -12,6 +12,11 @@ public class OrderLine : FullAuditedAggregateRoot<Guid>
     public decimal Quantity { get; set; } = 1;
     public decimal DiscountPercent { get; set; }
 
+    // Same snapshot rationale as QuoteLine.Cost/TaxRateId/TaxRatePercent.
+    public decimal Cost { get; set; }
+    public Guid? TaxRateId { get; set; }
+    public decimal TaxRatePercent { get; set; }
+
     protected OrderLine()
     {
     }

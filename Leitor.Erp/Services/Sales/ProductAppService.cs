@@ -55,5 +55,7 @@ public class ProductAppService :
         entity.Type = input.Type;
         entity.UnitPrice = input.UnitPrice;
         entity.IsActive = input.IsActive;
+        entity.Cost = input.Cost;
+        entity.TaxRateId = input.TaxRateId;
     }
 }

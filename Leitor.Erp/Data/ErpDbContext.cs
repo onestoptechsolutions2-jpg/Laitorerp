@@ -37,12 +37,14 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<NeedsAssessmentAttachment> NeedsAssessmentAttachments { get; set; } = null!;
     public DbSet<Proposal> Proposals { get; set; } = null!;
 
+    public DbSet<TaxRate> TaxRates { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
     public DbSet<Quote> Quotes { get; set; } = null!;
     public DbSet<QuoteLine> QuoteLines { get; set; } = null!;
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<OrderLine> OrderLines { get; set; } = null!;
+    public DbSet<OrderPaymentMilestone> OrderPaymentMilestones { get; set; } = null!;
     public DbSet<Invoice> Invoices { get; set; } = null!;
     public DbSet<InvoiceLine> InvoiceLines { get; set; } = null!;
     public DbSet<Payment> Payments { get; set; } = null!;
@@ -217,6 +219,14 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.ProposalNumber).IsUnique();
         });
 
+        builder.Entity<TaxRate>(b =>
+        {
+            b.ToTable("TaxRates");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Percent).HasColumnType("decimal(5,2)");
+        });
+
         builder.Entity<Product>(b =>
         {
             b.ToTable("Products");
@@ -225,6 +235,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Sku).HasMaxLength(64);
             b.Property(x => x.Description).HasMaxLength(2000);
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
         });
 
         builder.Entity<ProductVendor>(b =>
@@ -258,6 +269,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
             b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
+            b.Property(x => x.TaxRatePercent).HasColumnType("decimal(5,2)");
             b.HasIndex(x => x.QuoteId);
         });
 
@@ -279,6 +292,17 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
             b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
+            b.Property(x => x.TaxRatePercent).HasColumnType("decimal(5,2)");
+            b.HasIndex(x => x.OrderId);
+        });
+
+        builder.Entity<OrderPaymentMilestone>(b =>
+        {
+            b.ToTable("OrderPaymentMilestones");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Percent).HasColumnType("decimal(5,2)");
             b.HasIndex(x => x.OrderId);
         });
 
@@ -300,6 +324,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
             b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
+            b.Property(x => x.TaxRatePercent).HasColumnType("decimal(5,2)");
             b.HasIndex(x => x.InvoiceId);
         });
 

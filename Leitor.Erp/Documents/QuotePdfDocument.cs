@@ -79,6 +79,8 @@ public class QuotePdfDocument : IDocument
                 .ToList();
             column.Item().Element(c => PdfLayoutHelpers.ComposeLinesTable(c, rows));
 
+            column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Subtotal", _quote.Subtotal));
+            column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Tax", _quote.TaxAmount));
             column.Item().Element(c => PdfLayoutHelpers.ComposeTotal(c, "Total", _quote.Total, emphasize: true));
 
             if (!string.IsNullOrWhiteSpace(_quote.Notes))

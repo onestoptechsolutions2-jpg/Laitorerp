@@ -1,4 +1,5 @@
 using System;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Customers;
@@ -16,6 +17,10 @@ public class Customer : FullAuditedAggregateRoot<Guid>
     public CustomerStatus Status { get; set; } = CustomerStatus.Lead;
     public string? Notes { get; set; }
     public Guid? AccountOwnerUserId { get; set; }
+
+    // Default terms pre-filled onto new Orders/standalone Invoices for this customer - editable
+    // per-document afterwards (see OrderAppService.MapToEntityAsync/CopyToEntity).
+    public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
 
     // Links this Customer to the IdentityUser they log in as on the Client Portal (see
     // Pages/Portal/Client/Index.cshtml.cs). Presence of this link is itself the portal

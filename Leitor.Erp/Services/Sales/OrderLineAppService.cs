@@ -14,9 +14,18 @@ namespace Leitor.Erp.Services.Sales;
 public class OrderLineAppService :
     CrudAppService<OrderLine, OrderLineDto, Guid, GetOrderLineListInput, CreateUpdateOrderLineDto>
 {
-    public OrderLineAppService(IRepository<OrderLine, Guid> repository)
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+
+    public OrderLineAppService(
+        IRepository<OrderLine, Guid> repository,
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Product, Guid> productRepository)
         : base(repository)
     {
+        _taxRateRepository = taxRateRepository;
+        _productRepository = productRepository;
+
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
         CreatePolicyName = ErpPermissions.Sales.Edit;
@@ -51,22 +60,22 @@ public class OrderLineAppService :
     private static void ComputeLineTotal(OrderLineDto dto)
     {
         dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
+        dto.MarginPercent = dto.UnitPrice > 0 ? Math.Round(100m * (dto.UnitPrice - dto.Cost) / dto.UnitPrice, 1) : null;
     }
 
-    protected override Task<OrderLine> MapToEntityAsync(CreateUpdateOrderLineDto createInput)
+    protected override async Task<OrderLine> MapToEntityAsync(CreateUpdateOrderLineDto createInput)
     {
         var entity = new OrderLine(GuidGenerator.Create(), createInput.OrderId, createInput.Description, createInput.UnitPrice);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateOrderLineDto updateInput, OrderLine entity)
+    protected override async Task MapToEntityAsync(CreateUpdateOrderLineDto updateInput, OrderLine entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private static void CopyToEntity(CreateUpdateOrderLineDto input, OrderLine entity)
+    private async Task CopyToEntityAsync(CreateUpdateOrderLineDto input, OrderLine entity)
     {
         entity.OrderId = input.OrderId;
         entity.ProductId = input.ProductId;
@@ -74,5 +83,9 @@ public class OrderLineAppService :
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
+        entity.Cost = input.Cost;
+
+        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
+            _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
     }
 }

@@ -110,8 +110,10 @@ public class QuoteAppService :
                 quote.CustomerName = customerName;
             }
 
-            quote.Total = linesByQuoteId[quote.Id]
-                .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            var lines = linesByQuoteId[quote.Id].ToList();
+            quote.Subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            quote.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
+            quote.Total = quote.Subtotal + quote.TaxAmount;
 
             if (quote.ProposalId.HasValue && proposalNumbersById.TryGetValue(quote.ProposalId.Value, out var proposalNumber))
             {
@@ -174,7 +176,10 @@ public class QuoteAppService :
             {
                 ProductId = quoteLine.ProductId,
                 Quantity = quoteLine.Quantity,
-                DiscountPercent = quoteLine.DiscountPercent
+                DiscountPercent = quoteLine.DiscountPercent,
+                Cost = quoteLine.Cost,
+                TaxRateId = quoteLine.TaxRateId,
+                TaxRatePercent = quoteLine.TaxRatePercent
             };
             await _orderLineRepository.InsertAsync(orderLine, autoSave: true);
         }

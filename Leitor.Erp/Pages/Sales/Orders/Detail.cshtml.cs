@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
@@ -27,7 +28,9 @@ public class DetailModel : AbpPageModel
     private readonly OrderAppService _orderAppService;
     private readonly OrderLineAppService _orderLineAppService;
     private readonly ProductAppService _productAppService;
+    private readonly TaxRateAppService _taxRateAppService;
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
+    private readonly OrderPaymentMilestoneAppService _milestoneAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
@@ -37,7 +40,9 @@ public class DetailModel : AbpPageModel
         OrderAppService orderAppService,
         OrderLineAppService orderLineAppService,
         ProductAppService productAppService,
+        TaxRateAppService taxRateAppService,
         PurchaseOrderAppService purchaseOrderAppService,
+        OrderPaymentMilestoneAppService milestoneAppService,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions,
@@ -46,7 +51,9 @@ public class DetailModel : AbpPageModel
         _orderAppService = orderAppService;
         _orderLineAppService = orderLineAppService;
         _productAppService = productAppService;
+        _taxRateAppService = taxRateAppService;
         _purchaseOrderAppService = purchaseOrderAppService;
+        _milestoneAppService = milestoneAppService;
         _customerRepository = customerRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
@@ -59,14 +66,19 @@ public class DetailModel : AbpPageModel
     public OrderDto Order { get; set; } = null!;
     public IReadOnlyList<OrderLineDto> Lines { get; set; } = Array.Empty<OrderLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
+    public List<SelectListItem> TaxRateOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
     public IReadOnlyList<PurchaseOrderDto> PurchaseOrders { get; set; } = Array.Empty<PurchaseOrderDto>();
+    public IReadOnlyList<OrderPaymentMilestoneDto> Milestones { get; set; } = Array.Empty<OrderPaymentMilestoneDto>();
 
     [BindProperty]
     public CreateUpdateOrderLineDto NewLine { get; set; } = new()
     {
         Quantity = 1
     };
+
+    [BindProperty]
+    public CreateUpdateOrderPaymentMilestoneDto NewMilestone { get; set; } = new();
 
     public bool CanEdit { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
@@ -100,12 +112,20 @@ public class DetailModel : AbpPageModel
             products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.UnitPrice:N2})", x.Id.ToString()))
         );
 
+        var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+        TaxRateOptions = new List<SelectListItem> { new(L["UseDefaultTaxRate"], "") };
+        TaxRateOptions.AddRange(
+            taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
+        );
+
         var purchaseOrders = await _purchaseOrderAppService.GetListAsync(new GetPurchaseOrderListInput
         {
             SourceOrderId = Id,
             MaxResultCount = 1000
         });
         PurchaseOrders = purchaseOrders.Items;
+
+        Milestones = await _milestoneAppService.GetListAsync(Id);
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()
@@ -124,6 +144,25 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostConvertToInvoiceAsync()
     {
         var invoice = await _orderAppService.ConvertToInvoiceAsync(Id);
+        return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
+    }
+
+    public async Task<IActionResult> OnPostAddMilestoneAsync()
+    {
+        NewMilestone.OrderId = Id;
+        await _milestoneAppService.CreateAsync(NewMilestone);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostDeleteMilestoneAsync(Guid milestoneId)
+    {
+        await _milestoneAppService.DeleteAsync(milestoneId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostInvoiceMilestoneAsync(Guid milestoneId)
+    {
+        var invoice = await _orderAppService.ConvertMilestoneToInvoiceAsync(Id, milestoneId);
         return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
     }
 

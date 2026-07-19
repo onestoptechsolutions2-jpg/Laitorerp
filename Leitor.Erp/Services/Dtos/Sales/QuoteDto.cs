@@ -17,6 +17,8 @@ public class QuoteDto : FullAuditedEntityDto<Guid>
 
     // Resolved/computed by QuoteAppService - not stored columns, Mapperly won't map them.
     public string? CustomerName { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
     public string? ProposalNumber { get; set; }
 }

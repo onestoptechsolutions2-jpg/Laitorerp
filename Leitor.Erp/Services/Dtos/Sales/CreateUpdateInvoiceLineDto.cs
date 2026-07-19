@@ -22,4 +22,6 @@ public class CreateUpdateInvoiceLineDto
 
     [Range(0, 100)]
     public decimal DiscountPercent { get; set; }
+
+    public Guid? TaxRateId { get; set; }
 }

@@ -12,6 +12,11 @@ public class InvoiceLine : FullAuditedAggregateRoot<Guid>
     public decimal Quantity { get; set; } = 1;
     public decimal DiscountPercent { get; set; }
 
+    // Same snapshot rationale as QuoteLine.TaxRateId/TaxRatePercent - no Cost/margin here, since
+    // an invoice mirrors its source Order 1:1 rather than being independently margin-tracked.
+    public Guid? TaxRateId { get; set; }
+    public decimal TaxRatePercent { get; set; }
+
     protected InvoiceLine()
     {
     }

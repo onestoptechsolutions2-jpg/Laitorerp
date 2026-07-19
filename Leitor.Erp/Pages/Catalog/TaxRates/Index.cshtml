@@ -1,0 +1,51 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Catalog.TaxRates.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["TaxRates"]</h5>
+        <div>
+            <a asp-page="../Index" class="btn btn-outline-secondary">@L["BackToCatalog"]</a>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewTaxRate"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["Percent"]</th>
+                        <th>@L["IsDefault"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var taxRate in Model.TaxRates)
+                    {
+                        <tr>
+                            <td>@taxRate.Name</td>
+                            <td>@taxRate.Percent.ToString("N2")%</td>
+                            <td>@(taxRate.IsDefault ? "✓" : "")</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@taxRate.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@taxRate.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

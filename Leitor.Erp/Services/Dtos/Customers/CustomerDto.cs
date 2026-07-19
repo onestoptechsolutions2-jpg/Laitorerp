@@ -1,5 +1,6 @@
 using System;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Customers;
@@ -18,6 +19,7 @@ public class CustomerDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public Guid? AccountOwnerUserId { get; set; }
     public Guid? PortalUserId { get; set; }
+    public PaymentTerms DefaultPaymentTerms { get; set; }
 
     // Resolved by CustomerAppService from IIdentityUserRepository - not a stored column,
     // so Mapperly won't map it (Customer has no matching source member; that's fine, it's

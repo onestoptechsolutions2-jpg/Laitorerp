@@ -1,6 +1,7 @@
 @page "{id}"
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Sales
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Sales.Orders.DetailModel
 
@@ -11,9 +12,12 @@
             @if (Model.CanEdit)
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Order.Id" class="btn btn-outline-primary">@L["Edit"]</a>
-                <form method="post" asp-page-handler="ConvertToInvoice" class="d-inline" onsubmit="return confirm('@L["ConvertToInvoice"]?');">
-                    <button type="submit" class="btn btn-success">@L["ConvertToInvoice"]</button>
-                </form>
+                @if (Model.Order.PaymentTerms != PaymentTerms.Milestone)
+                {
+                    <form method="post" asp-page-handler="ConvertToInvoice" class="d-inline" onsubmit="return confirm('@L["ConvertToInvoice"]?');">
+                        <button type="submit" class="btn btn-success">@L["ConvertToInvoice"]</button>
+                    </form>
+                }
                 <a asp-page="/Procurement/PurchaseOrders/CreateFromOrder" asp-route-orderId="@Model.Order.Id" class="btn btn-outline-primary">@L["CreatePurchaseOrder"]</a>
             }
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Order.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
@@ -36,6 +40,14 @@
 
             <dt class="col-sm-2">@L["OrderDate"]</dt>
             <dd class="col-sm-4">@Model.Order.OrderDate.ToShortDateString()</dd>
+            <dt class="col-sm-2">@L["PaymentTerms"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:PaymentTerms:{(int)Model.Order.PaymentTerms}"]</dd>
+
+            <dt class="col-sm-2">@L["Subtotal"]</dt>
+            <dd class="col-sm-4">@Model.Order.Subtotal.ToString("N2")</dd>
+            <dt class="col-sm-2">@L["Tax"]</dt>
+            <dd class="col-sm-4">@Model.Order.TaxAmount.ToString("N2")</dd>
+
             <dt class="col-sm-2">@L["Total"]</dt>
             <dd class="col-sm-4">@Model.Order.Total.ToString("N2")</dd>
 
@@ -76,6 +88,14 @@
                     <label class="form-label">@L["DiscountPercent"]</label>
                     <input asp-for="NewLine.DiscountPercent" class="form-control" />
                 </div>
+                <div class="col-md-1">
+                    <label class="form-label">@L["Cost"]</label>
+                    <input asp-for="NewLine.Cost" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["TaxRate"]</label>
+                    <select asp-for="NewLine.TaxRateId" asp-items="Model.TaxRateOptions" class="form-select"></select>
+                </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary">@L["AddLine"]</button>
                 </div>
@@ -89,6 +109,8 @@
                         <th>@L["UnitPrice"]</th>
                         <th>@L["Quantity"]</th>
                         <th>@L["DiscountPercent"]</th>
+                        <th>@L["Tax"]</th>
+                        <th>@L["Margin"]</th>
                         <th>@L["LineTotal"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
@@ -101,6 +123,8 @@
                             <td>@line.UnitPrice.ToString("N2")</td>
                             <td>@line.Quantity</td>
                             <td>@line.DiscountPercent</td>
+                            <td>@line.TaxRatePercent.ToString("N0")%</td>
+                            <td>@(line.MarginPercent.HasValue ? $"{line.MarginPercent:N1}%" : "-")</td>
                             <td>@line.LineTotal.ToString("N2")</td>
                             <td>
                                 @if (Model.CanEdit)
@@ -150,3 +174,65 @@
         </div>
     </div>
 </div>
+
+@if (Model.Order.PaymentTerms == PaymentTerms.Milestone)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["PaymentMilestones"]</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.CanEdit)
+            {
+                <form method="post" asp-page-handler="AddMilestone" class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label">@L["Description"]</label>
+                        <input asp-for="NewMilestone.Description" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">@L["Percent"]</label>
+                        <input asp-for="NewMilestone.Percent" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">@L["AddMilestone"]</button>
+                    </div>
+                </form>
+            }
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["Description"]</th>
+                            <th>@L["Percent"]</th>
+                            <th>@L["Amount"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var milestone in Model.Milestones)
+                        {
+                            <tr>
+                                <td>@milestone.Description</td>
+                                <td>@milestone.Percent.ToString("N0")%</td>
+                                <td>@((Model.Order.Subtotal * milestone.Percent / 100m).ToString("N2"))</td>
+                                <td>@(milestone.IsInvoiced ? L["Invoiced"] : L["NotInvoiced"])</td>
+                                <td>
+                                    @if (Model.CanEdit && !milestone.IsInvoiced)
+                                    {
+                                        <form method="post" asp-page-handler="InvoiceMilestone" asp-route-milestoneId="@milestone.Id" class="d-inline" onsubmit="return confirm('@L["ConvertToInvoice"]?');">
+                                            <button type="submit" class="btn btn-sm btn-success">@L["ConvertToInvoice"]</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="DeleteMilestone" asp-route-milestoneId="@milestone.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

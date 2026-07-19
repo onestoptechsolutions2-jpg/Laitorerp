@@ -249,5 +249,6 @@ public class CustomerAppService :
         entity.Notes = input.Notes;
         entity.AccountOwnerUserId = input.AccountOwnerUserId;
         entity.PortalUserId = input.PortalUserId;
+        entity.DefaultPaymentTerms = input.DefaultPaymentTerms;
     }
 }

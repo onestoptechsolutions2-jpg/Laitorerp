@@ -12,7 +12,10 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public OrderStatus Status { get; set; }
     public DateTime OrderDate { get; set; }
     public string? Notes { get; set; }
+    public PaymentTerms PaymentTerms { get; set; }
 
     public string? CustomerName { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
 }

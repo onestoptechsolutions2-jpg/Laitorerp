@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using Leitor.Erp.Entities.Sales;
 
@@ -21,4 +22,9 @@ public class CreateUpdateProductDto
     public decimal UnitPrice { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    [Range(0, double.MaxValue)]
+    public decimal Cost { get; set; }
+
+    public Guid? TaxRateId { get; set; }
 }

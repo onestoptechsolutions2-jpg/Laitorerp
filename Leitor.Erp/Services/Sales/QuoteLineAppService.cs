@@ -14,9 +14,18 @@ namespace Leitor.Erp.Services.Sales;
 public class QuoteLineAppService :
     CrudAppService<QuoteLine, QuoteLineDto, Guid, GetQuoteLineListInput, CreateUpdateQuoteLineDto>
 {
-    public QuoteLineAppService(IRepository<QuoteLine, Guid> repository)
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+
+    public QuoteLineAppService(
+        IRepository<QuoteLine, Guid> repository,
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Product, Guid> productRepository)
         : base(repository)
     {
+        _taxRateRepository = taxRateRepository;
+        _productRepository = productRepository;
+
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
         CreatePolicyName = ErpPermissions.Sales.Edit;
@@ -51,22 +60,22 @@ public class QuoteLineAppService :
     private static void ComputeLineTotal(QuoteLineDto dto)
     {
         dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
+        dto.MarginPercent = dto.UnitPrice > 0 ? Math.Round(100m * (dto.UnitPrice - dto.Cost) / dto.UnitPrice, 1) : null;
     }
 
-    protected override Task<QuoteLine> MapToEntityAsync(CreateUpdateQuoteLineDto createInput)
+    protected override async Task<QuoteLine> MapToEntityAsync(CreateUpdateQuoteLineDto createInput)
     {
         var entity = new QuoteLine(GuidGenerator.Create(), createInput.QuoteId, createInput.Description, createInput.UnitPrice);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateQuoteLineDto updateInput, QuoteLine entity)
+    protected override async Task MapToEntityAsync(CreateUpdateQuoteLineDto updateInput, QuoteLine entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private static void CopyToEntity(CreateUpdateQuoteLineDto input, QuoteLine entity)
+    private async Task CopyToEntityAsync(CreateUpdateQuoteLineDto input, QuoteLine entity)
     {
         entity.QuoteId = input.QuoteId;
         entity.ProductId = input.ProductId;
@@ -74,5 +83,9 @@ public class QuoteLineAppService :
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
+        entity.Cost = input.Cost;
+
+        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
+            _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
     }
 }

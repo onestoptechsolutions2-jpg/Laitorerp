@@ -52,7 +52,8 @@ public class EditModel : AbpPageModel
             Status = customer.Status,
             Notes = customer.Notes,
             AccountOwnerUserId = customer.AccountOwnerUserId,
-            PortalUserId = customer.PortalUserId
+            PortalUserId = customer.PortalUserId,
+            DefaultPaymentTerms = customer.DefaultPaymentTerms
         };
 
         await LoadUserOptionsAsync();

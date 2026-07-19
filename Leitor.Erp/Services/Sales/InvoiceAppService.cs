@@ -107,8 +107,10 @@ public class InvoiceAppService :
                 invoice.CustomerName = customerName;
             }
 
-            invoice.Total = linesByInvoiceId[invoice.Id]
-                .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            var lines = linesByInvoiceId[invoice.Id].ToList();
+            invoice.Subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            invoice.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
+            invoice.Total = invoice.Subtotal + invoice.TaxAmount;
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
 
             invoice.PaymentStatus = ComputePaymentStatus(invoice, now);
@@ -154,5 +156,6 @@ public class InvoiceAppService :
         entity.IssueDate = input.IssueDate;
         entity.DueDate = input.DueDate;
         entity.Notes = input.Notes;
+        entity.PaymentTerms = input.PaymentTerms;
     }
 }

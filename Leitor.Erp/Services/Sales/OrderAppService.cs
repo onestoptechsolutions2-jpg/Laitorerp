@@ -23,6 +23,8 @@ public class OrderAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
+    private readonly IRepository<OrderPaymentMilestone, Guid> _milestoneRepository;
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -32,6 +34,8 @@ public class OrderAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<Invoice, Guid> invoiceRepository,
         IRepository<InvoiceLine, Guid> invoiceLineRepository,
+        IRepository<OrderPaymentMilestone, Guid> milestoneRepository,
+        IRepository<TaxRate, Guid> taxRateRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -40,6 +44,8 @@ public class OrderAppService :
         _customerRepository = customerRepository;
         _invoiceRepository = invoiceRepository;
         _invoiceLineRepository = invoiceLineRepository;
+        _milestoneRepository = milestoneRepository;
+        _taxRateRepository = taxRateRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -100,8 +106,10 @@ public class OrderAppService :
                 order.CustomerName = customerName;
             }
 
-            order.Total = linesByOrderId[order.Id]
-                .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            var lines = linesByOrderId[order.Id].ToList();
+            order.Subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            order.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
+            order.Total = order.Subtotal + order.TaxAmount;
         }
     }
 
@@ -127,27 +135,37 @@ public class OrderAppService :
         entity.Status = input.Status;
         entity.OrderDate = input.OrderDate;
         entity.Notes = input.Notes;
+        entity.PaymentTerms = input.PaymentTerms;
     }
 
     // The concrete mechanism behind "order becomes an invoice" - carries line items and pricing
-    // forward instead of the user re-entering them. Due date defaults to 30 days out; adjustable
-    // afterwards on the invoice itself.
+    // forward instead of the user re-entering them. Due date defaults per the order's PaymentTerms
+    // (PaymentTermsCalculator.DueDate); adjustable afterwards on the invoice itself. Milestone
+    // orders can't be invoiced in full - see ConvertMilestoneToInvoiceAsync.
     public async Task<InvoiceDto> ConvertToInvoiceAsync(Guid orderId)
     {
         await CheckCreatePolicyAsync();
 
         var order = await Repository.GetAsync(orderId);
+
+        if (order.PaymentTerms == PaymentTerms.Milestone)
+        {
+            throw new UserFriendlyException("This order is billed by milestone - invoice each milestone individually instead of converting the whole order.");
+        }
+
         var orderLines = await _lineRepository.GetListAsync(x => x.OrderId == orderId);
 
         var invoiceNumber = await DocumentNumbering.NextAsync(_invoiceRepository, _dataFilter, "INV-");
+        var issueDate = Clock.Now;
 
         var invoice = new Invoice(GuidGenerator.Create(), order.CustomerId, invoiceNumber)
         {
             OrderId = order.Id,
             Status = InvoiceStatus.Issued,
-            IssueDate = Clock.Now,
-            DueDate = Clock.Now.AddDays(30),
-            Notes = order.Notes
+            IssueDate = issueDate,
+            DueDate = PaymentTermsCalculator.DueDate(issueDate, order.PaymentTerms),
+            Notes = order.Notes,
+            PaymentTerms = order.PaymentTerms
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
 
@@ -157,10 +175,70 @@ public class OrderAppService :
             {
                 ProductId = orderLine.ProductId,
                 Quantity = orderLine.Quantity,
-                DiscountPercent = orderLine.DiscountPercent
+                DiscountPercent = orderLine.DiscountPercent,
+                TaxRateId = orderLine.TaxRateId,
+                TaxRatePercent = orderLine.TaxRatePercent
             };
             await _invoiceLineRepository.InsertAsync(invoiceLine, autoSave: true);
         }
+
+        return ObjectMapper.Map<Invoice, InvoiceDto>(invoice);
+    }
+
+    // The Milestone-terms counterpart to ConvertToInvoiceAsync: bills one planned percentage of
+    // the order total as a single invoice line, rather than the full order at once. Taxed at the
+    // system default TaxRate rather than a line-weighted blend of the order's own lines - see the
+    // "Deliberate scope cuts" note in the Phase 2 plan.
+    public async Task<InvoiceDto> ConvertMilestoneToInvoiceAsync(Guid orderId, Guid milestoneId)
+    {
+        await CheckCreatePolicyAsync();
+
+        var order = await Repository.GetAsync(orderId);
+        var milestone = await _milestoneRepository.GetAsync(milestoneId);
+
+        if (milestone.OrderId != orderId)
+        {
+            throw new UserFriendlyException("This milestone does not belong to the specified order.");
+        }
+
+        if (milestone.IsInvoiced)
+        {
+            throw new UserFriendlyException("This milestone has already been invoiced.");
+        }
+
+        var orderDto = await GetAsync(orderId);
+
+        var defaultTaxRate = (await _taxRateRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault();
+
+        var invoiceNumber = await DocumentNumbering.NextAsync(_invoiceRepository, _dataFilter, "INV-");
+        var issueDate = Clock.Now;
+
+        var invoice = new Invoice(GuidGenerator.Create(), order.CustomerId, invoiceNumber)
+        {
+            OrderId = order.Id,
+            Status = InvoiceStatus.Issued,
+            IssueDate = issueDate,
+            DueDate = issueDate,
+            Notes = order.Notes,
+            PaymentTerms = order.PaymentTerms
+        };
+        await _invoiceRepository.InsertAsync(invoice, autoSave: true);
+
+        var milestoneAmount = orderDto.Subtotal * milestone.Percent / 100m;
+        var invoiceLine = new InvoiceLine(
+            GuidGenerator.Create(),
+            invoice.Id,
+            $"{milestone.Description} ({milestone.Percent:N0}% of Order Total)",
+            milestoneAmount)
+        {
+            TaxRateId = defaultTaxRate?.Id,
+            TaxRatePercent = defaultTaxRate?.Percent ?? 0
+        };
+        await _invoiceLineRepository.InsertAsync(invoiceLine, autoSave: true);
+
+        milestone.IsInvoiced = true;
+        milestone.InvoiceId = invoice.Id;
+        await _milestoneRepository.UpdateAsync(milestone, autoSave: true);
 
         return ObjectMapper.Map<Invoice, InvoiceDto>(invoice);
     }

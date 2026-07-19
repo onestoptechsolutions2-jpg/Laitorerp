@@ -11,7 +11,11 @@ public class QuoteLineDto : FullAuditedEntityDto<Guid>
     public decimal UnitPrice { get; set; }
     public decimal Quantity { get; set; }
     public decimal DiscountPercent { get; set; }
+    public decimal Cost { get; set; }
+    public Guid? TaxRateId { get; set; }
+    public decimal TaxRatePercent { get; set; }
 
-    // Computed by QuoteLineAppService - not a stored column.
+    // Both computed by QuoteLineAppService - not stored columns.
     public decimal LineTotal { get; set; }
+    public decimal? MarginPercent { get; set; }
 }

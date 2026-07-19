@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
@@ -23,6 +24,7 @@ public class DetailModel : AbpPageModel
     private readonly QuoteAppService _quoteAppService;
     private readonly QuoteLineAppService _quoteLineAppService;
     private readonly ProductAppService _productAppService;
+    private readonly TaxRateAppService _taxRateAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
@@ -31,6 +33,7 @@ public class DetailModel : AbpPageModel
         QuoteAppService quoteAppService,
         QuoteLineAppService quoteLineAppService,
         ProductAppService productAppService,
+        TaxRateAppService taxRateAppService,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions)
@@ -38,6 +41,7 @@ public class DetailModel : AbpPageModel
         _quoteAppService = quoteAppService;
         _quoteLineAppService = quoteLineAppService;
         _productAppService = productAppService;
+        _taxRateAppService = taxRateAppService;
         _customerRepository = customerRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
@@ -49,6 +53,7 @@ public class DetailModel : AbpPageModel
     public QuoteDto Quote { get; set; } = null!;
     public IReadOnlyList<QuoteLineDto> Lines { get; set; } = Array.Empty<QuoteLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
+    public List<SelectListItem> TaxRateOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
 
     [BindProperty]
@@ -85,6 +90,12 @@ public class DetailModel : AbpPageModel
         ProductOptions = new List<SelectListItem> { new(L["None"], "") };
         ProductOptions.AddRange(
             products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.UnitPrice:N2})", x.Id.ToString()))
+        );
+
+        var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+        TaxRateOptions = new List<SelectListItem> { new(L["UseDefaultTaxRate"], "") };
+        TaxRateOptions.AddRange(
+            taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
         );
     }
 

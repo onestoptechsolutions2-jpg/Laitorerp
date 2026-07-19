@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Sales;
 
 namespace Leitor.Erp.Services.Dtos.Customers;
 
@@ -40,4 +41,6 @@ public class CreateUpdateCustomerDto
     public Guid? AccountOwnerUserId { get; set; }
 
     public Guid? PortalUserId { get; set; }
+
+    public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
 }

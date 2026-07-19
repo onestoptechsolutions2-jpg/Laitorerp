@@ -18,4 +18,6 @@ public class CreateUpdateOrderDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
 }

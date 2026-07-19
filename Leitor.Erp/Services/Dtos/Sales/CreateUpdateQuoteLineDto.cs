@@ -22,4 +22,11 @@ public class CreateUpdateQuoteLineDto
 
     [Range(0, 100)]
     public decimal DiscountPercent { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal Cost { get; set; }
+
+    // Null means "use Product.TaxRateId, or the system default TaxRate if that's also null too" -
+    // resolved by QuoteLineAppService.MapToEntityAsync, not here.
+    public Guid? TaxRateId { get; set; }
 }

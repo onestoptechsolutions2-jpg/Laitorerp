@@ -15,6 +15,13 @@
             <abp-input asp-for="Product.Sku" />
             <abp-input asp-for="Product.Type" />
             <abp-input asp-for="Product.UnitPrice" />
+            <abp-input asp-for="Product.Cost" />
+            <div class="mb-3">
+                <label class="form-label">@L["TaxRate"]</label>
+                <select asp-for="Product.TaxRateId" asp-items="Model.TaxRateOptions" class="form-select">
+                    <option value="">@L["UseDefaultTaxRate"]</option>
+                </select>
+            </div>
             <abp-input asp-for="Product.Description" />
             <abp-input asp-for="Product.IsActive" />
 

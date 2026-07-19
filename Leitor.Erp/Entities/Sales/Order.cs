@@ -15,6 +15,12 @@ public class Order : FullAuditedAggregateRoot<Guid>
     public DateTime OrderDate { get; set; }
     public string? Notes { get; set; }
 
+    // Defaulted from Customer.DefaultPaymentTerms at creation, editable afterwards - drives the
+    // suggested due date when this order is converted to an Invoice (see
+    // PaymentTermsCalculator.DueDate) and, when Milestone, routes conversion through
+    // OrderAppService.ConvertMilestoneToInvoiceAsync instead of the single full-order path.
+    public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
+
     protected Order()
     {
     }

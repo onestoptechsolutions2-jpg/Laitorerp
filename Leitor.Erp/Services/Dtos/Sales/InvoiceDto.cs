@@ -13,9 +13,12 @@ public class InvoiceDto : FullAuditedEntityDto<Guid>
     public DateTime IssueDate { get; set; }
     public DateTime DueDate { get; set; }
     public string? Notes { get; set; }
+    public PaymentTerms PaymentTerms { get; set; }
 
     // Resolved/computed by InvoiceAppService - not stored columns.
     public string? CustomerName { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
 

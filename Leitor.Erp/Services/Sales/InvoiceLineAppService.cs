@@ -14,9 +14,18 @@ namespace Leitor.Erp.Services.Sales;
 public class InvoiceLineAppService :
     CrudAppService<InvoiceLine, InvoiceLineDto, Guid, GetInvoiceLineListInput, CreateUpdateInvoiceLineDto>
 {
-    public InvoiceLineAppService(IRepository<InvoiceLine, Guid> repository)
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+
+    public InvoiceLineAppService(
+        IRepository<InvoiceLine, Guid> repository,
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Product, Guid> productRepository)
         : base(repository)
     {
+        _taxRateRepository = taxRateRepository;
+        _productRepository = productRepository;
+
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
         CreatePolicyName = ErpPermissions.Sales.Edit;
@@ -53,20 +62,19 @@ public class InvoiceLineAppService :
         dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
     }
 
-    protected override Task<InvoiceLine> MapToEntityAsync(CreateUpdateInvoiceLineDto createInput)
+    protected override async Task<InvoiceLine> MapToEntityAsync(CreateUpdateInvoiceLineDto createInput)
     {
         var entity = new InvoiceLine(GuidGenerator.Create(), createInput.InvoiceId, createInput.Description, createInput.UnitPrice);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateInvoiceLineDto updateInput, InvoiceLine entity)
+    protected override async Task MapToEntityAsync(CreateUpdateInvoiceLineDto updateInput, InvoiceLine entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private static void CopyToEntity(CreateUpdateInvoiceLineDto input, InvoiceLine entity)
+    private async Task CopyToEntityAsync(CreateUpdateInvoiceLineDto input, InvoiceLine entity)
     {
         entity.InvoiceId = input.InvoiceId;
         entity.ProductId = input.ProductId;
@@ -74,5 +82,8 @@ public class InvoiceLineAppService :
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
+
+        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
+            _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
     }
 }

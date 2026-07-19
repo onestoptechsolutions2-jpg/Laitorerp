@@ -11,10 +11,12 @@ public partial class OrderLineToOrderLineDtoMapper : MapperBase<OrderLine, Order
     [MapperIgnoreSource(nameof(OrderLine.ExtraProperties))]
     [MapperIgnoreSource(nameof(OrderLine.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(OrderLineDto.LineTotal))]
+    [MapperIgnoreTarget(nameof(OrderLineDto.MarginPercent))]
     public override partial OrderLineDto Map(OrderLine source);
 
     [MapperIgnoreSource(nameof(OrderLine.ExtraProperties))]
     [MapperIgnoreSource(nameof(OrderLine.ConcurrencyStamp))]
     [MapperIgnoreTarget(nameof(OrderLineDto.LineTotal))]
+    [MapperIgnoreTarget(nameof(OrderLineDto.MarginPercent))]
     public override partial void Map(OrderLine source, OrderLineDto destination);
 }

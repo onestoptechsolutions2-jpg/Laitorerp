@@ -7,10 +7,13 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Products"]</h5>
-        @if (Model.CanCreate)
-        {
-            <a asp-page="./Create" class="btn btn-primary">@L["NewProduct"]</a>
-        }
+        <div>
+            <a asp-page="./TaxRates/Index" class="btn btn-outline-secondary">@L["TaxRates"]</a>
+            @if (Model.CanCreate)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewProduct"]</a>
+            }
+        </div>
     </div>
     <div class="card-body">
         <form method="get" class="row g-2 mb-3">

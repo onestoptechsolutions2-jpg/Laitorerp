@@ -11,6 +11,8 @@ public class InvoiceLineDto : FullAuditedEntityDto<Guid>
     public decimal UnitPrice { get; set; }
     public decimal Quantity { get; set; }
     public decimal DiscountPercent { get; set; }
+    public Guid? TaxRateId { get; set; }
+    public decimal TaxRatePercent { get; set; }
 
     public decimal LineTotal { get; set; }
 }

@@ -22,4 +22,9 @@ public class CreateUpdateOrderLineDto
 
     [Range(0, 100)]
     public decimal DiscountPercent { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal Cost { get; set; }
+
+    public Guid? TaxRateId { get; set; }
 }

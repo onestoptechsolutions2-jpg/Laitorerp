@@ -16,6 +16,15 @@ public class QuoteLine : FullAuditedAggregateRoot<Guid>
     public decimal Quantity { get; set; } = 1;
     public decimal DiscountPercent { get; set; }
 
+    // Snapshotted from Product.Cost at add-time (or 0 for a one-off line) - drives the internal-
+    // only MarginPercent shown on Quote/Order line editing, never printed on the customer PDF.
+    public decimal Cost { get; set; }
+
+    // Snapshotted from the chosen TaxRate (or the system default) at add-time, same no-drift
+    // reasoning as UnitPrice above - editing TaxRate.Percent later never changes this quote.
+    public Guid? TaxRateId { get; set; }
+    public decimal TaxRatePercent { get; set; }
+
     protected QuoteLine()
     {
     }

@@ -45,7 +45,8 @@ public class EditModel : AbpPageModel
             QuoteId = order.QuoteId,
             Status = order.Status,
             OrderDate = order.OrderDate,
-            Notes = order.Notes
+            Notes = order.Notes,
+            PaymentTerms = order.PaymentTerms
         };
 
         await LoadCustomerOptionsAsync();

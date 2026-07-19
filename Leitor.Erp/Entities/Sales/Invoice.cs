@@ -13,6 +13,11 @@ public class Invoice : FullAuditedAggregateRoot<Guid>
     public DateTime DueDate { get; set; }
     public string? Notes { get; set; }
 
+    // Copied from the source Order.PaymentTerms, or defaulted from Customer.DefaultPaymentTerms
+    // for a standalone invoice - purely informational plus the default DueDate suggestion
+    // (PaymentTermsCalculator.DueDate); DueDate itself always stays directly editable.
+    public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
+
     protected Invoice()
     {
     }
