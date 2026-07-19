@@ -38,9 +38,14 @@
   --leitor-font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --leitor-font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
 
-  --leitor-radius: 8px;
-  --leitor-radius-sm: 6px;
-  --leitor-shadow: 0 1px 2px rgba(35, 36, 31, 0.05), 0 1px 8px rgba(35, 36, 31, 0.04);
+  /* Soft/elevated direction: bigger radii, cards float on shadow rather than sit behind a
+     hard border. --leitor-shadow is layered (contact + ambient) so cards read as raised
+     surfaces against --leitor-paper without needing a visible edge. */
+  --leitor-radius: 16px;
+  --leitor-radius-sm: 10px;
+  --leitor-border-soft: rgba(35, 36, 31, 0.06);
+  --leitor-shadow: 0 1px 2px rgba(35, 36, 31, 0.03), 0 6px 16px rgba(35, 36, 31, 0.06), 0 20px 40px -20px rgba(35, 36, 31, 0.12);
+  --leitor-shadow-sm: 0 1px 2px rgba(35, 36, 31, 0.04), 0 2px 6px rgba(35, 36, 31, 0.05);
 }
 
 /* ============================= LeptonXLite shell ============================= */
@@ -95,27 +100,27 @@ a:hover {
 /* ============================= Cards ============================= */
 
 .card {
-  border: 1px solid var(--leitor-border);
+  border: 1px solid var(--leitor-border-soft);
   border-radius: var(--leitor-radius);
   box-shadow: var(--leitor-shadow);
   background: var(--leitor-surface);
 }
 
 .card-header {
-  background: var(--leitor-surface-sunken);
-  border-bottom: 1px solid var(--leitor-border);
-  padding: 14px 20px;
+  background: transparent;
+  border-bottom: 1px solid var(--leitor-border-soft);
+  padding: 20px 24px 16px;
 }
 
 .card-body {
-  padding: 20px;
+  padding: 24px;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--leitor-ink);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 /* ============================= Tables ============================= */
@@ -134,13 +139,15 @@ a:hover {
   font-weight: 600;
   border-bottom: 1.5px solid var(--leitor-border);
   background: transparent;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
   white-space: nowrap;
 }
 
 .table > tbody > tr > td {
   vertical-align: middle;
-  border-bottom-color: var(--leitor-border);
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  border-bottom-color: var(--leitor-border-soft);
 }
 
 .table.table-striped > tbody > tr:hover > td {
@@ -164,12 +171,19 @@ a:hover {
 .btn {
   border-radius: var(--leitor-radius-sm);
   font-weight: 500;
-  padding: 0.4rem 0.9rem;
+  padding: 0.45rem 1rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-sm {
-  padding: 0.28rem 0.65rem;
+  padding: 0.3rem 0.7rem;
   font-size: 12.5px;
+  border-radius: calc(var(--leitor-radius-sm) - 2px);
+}
+
+.btn-primary,
+.btn-success {
+  box-shadow: var(--leitor-shadow-sm);
 }
 
 .btn-primary {
@@ -226,11 +240,13 @@ a:hover {
 .form-select {
   border-color: var(--leitor-border);
   border-radius: var(--leitor-radius-sm);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 .form-control:focus,
 .form-select:focus {
   border-color: var(--leitor-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--leitor-primary-rgb), 0.18);
+  box-shadow: 0 0 0 0.2rem rgba(var(--leitor-primary-rgb), 0.14);
 }
 
 .form-label {
@@ -293,9 +309,9 @@ dl.row dd {
 }
 
 .kpi-card .kpi-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--leitor-radius-sm);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background: var(--leitor-primary-soft);
   color: var(--leitor-primary);
   display: flex;
@@ -321,6 +337,7 @@ dl.row dd {
 .alert {
   border-radius: var(--leitor-radius-sm);
   border-width: 1px;
+  box-shadow: var(--leitor-shadow-sm);
 }
 .alert-warning {
   background: var(--leitor-warning-bg);
@@ -336,6 +353,24 @@ dl.row dd {
   background: var(--leitor-success-bg);
   border-color: var(--leitor-success-bg);
   color: var(--leitor-success);
+}
+
+/* ============================= Modals ============================= */
+
+.modal-content {
+  border: none;
+  border-radius: var(--leitor-radius);
+  box-shadow: var(--leitor-shadow);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--leitor-border-soft);
+  padding: 18px 24px;
+}
+
+.modal-body {
+  padding: 20px 24px;
 }
 
 /* ============================= Existing ad-hoc badges ============================= */
