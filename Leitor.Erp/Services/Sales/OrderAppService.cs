@@ -341,6 +341,38 @@ public class OrderAppService :
         return ObjectMapper.Map<Invoice, InvoiceDto>(invoice);
     }
 
+    // Single entrypoint for "issue the final invoice" regardless of PaymentTerms - non-Milestone
+    // orders just invoice in full; Milestone orders need a Kind:Final milestone first, created
+    // here at whatever percent the earlier milestones haven't already claimed, then invoiced
+    // through the same path as ConvertMilestoneToInvoiceAsync (so its installation-complete gate
+    // still applies). Lets callers like the guided workflow wizard "issue the final invoice"
+    // without knowing which payment-terms shape the order is.
+    public async Task<InvoiceDto> IssueFinalInvoiceAsync(Guid orderId)
+    {
+        await CheckCreatePolicyAsync();
+
+        var order = await Repository.GetAsync(orderId);
+
+        if (order.PaymentTerms != PaymentTerms.Milestone)
+        {
+            return await ConvertToInvoiceAsync(orderId);
+        }
+
+        var milestones = await _milestoneRepository.GetListAsync(x => x.OrderId == orderId);
+        var final = milestones.FirstOrDefault(x => x.Kind == OrderPaymentMilestoneKind.Final);
+        if (final == null)
+        {
+            var remaining = Math.Max(0, 100 - milestones.Sum(x => x.Percent));
+            final = new OrderPaymentMilestone(GuidGenerator.Create(), orderId, "Final Payment", remaining)
+            {
+                Kind = OrderPaymentMilestoneKind.Final
+            };
+            await _milestoneRepository.InsertAsync(final, autoSave: true);
+        }
+
+        return await ConvertMilestoneToInvoiceAsync(orderId, final.Id);
+    }
+
     // The Milestone-terms counterpart to ConvertToInvoiceAsync: bills one planned percentage of
     // the order total as a single invoice line, rather than the full order at once. Taxed at the
     // system default TaxRate rather than a line-weighted blend of the order's own lines - see the

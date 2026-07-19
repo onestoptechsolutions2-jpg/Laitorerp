@@ -22,6 +22,7 @@ public class ErpMenus
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";
     public const string WorkflowMonitor = Prefix + ".WorkflowMonitor";
+    public const string GuidedWorkflow = Prefix + ".GuidedWorkflow";
 
     //Add your menu items here...
 
