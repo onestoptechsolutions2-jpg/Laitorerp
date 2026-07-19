@@ -8,8 +8,20 @@ public class DashboardDto
 {
     public LeadStatsDto? Leads { get; set; }
     public CustomerStatsDto? Customers { get; set; }
+    public OpportunityStatsDto? Opportunities { get; set; }
     public FieldServiceStatsDto? FieldService { get; set; }
     public SalesStatsDto? Sales { get; set; }
+}
+
+public class OpportunityStatsDto
+{
+    public int OpenCount { get; set; }
+    public decimal OpenPipelineValue { get; set; }
+    public int WonCount { get; set; }
+    public int LostCount { get; set; }
+
+    // Won / (Won + Lost), trailing period - 0 when there's no decided history yet.
+    public decimal WinRate { get; set; }
 }
 
 public class LeadStatsDto

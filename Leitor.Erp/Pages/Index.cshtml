@@ -7,6 +7,7 @@
 @{
     var noModulesVisible = Model.Dashboard.Leads == null &&
                             Model.Dashboard.Customers == null &&
+                            Model.Dashboard.Opportunities == null &&
                             Model.Dashboard.FieldService == null &&
                             Model.Dashboard.Sales == null;
 }
@@ -46,6 +47,22 @@ else
                         <div class="text-muted">@L["Customers"]</div>
                         <div class="display-6">@Model.Dashboard.Customers.TotalCount</div>
                         <a asp-page="/Customers/Index" class="small">@L["Dashboard:ViewAll"]</a>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.Dashboard.Opportunities != null)
+        {
+            <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
+                <div class="card w-100">
+                    <div class="card-body">
+                        <div class="text-muted">@L["Opportunities"]</div>
+                        <div class="display-6">@Model.Dashboard.Opportunities.OpenCount</div>
+                        <span class="small text-muted">
+                            @Model.Dashboard.Opportunities.OpenPipelineValue.ToString("N0") @L["Dashboard:OpenPipelineValue"]
+                            (@Model.Dashboard.Opportunities.WinRate.ToString("N0")% @L["Dashboard:WinRate"])
+                        </span>
+                        <a asp-page="/Opportunities/Index" class="small d-block">@L["Dashboard:ViewAll"]</a>
                     </div>
                 </div>
             </div>

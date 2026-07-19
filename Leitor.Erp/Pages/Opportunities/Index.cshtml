@@ -1,0 +1,74 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Opportunities
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Opportunities.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Opportunities"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewOpportunity"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Name"]" />
+            </div>
+            <div class="col-auto">
+                <select name="Status" class="form-select">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Status == OpportunityStatus.Open)">@L["Enum:OpportunityStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == OpportunityStatus.Won)">@L["Enum:OpportunityStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == OpportunityStatus.Lost)">@L["Enum:OpportunityStatus:2"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select asp-for="AssignedToUserId" class="form-select" asp-items="Model.UserOptions"></select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["EstimatedValue"]</th>
+                        <th>@L["ExpectedCloseDate"]</th>
+                        <th>@L["AssignedTo"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var opportunity in Model.Opportunities)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@opportunity.Id">@opportunity.Name</a></td>
+                            <td>@opportunity.CustomerName</td>
+                            <td>@L[$"Enum:OpportunityStatus:{(int)opportunity.Status}"]</td>
+                            <td>@opportunity.EstimatedValue?.ToString("N2")</td>
+                            <td>@(opportunity.ExpectedCloseDate?.ToShortDateString())</td>
+                            <td>@opportunity.AssignedToUserName</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@opportunity.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

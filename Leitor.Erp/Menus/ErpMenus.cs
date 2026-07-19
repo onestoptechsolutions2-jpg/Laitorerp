@@ -6,6 +6,7 @@ public class ErpMenus
     public const string Home = Prefix + ".Home";
     public const string Leads = Prefix + ".Leads";
     public const string Customers = Prefix + ".Customers";
+    public const string Opportunities = Prefix + ".Opportunities";
     public const string Catalog = Prefix + ".Catalog";
     public const string Sales = Prefix + ".Sales";
     public const string SalesQuotes = Sales + ".Quotes";

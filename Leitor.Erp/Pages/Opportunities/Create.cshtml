@@ -1,0 +1,28 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Opportunities.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewOpportunity"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="Opportunity.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-input asp-for="Opportunity.Name" />
+            <abp-input asp-for="Opportunity.Status" />
+            <abp-input asp-for="Opportunity.EstimatedValue" />
+            <abp-input asp-for="Opportunity.ExpectedCloseDate" />
+            <abp-select asp-for="Opportunity.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-input asp-for="Opportunity.Notes" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

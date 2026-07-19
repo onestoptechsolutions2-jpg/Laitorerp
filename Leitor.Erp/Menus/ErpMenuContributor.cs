@@ -73,6 +73,19 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Opportunities.Default))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.Opportunities,
+                    l["Menu:Opportunities"],
+                    "~/Opportunities",
+                    icon: "fas fa-bullseye",
+                    order: 3
+                )
+            );
+        }
+
         if (await context.IsGrantedAsync(ErpPermissions.Catalog.Default))
         {
             context.Menu.Items.Add(
@@ -81,7 +94,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:Catalog"],
                     "~/Catalog",
                     icon: "fas fa-boxes-stacked",
-                    order: 3
+                    order: 4
                 )
             );
         }
@@ -92,7 +105,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Sales,
                 l["Menu:Sales"],
                 icon: "fas fa-file-invoice-dollar",
-                order: 4
+                order: 5
             );
 
             salesMenu.AddItem(
@@ -116,7 +129,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:FieldService"],
                     "~/FieldService/Jobs",
                     icon: "fas fa-truck-fast",
-                    order: 5
+                    order: 6
                 )
             );
         }
@@ -129,7 +142,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:Support"],
                     "~/Support/Tickets",
                     icon: "fas fa-headset",
-                    order: 6
+                    order: 7
                 )
             );
         }
@@ -143,7 +156,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Procurement,
                 l["Menu:Procurement"],
                 icon: "fas fa-truck-ramp-box",
-                order: 7
+                order: 8
             );
 
             if (canViewVendors)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -21,6 +22,7 @@ public class QuoteAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<OrderLine, Guid> _orderLineRepository;
+    private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IDataFilter _dataFilter;
 
     public QuoteAppService(
@@ -29,6 +31,7 @@ public class QuoteAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<OrderLine, Guid> orderLineRepository,
+        IRepository<Proposal, Guid> proposalRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
@@ -36,6 +39,7 @@ public class QuoteAppService :
         _customerRepository = customerRepository;
         _orderRepository = orderRepository;
         _orderLineRepository = orderLineRepository;
+        _proposalRepository = proposalRepository;
         _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Sales.Default;
@@ -90,6 +94,15 @@ public class QuoteAppService :
         var allLines = await _lineRepository.GetListAsync(x => quoteIds.Contains(x.QuoteId));
         var linesByQuoteId = allLines.ToLookup(x => x.QuoteId);
 
+        var proposalIds = quotes
+            .Where(x => x.ProposalId.HasValue)
+            .Select(x => x.ProposalId!.Value)
+            .Distinct()
+            .ToList();
+        var proposalNumbersById = proposalIds.Count > 0
+            ? (await _proposalRepository.GetListAsync(x => proposalIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.ProposalNumber)
+            : new Dictionary<Guid, string>();
+
         foreach (var quote in quotes)
         {
             if (namesById.TryGetValue(quote.CustomerId, out var customerName))
@@ -99,6 +112,11 @@ public class QuoteAppService :
 
             quote.Total = linesByQuoteId[quote.Id]
                 .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+
+            if (quote.ProposalId.HasValue && proposalNumbersById.TryGetValue(quote.ProposalId.Value, out var proposalNumber))
+            {
+                quote.ProposalNumber = proposalNumber;
+            }
         }
     }
 
@@ -128,6 +146,7 @@ public class QuoteAppService :
         entity.IssueDate = input.IssueDate;
         entity.ExpiryDate = input.ExpiryDate;
         entity.Notes = input.Notes;
+        entity.ProposalId = input.ProposalId;
     }
 
     // The concrete mechanism behind "quote becomes an order" - carries line items and pricing

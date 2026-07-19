@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Dashboard;
@@ -21,6 +22,7 @@ public class DashboardAppService : ApplicationService
     private readonly IRepository<Lead, Guid> _leadRepository;
     private readonly IRepository<LeadTouch, Guid> _leadTouchRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
@@ -32,6 +34,7 @@ public class DashboardAppService : ApplicationService
         IRepository<Lead, Guid> leadRepository,
         IRepository<LeadTouch, Guid> leadTouchRepository,
         IRepository<Customer, Guid> customerRepository,
+        IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
         IRepository<Quote, Guid> quoteRepository,
         IRepository<Order, Guid> orderRepository,
@@ -42,6 +45,7 @@ public class DashboardAppService : ApplicationService
         _leadRepository = leadRepository;
         _leadTouchRepository = leadTouchRepository;
         _customerRepository = customerRepository;
+        _opportunityRepository = opportunityRepository;
         _jobRepository = jobRepository;
         _quoteRepository = quoteRepository;
         _orderRepository = orderRepository;
@@ -62,6 +66,11 @@ public class DashboardAppService : ApplicationService
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Default))
         {
             dto.Customers = await GetCustomerStatsAsync();
+        }
+
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Default))
+        {
+            dto.Opportunities = await GetOpportunityStatsAsync();
         }
 
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.FieldService.Default))
@@ -109,6 +118,24 @@ public class DashboardAppService : ApplicationService
                 .Take(5)
                 .Select(x => new RecentCustomerDto { Id = x.Id, Name = x.Name, CreationTime = x.CreationTime })
                 .ToList()
+        };
+    }
+
+    private async Task<OpportunityStatsDto> GetOpportunityStatsAsync()
+    {
+        var query = await _opportunityRepository.GetQueryableAsync();
+
+        var wonCount = query.Count(x => x.Status == OpportunityStatus.Won);
+        var lostCount = query.Count(x => x.Status == OpportunityStatus.Lost);
+        var decidedCount = wonCount + lostCount;
+
+        return new OpportunityStatsDto
+        {
+            OpenCount = query.Count(x => x.Status == OpportunityStatus.Open),
+            OpenPipelineValue = query.Where(x => x.Status == OpportunityStatus.Open).Sum(x => x.EstimatedValue ?? 0),
+            WonCount = wonCount,
+            LostCount = lostCount,
+            WinRate = decidedCount == 0 ? 0 : Math.Round(100m * wonCount / decidedCount, 1)
         };
     }
 

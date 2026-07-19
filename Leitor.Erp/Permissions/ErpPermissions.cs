@@ -20,6 +20,17 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Covers Opportunity, NeedsAssessment/NeedsAssessmentAttachment, and Proposal together - same
+    // convention as Sales covering Quote+Order+Invoice+Payment on separate pages.
+    public static class Opportunities
+    {
+        public const string GroupName = "Erp.Opportunities";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     public static class Catalog
     {
         public const string GroupName = "Erp.Catalog";

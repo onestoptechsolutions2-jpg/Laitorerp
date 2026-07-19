@@ -1,0 +1,129 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Opportunities.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Opportunity.Name</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Opportunity.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Customer"]</dt>
+            <dd class="col-sm-4">@Model.Opportunity.CustomerName</dd>
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:OpportunityStatus:{(int)Model.Opportunity.Status}"]</dd>
+
+            <dt class="col-sm-2">@L["EstimatedValue"]</dt>
+            <dd class="col-sm-4">@Model.Opportunity.EstimatedValue?.ToString("N2")</dd>
+            <dt class="col-sm-2">@L["ExpectedCloseDate"]</dt>
+            <dd class="col-sm-4">@(Model.Opportunity.ExpectedCloseDate?.ToShortDateString())</dd>
+
+            <dt class="col-sm-2">@L["AssignedTo"]</dt>
+            <dd class="col-sm-10">@Model.Opportunity.AssignedToUserName</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Opportunity.LostReason))
+            {
+                <dt class="col-sm-2">@L["LostReason"]</dt>
+                <dd class="col-sm-10">@Model.Opportunity.LostReason</dd>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Opportunity.Notes))
+            {
+                <dt class="col-sm-2">@L["Notes"]</dt>
+                <dd class="col-sm-10">@Model.Opportunity.Notes</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["NeedsAssessments"]</h5>
+        <a asp-page="/Opportunities/Assessments/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm">@L["NewAssessment"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Type"]</th>
+                        <th>@L["ConductedDate"]</th>
+                        <th>@L["ConductedBy"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var assessment in Model.Assessments)
+                    {
+                        <tr>
+                            <td>@L[$"Enum:NeedsAssessmentType:{(int)assessment.Type}"]</td>
+                            <td>@assessment.ConductedDate.ToShortDateString()</td>
+                            <td>@assessment.ConductedByUserName</td>
+                            <td>
+                                <a asp-page="/Opportunities/Assessments/Edit" asp-route-id="@assessment.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <form method="post" asp-page-handler="DeleteAssessment" asp-route-assessmentId="@assessment.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Proposals"]</h5>
+        <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm">@L["NewProposal"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["ProposalNumber"]</th>
+                        <th>@L["Title"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Version"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var proposal in Model.Proposals)
+                    {
+                        <tr>
+                            <td>@proposal.ProposalNumber</td>
+                            <td>@proposal.Title</td>
+                            <td>@L[$"Enum:ProposalStatus:{(int)proposal.Status}"]</td>
+                            <td>@proposal.Version</td>
+                            <td>
+                                <a asp-page="/Opportunities/Proposals/Edit" asp-route-id="@proposal.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <a asp-page="/Opportunities/Proposals/Edit" asp-page-handler="Pdf" asp-route-id="@proposal.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-secondary">@L["DownloadPdf"]</a>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="ConvertToQuote" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["ConvertToQuote"]?');">
+                                        <button type="submit" class="btn btn-sm btn-success">@L["ConvertToQuote"]</button>
+                                    </form>
+                                }
+                                <form method="post" asp-page-handler="DeleteProposal" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

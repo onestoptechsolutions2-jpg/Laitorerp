@@ -37,6 +37,12 @@
             <dt class="col-sm-2">@L["ExpiryDate"]</dt>
             <dd class="col-sm-4">@(Model.Quote.ExpiryDate?.ToShortDateString())</dd>
 
+            @if (!string.IsNullOrWhiteSpace(Model.Quote.ProposalNumber))
+            {
+                <dt class="col-sm-2">@L["FromProposal"]</dt>
+                <dd class="col-sm-10">@Model.Quote.ProposalNumber</dd>
+            }
+
             <dt class="col-sm-2">@L["Total"]</dt>
             <dd class="col-sm-10">@Model.Quote.Total.ToString("N2")</dd>
 

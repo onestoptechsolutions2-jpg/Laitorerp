@@ -1,0 +1,32 @@
+@page "{opportunityId}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Opportunities.Proposals.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewProposal"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Proposal.OpportunityId" value="@Model.OpportunityId" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="Proposal.Title" />
+            <abp-input asp-for="Proposal.Status" />
+            <abp-input asp-for="Proposal.Summary" />
+            <abp-input asp-for="Proposal.ProposedSolution" />
+            <abp-input asp-for="Proposal.Scope" />
+            <abp-input asp-for="Proposal.Timeline" />
+            <abp-input asp-for="Proposal.Assumptions" />
+            <abp-input asp-for="Proposal.Exclusions" />
+            <abp-input asp-for="Proposal.WarrantyAndSupport" />
+            <abp-input asp-for="Proposal.Terms" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="/Opportunities/Detail" asp-route-id="@Model.OpportunityId" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

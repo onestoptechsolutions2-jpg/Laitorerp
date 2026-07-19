@@ -2,6 +2,7 @@
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
@@ -30,6 +31,11 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<CustomerNote> CustomerNotes { get; set; } = null!;
     public DbSet<CustomerTask> CustomerTasks { get; set; } = null!;
     public DbSet<CustomerAttachment> CustomerAttachments { get; set; } = null!;
+
+    public DbSet<Opportunity> Opportunities { get; set; } = null!;
+    public DbSet<NeedsAssessment> NeedsAssessments { get; set; } = null!;
+    public DbSet<NeedsAssessmentAttachment> NeedsAssessmentAttachments { get; set; } = null!;
+    public DbSet<Proposal> Proposals { get; set; } = null!;
 
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductVendor> ProductVendors { get; set; } = null!;
@@ -161,6 +167,56 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.CustomerId);
         });
 
+        builder.Entity<Opportunity>(b =>
+        {
+            b.ToTable("Opportunities");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.EstimatedValue).HasColumnType("decimal(18,2)");
+            b.Property(x => x.LostReason).HasMaxLength(2000);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.AssignedToUserId);
+        });
+
+        builder.Entity<NeedsAssessment>(b =>
+        {
+            b.ToTable("NeedsAssessments");
+            b.ConfigureByConvention();
+            b.Property(x => x.Findings).IsRequired().HasMaxLength(4000);
+            b.Property(x => x.Risks).HasMaxLength(4000);
+            b.Property(x => x.Recommendations).HasMaxLength(4000);
+            b.Property(x => x.CustomerRequirements).HasMaxLength(4000);
+            b.HasIndex(x => x.OpportunityId);
+        });
+
+        builder.Entity<NeedsAssessmentAttachment>(b =>
+        {
+            b.ToTable("NeedsAssessmentAttachments");
+            b.ConfigureByConvention();
+            b.Property(x => x.FileName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.ContentType).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.NeedsAssessmentId);
+        });
+
+        builder.Entity<Proposal>(b =>
+        {
+            b.ToTable("Proposals");
+            b.ConfigureByConvention();
+            b.Property(x => x.ProposalNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Summary).HasMaxLength(4000);
+            b.Property(x => x.ProposedSolution).HasMaxLength(4000);
+            b.Property(x => x.Scope).HasMaxLength(4000);
+            b.Property(x => x.Timeline).HasMaxLength(2000);
+            b.Property(x => x.Assumptions).HasMaxLength(2000);
+            b.Property(x => x.Exclusions).HasMaxLength(2000);
+            b.Property(x => x.WarrantyAndSupport).HasMaxLength(2000);
+            b.Property(x => x.Terms).HasMaxLength(2000);
+            b.HasIndex(x => x.OpportunityId);
+            b.HasIndex(x => x.ProposalNumber).IsUnique();
+        });
+
         builder.Entity<Product>(b =>
         {
             b.ToTable("Products");
@@ -191,6 +247,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.QuoteNumber).IsUnique();
+            b.HasIndex(x => x.ProposalId);
         });
 
         builder.Entity<QuoteLine>(b =>

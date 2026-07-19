@@ -81,6 +81,7 @@ public class ErpRolePermissionDataSeeder : IDataSeedContributor, ITransientDepen
         {
             ErpPermissions.Leads.Default,
             ErpPermissions.Customers.Default,
+            ErpPermissions.Opportunities.Default,
             ErpPermissions.Catalog.Default,
             ErpPermissions.Vendors.Default,
             ErpPermissions.Sales.Default,
@@ -96,6 +97,7 @@ public class ErpRolePermissionDataSeeder : IDataSeedContributor, ITransientDepen
         {
             ErpPermissions.Leads.Default, ErpPermissions.Leads.Create, ErpPermissions.Leads.Edit, ErpPermissions.Leads.Delete,
             ErpPermissions.Customers.Default, ErpPermissions.Customers.Create, ErpPermissions.Customers.Edit, ErpPermissions.Customers.Delete,
+            ErpPermissions.Opportunities.Default, ErpPermissions.Opportunities.Create, ErpPermissions.Opportunities.Edit, ErpPermissions.Opportunities.Delete,
             ErpPermissions.Catalog.Default,
             ErpPermissions.Vendors.Default,
             ErpPermissions.Sales.Default, ErpPermissions.Sales.Create, ErpPermissions.Sales.Edit, ErpPermissions.Sales.Delete,

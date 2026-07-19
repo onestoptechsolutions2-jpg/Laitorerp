@@ -1,0 +1,66 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Opportunities.Assessments.EditModel
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["EditAssessment"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="OpportunityId" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="Assessment.Type" />
+            <abp-input asp-for="Assessment.ConductedDate" />
+            <abp-input asp-for="Assessment.Findings" />
+            <abp-input asp-for="Assessment.Risks" />
+            <abp-input asp-for="Assessment.Recommendations" />
+            <abp-input asp-for="Assessment.CustomerRequirements" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="/Opportunities/Detail" asp-route-id="@Model.OpportunityId" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Documents"]</h5>
+        <a asp-page="/Opportunities/Assessments/Attachments/Upload" asp-route-needsAssessmentId="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-primary btn-sm">@L["UploadDocument"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["FileName"]</th>
+                        <th>@L["FileSize"]</th>
+                        <th>@L["UploadedBy"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var attachment in Model.Attachments)
+                    {
+                        <tr>
+                            <td>@attachment.FileName</td>
+                            <td>@((attachment.FileSizeBytes / 1024.0).ToString("N0")) KB</td>
+                            <td>@attachment.UploadedByUserName</td>
+                            <td>
+                                <a asp-page="/Opportunities/Assessments/Attachments/Download" asp-route-id="@attachment.Id" class="btn btn-sm btn-outline-primary">@L["Download"]</a>
+                                <form method="post" asp-page-handler="DeleteAttachment" asp-route-attachmentId="@attachment.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

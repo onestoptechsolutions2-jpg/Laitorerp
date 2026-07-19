@@ -22,4 +22,6 @@ public class CreateUpdateQuoteDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public Guid? ProposalId { get; set; }
 }

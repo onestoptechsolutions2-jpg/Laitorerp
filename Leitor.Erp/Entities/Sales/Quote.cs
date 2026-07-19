@@ -13,6 +13,11 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     public DateTime? ExpiryDate { get; set; }
     public string? Notes { get; set; }
 
+    // Set by ProposalAppService.ConvertToQuoteAsync when this Quote was generated from a
+    // technical Proposal - null for quotes created directly, same optional-provenance pattern as
+    // Order.QuoteId/PurchaseOrder.SourceOrderId.
+    public Guid? ProposalId { get; set; }
+
     protected Quote()
     {
     }

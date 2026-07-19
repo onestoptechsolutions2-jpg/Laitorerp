@@ -21,6 +21,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         customersPermission.AddChild(ErpPermissions.Customers.Edit, L("Permission:Edit"));
         customersPermission.AddChild(ErpPermissions.Customers.Delete, L("Permission:Delete"));
 
+        var opportunitiesGroup = context.AddGroup(ErpPermissions.Opportunities.GroupName, L("Permission:Opportunities"));
+        var opportunitiesPermission = opportunitiesGroup.AddPermission(ErpPermissions.Opportunities.Default, L("Permission:Opportunities"));
+        opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Create, L("Permission:Create"));
+        opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Edit, L("Permission:Edit"));
+        opportunitiesPermission.AddChild(ErpPermissions.Opportunities.Delete, L("Permission:Delete"));
+
         var catalogGroup = context.AddGroup(ErpPermissions.Catalog.GroupName, L("Permission:Catalog"));
         var catalogPermission = catalogGroup.AddPermission(ErpPermissions.Catalog.Default, L("Permission:Catalog"));
         catalogPermission.AddChild(ErpPermissions.Catalog.Create, L("Permission:Create"));
