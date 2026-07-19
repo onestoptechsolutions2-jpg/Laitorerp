@@ -152,6 +152,13 @@ a:hover {
   font-variant-numeric: tabular-nums;
 }
 
+.table-empty-state td {
+  text-align: center;
+  padding: 2.75rem 1rem;
+  color: var(--leitor-ink-soft);
+  font-size: 13.5px;
+}
+
 /* ============================= Buttons ============================= */
 
 .btn {

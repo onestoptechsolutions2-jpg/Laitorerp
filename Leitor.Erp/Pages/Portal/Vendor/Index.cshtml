@@ -34,6 +34,10 @@ else
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.PurchaseOrders.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                        }
                         @foreach (var po in Model.PurchaseOrders)
                         {
                             <tr>
@@ -73,6 +77,10 @@ else
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.Jobs.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                        }
                         @foreach (var job in Model.Jobs)
                         {
                             <tr>

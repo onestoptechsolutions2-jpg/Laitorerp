@@ -30,6 +30,10 @@ else
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.Orders.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                        }
                         @foreach (var order in Model.Orders)
                         {
                             <tr>
@@ -59,6 +63,10 @@ else
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.Invoices.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                        }
                         @foreach (var invoice in Model.Invoices)
                         {
                             <tr>
@@ -88,6 +96,10 @@ else
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.Contracts.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                        }
                         @foreach (var contract in Model.Contracts)
                         {
                             <tr>
@@ -127,6 +139,10 @@ else
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.Tickets.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="3">@L["NoResultsFound"]</td></tr>
+                        }
                         @foreach (var ticket in Model.Tickets)
                         {
                             <tr>

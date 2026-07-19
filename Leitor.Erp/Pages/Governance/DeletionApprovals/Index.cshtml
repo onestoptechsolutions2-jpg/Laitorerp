@@ -40,6 +40,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Requests.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="@(Model.CanDecide ? 7 : 6)">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var request in Model.Requests)
                     {
                         <tr>

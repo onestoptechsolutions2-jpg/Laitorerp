@@ -48,6 +48,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Leads.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var lead in Model.Leads)
                     {
                         <tr>

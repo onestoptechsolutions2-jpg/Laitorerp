@@ -47,6 +47,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Opportunities.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var opportunity in Model.Opportunities)
                     {
                         <tr>

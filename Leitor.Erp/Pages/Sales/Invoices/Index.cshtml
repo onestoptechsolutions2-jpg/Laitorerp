@@ -35,6 +35,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Invoices.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var invoice in Model.Invoices)
                     {
                         <tr>

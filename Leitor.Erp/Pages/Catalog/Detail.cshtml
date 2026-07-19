@@ -25,7 +25,7 @@
             <dt class="col-sm-2">@L["UnitPrice"]</dt>
             <dd class="col-sm-4">@Model.Product.UnitPrice.ToString("N2")</dd>
             <dt class="col-sm-2">@L["IsActive"]</dt>
-            <dd class="col-sm-4">@(Model.Product.IsActive ? "✓" : "")</dd>
+            <dd class="col-sm-4"><span class="pill @(Model.Product.IsActive ? "pill-success" : "pill-neutral")">@(Model.Product.IsActive ? L["Active"] : L["Inactive"])</span></dd>
 
             @if (!string.IsNullOrWhiteSpace(Model.Product.Description))
             {

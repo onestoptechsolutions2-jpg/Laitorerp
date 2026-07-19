@@ -33,6 +33,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Vendors.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var vendor in Model.Vendors)
                     {
                         <tr>

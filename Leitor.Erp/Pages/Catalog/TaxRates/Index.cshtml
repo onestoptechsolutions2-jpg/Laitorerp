@@ -27,6 +27,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.TaxRates.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var taxRate in Model.TaxRates)
                     {
                         <tr>

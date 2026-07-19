@@ -34,6 +34,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Quotes.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var quote in Model.Quotes)
                     {
                         <tr>

@@ -37,6 +37,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Products.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var product in Model.Products)
                     {
                         <tr>
@@ -44,7 +48,7 @@
                             <td>@product.Sku</td>
                             <td>@L[$"Enum:ProductType:{(int)product.Type}"]</td>
                             <td>@product.UnitPrice.ToString("N2")</td>
-                            <td>@(product.IsActive ? "✓" : "")</td>
+                            <td><span class="pill @(product.IsActive ? "pill-success" : "pill-neutral")">@(product.IsActive ? L["Active"] : L["Inactive"])</span></td>
                             <td>
                                 @if (Model.CanEdit)
                                 {

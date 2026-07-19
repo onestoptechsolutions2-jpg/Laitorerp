@@ -45,6 +45,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Jobs.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var job in Model.Jobs)
                     {
                         <tr>

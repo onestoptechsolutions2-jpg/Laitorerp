@@ -52,6 +52,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.AuditLogs.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var log in Model.AuditLogs)
                     {
                         <tr class="@(log.HasException ? "table-danger" : "")">

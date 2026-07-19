@@ -55,6 +55,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.Tickets.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
                     @foreach (var ticket in Model.Tickets)
                     {
                         <tr>
