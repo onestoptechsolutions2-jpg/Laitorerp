@@ -1,0 +1,99 @@
+@page
+@using System
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.BalanceSheet.IndexModel
+
+@{
+    var totalLiabilitiesAndEquity = Model.Report.TotalLiabilities + Model.Report.TotalEquity + Model.Report.RetainedEarnings;
+    var isBalanced = Math.Round(Model.Report.TotalAssets - totalLiabilitiesAndEquity, 2) == 0;
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["BalanceSheet"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <label class="form-label">@L["AsOfDate"]</label>
+                <input type="date" name="AsOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        @if (!isBalanced)
+        {
+            <div class="alert alert-danger">@L["BalanceSheetOutOfBalance"]</div>
+        }
+
+        <div class="row">
+            <div class="col-md-6">
+                <h6>@L["Assets"]</h6>
+                <table class="table table-sm table-striped">
+                    <tbody>
+                        @foreach (var line in Model.Report.AssetLines)
+                        {
+                            <tr>
+                                <td>@line.AccountCode - @line.AccountName</td>
+                                <td class="text-end">@line.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>@L["TotalAssets"]</th>
+                            <th class="text-end">@Model.Report.TotalAssets.ToString("N2")</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>@L["Liabilities"]</h6>
+                <table class="table table-sm table-striped">
+                    <tbody>
+                        @foreach (var line in Model.Report.LiabilityLines)
+                        {
+                            <tr>
+                                <td>@line.AccountCode - @line.AccountName</td>
+                                <td class="text-end">@line.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>@L["TotalLiabilities"]</th>
+                            <th class="text-end">@Model.Report.TotalLiabilities.ToString("N2")</th>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <h6>@L["Equity"]</h6>
+                <table class="table table-sm table-striped">
+                    <tbody>
+                        @foreach (var line in Model.Report.EquityLines)
+                        {
+                            <tr>
+                                <td>@line.AccountCode - @line.AccountName</td>
+                                <td class="text-end">@line.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td>@L["RetainedEarnings"]</td>
+                            <td class="text-end">@Model.Report.RetainedEarnings.ToString("N2")</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>@L["TotalEquity"]</th>
+                            <th class="text-end">@((Model.Report.TotalEquity + Model.Report.RetainedEarnings).ToString("N2"))</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

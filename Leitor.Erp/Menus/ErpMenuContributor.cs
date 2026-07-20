@@ -212,6 +212,15 @@ public class ErpMenuContributor : IMenuContributor
             accountingMenu.AddItem(
                 new ApplicationMenuItem(ErpMenus.AccountingJournalEntries, l["Menu:JournalEntries"], "~/Accounting/JournalEntries", order: 4)
             );
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingTrialBalance, l["Menu:TrialBalance"], "~/Accounting/Reports/TrialBalance", order: 5)
+            );
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingIncomeStatement, l["Menu:IncomeStatement"], "~/Accounting/Reports/IncomeStatement", order: 6)
+            );
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingBalanceSheet, l["Menu:BalanceSheet"], "~/Accounting/Reports/BalanceSheet", order: 7)
+            );
 
             context.Menu.Items.Add(accountingMenu);
         }

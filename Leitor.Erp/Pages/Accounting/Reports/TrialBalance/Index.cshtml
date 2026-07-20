@@ -1,0 +1,62 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.TrialBalance.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["TrialBalance"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <label class="form-label">@L["AsOfDate"]</label>
+                <input type="date" name="AsOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        @if (!Model.Report.IsBalanced)
+        {
+            <div class="alert alert-danger">@L["TrialBalanceOutOfBalance"]</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["AccountCode"]</th>
+                        <th>@L["Name"]</th>
+                        <th>@L["Debit"]</th>
+                        <th>@L["Credit"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Report.Lines.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var line in Model.Report.Lines)
+                    {
+                        <tr>
+                            <td>@line.AccountCode</td>
+                            <td>@line.AccountName</td>
+                            <td>@line.DebitTotal.ToString("N2")</td>
+                            <td>@line.CreditTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">@L["Total"]</th>
+                        <th>@Model.Report.TotalDebit.ToString("N2")</th>
+                        <th>@Model.Report.TotalCredit.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
