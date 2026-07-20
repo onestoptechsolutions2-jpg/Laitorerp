@@ -22,4 +22,9 @@ public class CreateUpdatePaymentDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    // Optional - defaults from the parent Invoice's CurrencyCode when left blank (see
+    // PaymentAppService.MapToEntityAsync).
+    [StringLength(8)]
+    public string? CurrencyCode { get; set; }
 }

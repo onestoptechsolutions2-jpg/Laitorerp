@@ -191,6 +191,25 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(procurementMenu);
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Accounting.Default))
+        {
+            var accountingMenu = new ApplicationMenuItem(
+                ErpMenus.Accounting,
+                l["Menu:Accounting"],
+                icon: "fas fa-scale-balanced",
+                order: 10
+            );
+
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingCurrencies, l["Menu:Currencies"], "~/Accounting/Currencies", order: 1)
+            );
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingExchangeRates, l["Menu:ExchangeRates"], "~/Accounting/ExchangeRates", order: 2)
+            );
+
+            context.Menu.Items.Add(accountingMenu);
+        }
+
         if (await context.IsGrantedAsync(ErpPermissions.Opportunities.Default))
         {
             context.Menu.Items.Add(

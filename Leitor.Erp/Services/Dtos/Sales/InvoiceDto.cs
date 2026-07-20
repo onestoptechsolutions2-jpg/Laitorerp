@@ -14,6 +14,8 @@ public class InvoiceDto : FullAuditedEntityDto<Guid>
     public DateTime DueDate { get; set; }
     public string? Notes { get; set; }
     public PaymentTerms PaymentTerms { get; set; }
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
 
     // Resolved/computed by InvoiceAppService - not stored columns.
     public string? CustomerName { get; set; }

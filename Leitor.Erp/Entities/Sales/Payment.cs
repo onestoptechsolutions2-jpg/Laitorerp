@@ -12,6 +12,12 @@ public class Payment : FullAuditedAggregateRoot<Guid>
     public string? Reference { get; set; }
     public string? Notes { get; set; }
 
+    // Defaults from the parent Invoice's CurrencyCode at creation but stays independently
+    // editable+snapshotted - a real remittance sometimes settles in a different currency than the
+    // invoice was billed in.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     protected Payment()
     {
     }

@@ -14,6 +14,12 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     public string? Notes { get; set; }
     public int Version { get; set; } = 1;
 
+    // Snapshotted at creation/edit time via CurrencyRateResolver, never recomputed later - same
+    // discipline as QuoteLine.TaxRatePercent. ExchangeRateToBase is "1 unit of CurrencyCode equals
+    // this many units of the base currency" as of IssueDate.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     // Locked once it leaves Draft - same lock/single-use-unlock mechanism as Proposal.IsLocked,
     // enforced in QuoteAppService.MapToEntityAsync.
     public bool IsLocked => Status != QuoteStatus.Draft;

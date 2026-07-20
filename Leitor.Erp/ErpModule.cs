@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Leitor.Erp.BackgroundWorkers;
@@ -177,6 +178,8 @@ public class ErpModule : AbpModule
 
         QuestPDF.Settings.License = LicenseType.Community;
         context.Services.Configure<ErpCompanyOptions>(configuration.GetSection("Company"));
+        context.Services.Configure<OpenExchangeRatesOptions>(configuration.GetSection("OpenExchangeRates"));
+        context.Services.AddHttpClient("OpenExchangeRates");
 
         ConfigureAuthentication(context);
         ConfigureMultiTenancy();
@@ -385,5 +388,6 @@ public class ErpModule : AbpModule
         await base.OnApplicationInitializationAsync(context);
 
         await context.AddBackgroundWorkerAsync<ContractExpiryAlertWorker>();
+        await context.AddBackgroundWorkerAsync<ExchangeRateSyncWorker>();
     }
 }

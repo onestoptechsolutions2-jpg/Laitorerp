@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
@@ -22,6 +23,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 {
     public DbSet<Lead> Leads { get; set; } = null!;
     public DbSet<LeadTouch> LeadTouches { get; set; } = null!;
+
+    public DbSet<Currency> Currencies { get; set; } = null!;
+    public DbSet<ExchangeRate> ExchangeRates { get; set; } = null!;
 
     public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
     public DbSet<WorkflowStageEvent> WorkflowStageEvents { get; set; } = null!;
@@ -240,6 +244,26 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Percent).HasColumnType("decimal(5,2)");
         });
 
+        builder.Entity<Currency>(b =>
+        {
+            b.ToTable("Currencies");
+            b.ConfigureByConvention();
+            b.Property(x => x.Code).IsRequired().HasMaxLength(8);
+            b.Property(x => x.Name).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Symbol).IsRequired().HasMaxLength(8);
+            b.HasIndex(x => x.Code).IsUnique();
+        });
+
+        builder.Entity<ExchangeRate>(b =>
+        {
+            b.ToTable("ExchangeRates");
+            b.ConfigureByConvention();
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8);
+            b.Property(x => x.RateToBaseCurrency).HasColumnType("decimal(18,6)");
+            b.Property(x => x.Source).IsRequired().HasMaxLength(32);
+            b.HasIndex(x => new { x.CurrencyCode, x.RateDate }).IsUnique();
+        });
+
         builder.Entity<Product>(b =>
         {
             b.ToTable("Products");
@@ -302,6 +326,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.QuoteNumber).IsRequired().HasMaxLength(32);
             b.Property(x => x.Title).IsRequired().HasMaxLength(256);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.QuoteNumber).IsUnique();
             b.HasIndex(x => x.ProposalId);
@@ -326,6 +352,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.OrderNumber).IsRequired().HasMaxLength(32);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.OrderNumber).IsUnique();
         });
@@ -358,6 +386,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.InvoiceNumber).IsRequired().HasMaxLength(32);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.InvoiceNumber).IsUnique();
         });
@@ -381,6 +411,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
             b.Property(x => x.Reference).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.InvoiceId);
         });
 

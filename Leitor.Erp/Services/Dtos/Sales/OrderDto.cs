@@ -14,6 +14,8 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public PaymentTerms PaymentTerms { get; set; }
     public int Version { get; set; }
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
     public bool IsLocked { get; set; }
     public Guid? UnlockedByUserId { get; set; }
     public DateTime? UnlockedAt { get; set; }

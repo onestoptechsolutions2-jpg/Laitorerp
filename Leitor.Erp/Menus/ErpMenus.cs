@@ -21,6 +21,14 @@ public class ErpMenus
     public const string ProcurementVendors = Procurement + ".Vendors";
     public const string ProcurementPurchaseOrders = Procurement + ".PurchaseOrders";
     public const string ProcurementSupplierInvoices = Procurement + ".SupplierInvoices";
+    public const string Accounting = Prefix + ".Accounting";
+    public const string AccountingCurrencies = Accounting + ".Currencies";
+    public const string AccountingExchangeRates = Accounting + ".ExchangeRates";
+    public const string AccountingChartOfAccounts = Accounting + ".ChartOfAccounts";
+    public const string AccountingJournalEntries = Accounting + ".JournalEntries";
+    public const string AccountingTrialBalance = Accounting + ".TrialBalance";
+    public const string AccountingIncomeStatement = Accounting + ".IncomeStatement";
+    public const string AccountingBalanceSheet = Accounting + ".BalanceSheet";
     public const string AuditLogs = Prefix + ".AuditLogs";
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";

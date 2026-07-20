@@ -23,6 +23,11 @@ public class Order : FullAuditedAggregateRoot<Guid>
 
     public int Version { get; set; } = 1;
 
+    // Snapshotted at creation/edit time via CurrencyRateResolver, never recomputed later - same
+    // discipline as OrderLine.TaxRatePercent.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     // Locked once it leaves Submitted (Confirmed/Fulfilled/Cancelled) - same lock/single-use-
     // unlock mechanism as Quote.IsLocked/Proposal.IsLocked, enforced in
     // OrderAppService.MapToEntityAsync.

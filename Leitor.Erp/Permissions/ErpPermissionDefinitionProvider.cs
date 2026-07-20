@@ -68,6 +68,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         procurementPermission.AddChild(ErpPermissions.Procurement.Edit, L("Permission:Edit"));
         procurementPermission.AddChild(ErpPermissions.Procurement.Delete, L("Permission:Delete"));
 
+        var accountingGroup = context.AddGroup(ErpPermissions.Accounting.GroupName, L("Permission:Accounting"));
+        var accountingPermission = accountingGroup.AddPermission(ErpPermissions.Accounting.Default, L("Permission:Accounting"));
+        accountingPermission.AddChild(ErpPermissions.Accounting.Create, L("Permission:Create"));
+        accountingPermission.AddChild(ErpPermissions.Accounting.Edit, L("Permission:Edit"));
+        accountingPermission.AddChild(ErpPermissions.Accounting.Delete, L("Permission:Delete"));
+
         var deletionApprovalsGroup = context.AddGroup(ErpPermissions.DeletionApprovals.GroupName, L("Permission:DeletionApprovals"));
         var deletionApprovalsPermission = deletionApprovalsGroup.AddPermission(ErpPermissions.DeletionApprovals.Default, L("Permission:DeletionApprovals"));
         deletionApprovalsPermission.AddChild(ErpPermissions.DeletionApprovals.Decide, L("Permission:Decide"));

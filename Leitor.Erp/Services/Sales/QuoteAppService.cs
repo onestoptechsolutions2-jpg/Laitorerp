@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
@@ -26,6 +28,8 @@ public class QuoteAppService :
     private readonly IRepository<OrderLine, Guid> _orderLineRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IDataFilter _dataFilter;
 
     public QuoteAppService(
@@ -36,6 +40,8 @@ public class QuoteAppService :
         IRepository<OrderLine, Guid> orderLineRepository,
         IRepository<Proposal, Guid> proposalRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
@@ -45,6 +51,8 @@ public class QuoteAppService :
         _orderLineRepository = orderLineRepository;
         _proposalRepository = proposalRepository;
         _stageEventRepository = stageEventRepository;
+        _currencyRepository = currencyRepository;
+        _exchangeRateRepository = exchangeRateRepository;
         _dataFilter = dataFilter;
 
         GetPolicyName = ErpPermissions.Sales.Default;
@@ -145,10 +153,12 @@ public class QuoteAppService :
 
         var entity = new Quote(GuidGenerator.Create(), createInput.CustomerId, quoteNumber, createInput.Title);
         CopyToEntity(createInput, entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
         return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateQuoteDto updateInput, Quote entity)
+    protected override async Task MapToEntityAsync(CreateUpdateQuoteDto updateInput, Quote entity)
     {
         // Once a Quote leaves Draft it's locked - editing requires an explicit unlock first (see
         // UnlockForRevisionAsync). Single-use: consumed the moment this edit is saved.
@@ -160,6 +170,8 @@ public class QuoteAppService :
         var wasUnlocked = entity.UnlockedByUserId != null;
 
         CopyToEntity(updateInput, entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
         entity.Version++;
 
         if (wasUnlocked)
@@ -168,8 +180,6 @@ public class QuoteAppService :
             entity.UnlockedAt = null;
             entity.UnlockReason = null;
         }
-
-        return Task.CompletedTask;
     }
 
     // Only a holder of Sales.Unlock (Ops Manager) can unlock an approved Quote for revision.
@@ -200,6 +210,7 @@ public class QuoteAppService :
         entity.ExpiryDate = input.ExpiryDate;
         entity.Notes = input.Notes;
         entity.ProposalId = input.ProposalId;
+        entity.CurrencyCode = input.CurrencyCode;
     }
 
     // The concrete mechanism behind "quote becomes an order" - carries line items and pricing
@@ -227,12 +238,18 @@ public class QuoteAppService :
         var quoteLines = await _lineRepository.GetListAsync(x => x.QuoteId == quoteId);
 
         var orderNumber = await DocumentNumbering.NextAsync(_orderRepository, _dataFilter, "SO-");
+        var orderDate = Clock.Now;
 
         var order = new Order(GuidGenerator.Create(), quote.CustomerId, orderNumber)
         {
             QuoteId = quote.Id,
-            OrderDate = Clock.Now,
-            Notes = quote.Notes
+            OrderDate = orderDate,
+            Notes = quote.Notes,
+            CurrencyCode = quote.CurrencyCode,
+            // Re-resolved at the Order's own creation date rather than copying the Quote's
+            // snapshot - a Quote issued in January converting to an Order in March should reflect
+            // March's rate, not January's.
+            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, quote.CurrencyCode, orderDate)
         };
         await _orderRepository.InsertAsync(order, autoSave: true);
 

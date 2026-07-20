@@ -12,4 +12,6 @@ public class PaymentDto : FullAuditedEntityDto<Guid>
     public PaymentMethod Method { get; set; }
     public string? Reference { get; set; }
     public string? Notes { get; set; }
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
 }

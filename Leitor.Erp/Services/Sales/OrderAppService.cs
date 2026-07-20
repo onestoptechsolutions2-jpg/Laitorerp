@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
@@ -29,6 +31,8 @@ public class OrderAppService :
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -43,6 +47,8 @@ public class OrderAppService :
         IRepository<TaxRate, Guid> taxRateRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -56,6 +62,8 @@ public class OrderAppService :
         _taxRateRepository = taxRateRepository;
         _stageEventRepository = stageEventRepository;
         _fieldServiceJobRepository = fieldServiceJobRepository;
+        _currencyRepository = currencyRepository;
+        _exchangeRateRepository = exchangeRateRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -152,6 +160,8 @@ public class OrderAppService :
 
         var entity = new Order(GuidGenerator.Create(), createInput.CustomerId, orderNumber);
         CopyToEntity(createInput, entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
         return entity;
     }
 
@@ -168,6 +178,8 @@ public class OrderAppService :
         var wasConfirmed = entity.Status == OrderStatus.Confirmed;
 
         CopyToEntity(updateInput, entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
         entity.Version++;
 
         if (wasUnlocked)
@@ -249,7 +261,9 @@ public class OrderAppService :
             IssueDate = issueDate,
             DueDate = issueDate,
             Notes = order.Notes,
-            PaymentTerms = order.PaymentTerms
+            PaymentTerms = order.PaymentTerms,
+            CurrencyCode = order.CurrencyCode,
+            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate)
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
 
@@ -280,6 +294,7 @@ public class OrderAppService :
         entity.OrderDate = input.OrderDate;
         entity.Notes = input.Notes;
         entity.PaymentTerms = input.PaymentTerms;
+        entity.CurrencyCode = input.CurrencyCode;
     }
 
     // The concrete mechanism behind "order becomes an invoice" - carries line items and pricing
@@ -328,7 +343,9 @@ public class OrderAppService :
             IssueDate = issueDate,
             DueDate = PaymentTermsCalculator.DueDate(issueDate, order.PaymentTerms),
             Notes = order.Notes,
-            PaymentTerms = order.PaymentTerms
+            PaymentTerms = order.PaymentTerms,
+            CurrencyCode = order.CurrencyCode,
+            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate)
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
 

@@ -24,4 +24,8 @@ public class CreateUpdateQuoteDto
     public string? Notes { get; set; }
 
     public Guid? ProposalId { get; set; }
+
+    [Required]
+    [StringLength(8)]
+    public string CurrencyCode { get; set; } = string.Empty;
 }

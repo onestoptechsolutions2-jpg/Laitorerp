@@ -104,6 +104,17 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Covers Currencies/Exchange Rates, Chart of Accounts, Journal Entries, and the financial
+    // reports together - same "one group per nav section" convention as Procurement.
+    public static class Accounting
+    {
+        public const string GroupName = "Erp.Accounting";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     // Deletion is permission-based but gated by approval: Decide (Admin/Ops Manager) can delete a
     // scoped entity immediately; everyone else's delete action files a request here instead - see
     // Services/Governance/DeletionGate.cs.

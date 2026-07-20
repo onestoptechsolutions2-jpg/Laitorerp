@@ -18,6 +18,11 @@ public class Invoice : FullAuditedAggregateRoot<Guid>
     // (PaymentTermsCalculator.DueDate); DueDate itself always stays directly editable.
     public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
 
+    // Snapshotted at creation/edit time via CurrencyRateResolver, never recomputed later - same
+    // discipline as InvoiceLine.TaxRatePercent.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     protected Invoice()
     {
     }

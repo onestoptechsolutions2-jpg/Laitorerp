@@ -1,0 +1,69 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.ExchangeRates.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["ExchangeRates"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="Add" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Currency"]</label>
+                    <select asp-for="NewRate.CurrencyCode" asp-items="Model.CurrencyOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["RateDate"]</label>
+                    <input asp-for="NewRate.RateDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["RateToBaseCurrency"]</label>
+                    <input asp-for="NewRate.RateToBaseCurrency" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">@L["AddRate"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Currency"]</th>
+                        <th>@L["RateDate"]</th>
+                        <th>@L["RateToBaseCurrency"]</th>
+                        <th>@L["Source"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.ExchangeRates.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var rate in Model.ExchangeRates)
+                    {
+                        <tr>
+                            <td>@rate.CurrencyCode</td>
+                            <td>@rate.RateDate.ToString("yyyy-MM-dd")</td>
+                            <td>@rate.RateToBaseCurrency.ToString("N6")</td>
+                            <td>@rate.Source</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@rate.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

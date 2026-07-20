@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
@@ -22,6 +24,8 @@ public class InvoiceAppService :
     private readonly IRepository<InvoiceLine, Guid> _lineRepository;
     private readonly IRepository<Payment, Guid> _paymentRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -30,6 +34,8 @@ public class InvoiceAppService :
         IRepository<InvoiceLine, Guid> lineRepository,
         IRepository<Payment, Guid> paymentRepository,
         IRepository<Customer, Guid> customerRepository,
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -37,6 +43,8 @@ public class InvoiceAppService :
         _lineRepository = lineRepository;
         _paymentRepository = paymentRepository;
         _customerRepository = customerRepository;
+        _currencyRepository = currencyRepository;
+        _exchangeRateRepository = exchangeRateRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -139,13 +147,16 @@ public class InvoiceAppService :
 
         var entity = new Invoice(GuidGenerator.Create(), createInput.CustomerId, invoiceNumber);
         CopyToEntity(createInput, entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
         return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateInvoiceDto updateInput, Invoice entity)
+    protected override async Task MapToEntityAsync(CreateUpdateInvoiceDto updateInput, Invoice entity)
     {
         CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
     }
 
     private static void CopyToEntity(CreateUpdateInvoiceDto input, Invoice entity)
@@ -157,5 +168,6 @@ public class InvoiceAppService :
         entity.DueDate = input.DueDate;
         entity.Notes = input.Notes;
         entity.PaymentTerms = input.PaymentTerms;
+        entity.CurrencyCode = input.CurrencyCode;
     }
 }

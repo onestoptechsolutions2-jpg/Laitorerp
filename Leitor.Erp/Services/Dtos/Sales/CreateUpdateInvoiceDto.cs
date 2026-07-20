@@ -23,4 +23,8 @@ public class CreateUpdateInvoiceDto
     public string? Notes { get; set; }
 
     public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
+
+    [Required]
+    [StringLength(8)]
+    public string CurrencyCode { get; set; } = string.Empty;
 }
