@@ -10,8 +10,10 @@ using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Services.Procurement;
@@ -25,6 +27,10 @@ public class SupplierInvoiceAppService :
     private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
+    private readonly IRepository<Account, Guid> _accountRepository;
+    private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
+    private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public SupplierInvoiceAppService(
@@ -35,6 +41,10 @@ public class SupplierInvoiceAppService :
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
+        IRepository<Account, Guid> accountRepository,
+        IRepository<JournalEntry, Guid> journalEntryRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
@@ -44,6 +54,10 @@ public class SupplierInvoiceAppService :
         _purchaseOrderRepository = purchaseOrderRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
+        _accountRepository = accountRepository;
+        _journalEntryRepository = journalEntryRepository;
+        _journalEntryLineRepository = journalEntryLineRepository;
+        _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Procurement.Default;
@@ -109,6 +123,11 @@ public class SupplierInvoiceAppService :
         var allPayments = await _paymentRepository.GetListAsync(x => invoiceIds.Contains(x.SupplierInvoiceId));
         var paymentsByInvoiceId = allPayments.ToLookup(x => x.SupplierInvoiceId);
 
+        var postedInvoiceIds = (await _journalEntryRepository.GetListAsync(
+            x => x.SourceDocumentType == JournalPostingService.SourceDocumentTypes.SupplierInvoice && x.SourceDocumentId != null && invoiceIds.Contains(x.SourceDocumentId!.Value)))
+            .Select(x => x.SourceDocumentId!.Value)
+            .ToHashSet();
+
         var now = Clock.Now;
 
         foreach (var invoice in invoices)
@@ -126,9 +145,46 @@ public class SupplierInvoiceAppService :
             invoice.Total = linesByInvoiceId[invoice.Id]
                 .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
+            invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
             invoice.PaymentStatus = ComputePaymentStatus(invoice, now);
         }
+    }
+
+    // Same reasoning as InvoiceAppService.PostToLedgerAsync - the standalone Create page inserts
+    // this header and its PO-derived lines in separate calls (from the page, not atomically in
+    // one AppService method), so there's no single moment to auto-post from. The Create page
+    // calls this once its line-insertion loop finishes; it's also exposed as a button on Detail
+    // in case that call ever fails/is skipped.
+    public async Task PostToLedgerAsync(Guid id)
+    {
+        await CheckPolicyAsync(ErpPermissions.Procurement.Edit);
+
+        var alreadyPosted = await JournalPostingService.IsAlreadyPostedAsync(_journalEntryRepository, JournalPostingService.SourceDocumentTypes.SupplierInvoice, id);
+        if (alreadyPosted)
+        {
+            throw new UserFriendlyException("This supplier invoice has already been posted to the ledger.");
+        }
+
+        var invoice = await Repository.GetAsync(id);
+        if (invoice.Status != SupplierInvoiceStatus.Issued)
+        {
+            throw new UserFriendlyException("Only an issued supplier invoice can be posted to the ledger.");
+        }
+
+        var lines = await _lineRepository.GetListAsync(x => x.SupplierInvoiceId == id);
+        var total = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+        if (total <= 0)
+        {
+            throw new UserFriendlyException("Add at least one line before posting this supplier invoice to the ledger.");
+        }
+
+        await JournalPostingService.PostAsync(
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            invoice.IssueDate, JournalPostingService.SourceDocumentTypes.SupplierInvoice, invoice.Id,
+            $"Supplier Invoice {invoice.SupplierInvoiceNumber}",
+            SystemAccountRole.Expense, SystemAccountRole.AccountsPayable,
+            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
     }
 
     // Same rule InvoiceAppService.ComputePaymentStatus already uses, on the payable side.

@@ -26,4 +26,8 @@ public class InvoiceDto : FullAuditedEntityDto<Guid>
 
     // Computed exactly like Manager.io: not a manually-set field. See InvoicePaymentStatus.
     public InvoicePaymentStatus PaymentStatus { get; set; }
+
+    // Resolved by InvoiceAppService from JournalEntry.SourceDocumentType/SourceDocumentId - not a
+    // stored column. See InvoiceAppService.PostToLedgerAsync.
+    public bool IsPostedToLedger { get; set; }
 }

@@ -8,6 +8,7 @@ using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Services.Sales;
@@ -18,17 +19,29 @@ public class PaymentAppService :
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
+    private readonly IRepository<Account, Guid> _accountRepository;
+    private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
+    private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IDataFilter _dataFilter;
 
     public PaymentAppService(
         IRepository<Payment, Guid> repository,
         IRepository<Invoice, Guid> invoiceRepository,
         IRepository<Currency, Guid> currencyRepository,
-        IRepository<ExchangeRate, Guid> exchangeRateRepository)
+        IRepository<ExchangeRate, Guid> exchangeRateRepository,
+        IRepository<Account, Guid> accountRepository,
+        IRepository<JournalEntry, Guid> journalEntryRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IDataFilter dataFilter)
         : base(repository)
     {
         _invoiceRepository = invoiceRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
+        _accountRepository = accountRepository;
+        _journalEntryRepository = journalEntryRepository;
+        _journalEntryLineRepository = journalEntryLineRepository;
+        _dataFilter = dataFilter;
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
         CreatePolicyName = ErpPermissions.Sales.Edit;
@@ -47,16 +60,28 @@ public class PaymentAppService :
         var entity = new Payment(GuidGenerator.Create(), createInput.InvoiceId, createInput.Amount, createInput.PaymentDate);
         CopyToEntity(createInput, entity);
 
+        var invoice = await _invoiceRepository.GetAsync(createInput.InvoiceId);
+
         // CurrencyCode is optional on the DTO - defaults from the parent Invoice when the caller
         // doesn't specify one (the common case: paid in the same currency it was billed in).
         if (string.IsNullOrWhiteSpace(entity.CurrencyCode))
         {
-            var invoice = await _invoiceRepository.GetAsync(createInput.InvoiceId);
             entity.CurrencyCode = invoice.CurrencyCode;
         }
 
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
             _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.PaymentDate);
+
+        // Every Payment is a single atomic, known-amount transaction (unlike Invoice/SupplierInvoice,
+        // whose lines are added afterward) - so it always auto-posts Dr Cash / Cr Accounts
+        // Receivable immediately, no separate "Post to Ledger" step needed.
+        await JournalPostingService.PostAsync(
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            entity.PaymentDate, JournalPostingService.SourceDocumentTypes.Payment, entity.Id,
+            $"Payment received - Invoice {invoice.InvoiceNumber}",
+            SystemAccountRole.Cash, SystemAccountRole.AccountsReceivable,
+            entity.Amount, entity.CurrencyCode, entity.ExchangeRateToBase);
+
         return entity;
     }
 

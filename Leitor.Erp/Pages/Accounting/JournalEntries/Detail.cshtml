@@ -8,6 +8,12 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@Model.Entry.EntryNumber</h5>
         <div>
+            @if (Model.CanEdit && !Model.Entry.IsReversed)
+            {
+                <form method="post" asp-page-handler="Reverse" onsubmit="return confirm('@L["AreYouSureToReverse"]');" class="d-inline">
+                    <button type="submit" class="btn btn-outline-warning">@L["Reverse"]</button>
+                </form>
+            }
             @if (Model.CanEdit && !Model.Entry.IsSystemGenerated)
             {
                 <form method="post" asp-page-handler="Delete" onsubmit="return confirm('@L["AreYouSureToDelete"]');" class="d-inline">
@@ -31,6 +37,17 @@
             {
                 <dt class="col-sm-2">@L["SourceDocument"]</dt>
                 <dd class="col-sm-10">@Model.Entry.SourceDocumentType</dd>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Entry.ReversedEntryNumber))
+            {
+                <dt class="col-sm-2">@L["Reverses"]</dt>
+                <dd class="col-sm-10">@Model.Entry.ReversedEntryNumber</dd>
+            }
+            @if (Model.Entry.IsReversed)
+            {
+                <dt class="col-sm-2">@L["Status"]</dt>
+                <dd class="col-sm-10"><span class="pill pill-neutral">@L["Reversed"]</span></dd>
             }
         </dl>
     </div>

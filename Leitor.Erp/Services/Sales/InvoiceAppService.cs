@@ -26,6 +26,9 @@ public class InvoiceAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
+    private readonly IRepository<Account, Guid> _accountRepository;
+    private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
+    private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -36,6 +39,9 @@ public class InvoiceAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
+        IRepository<Account, Guid> accountRepository,
+        IRepository<JournalEntry, Guid> journalEntryRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -45,6 +51,9 @@ public class InvoiceAppService :
         _customerRepository = customerRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
+        _accountRepository = accountRepository;
+        _journalEntryRepository = journalEntryRepository;
+        _journalEntryLineRepository = journalEntryLineRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -106,6 +115,11 @@ public class InvoiceAppService :
         var allPayments = await _paymentRepository.GetListAsync(x => invoiceIds.Contains(x.InvoiceId));
         var paymentsByInvoiceId = allPayments.ToLookup(x => x.InvoiceId);
 
+        var postedInvoiceIds = (await _journalEntryRepository.GetListAsync(
+            x => x.SourceDocumentType == JournalPostingService.SourceDocumentTypes.Invoice && x.SourceDocumentId != null && invoiceIds.Contains(x.SourceDocumentId!.Value)))
+            .Select(x => x.SourceDocumentId!.Value)
+            .ToHashSet();
+
         var now = Clock.Now;
 
         foreach (var invoice in invoices)
@@ -120,9 +134,45 @@ public class InvoiceAppService :
             invoice.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
             invoice.Total = invoice.Subtotal + invoice.TaxAmount;
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
+            invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
             invoice.PaymentStatus = ComputePaymentStatus(invoice, now);
         }
+    }
+
+    // The standalone "New Invoice" flow (unlike Order->Invoice conversion) creates the header
+    // before any lines exist, so there's no single atomic moment to auto-post from - staff click
+    // this once they're done adding lines. Guarded so an invoice can only be posted once, and only
+    // once it's actually Issued with a non-zero total.
+    public async Task PostToLedgerAsync(Guid id)
+    {
+        await CheckPolicyAsync(ErpPermissions.Sales.Edit);
+
+        var alreadyPosted = await JournalPostingService.IsAlreadyPostedAsync(_journalEntryRepository, JournalPostingService.SourceDocumentTypes.Invoice, id);
+        if (alreadyPosted)
+        {
+            throw new UserFriendlyException("This invoice has already been posted to the ledger.");
+        }
+
+        var invoice = await Repository.GetAsync(id);
+        if (invoice.Status != InvoiceStatus.Issued)
+        {
+            throw new UserFriendlyException("Only an issued invoice can be posted to the ledger.");
+        }
+
+        var lines = await _lineRepository.GetListAsync(x => x.InvoiceId == id);
+        var total = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * (1 + x.TaxRatePercent / 100m));
+        if (total <= 0)
+        {
+            throw new UserFriendlyException("Add at least one line before posting this invoice to the ledger.");
+        }
+
+        await JournalPostingService.PostAsync(
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
+            $"Invoice {invoice.InvoiceNumber}",
+            SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
+            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
     }
 
     // Computed exactly like Manager.io: never manually set, always derived from payments applied.

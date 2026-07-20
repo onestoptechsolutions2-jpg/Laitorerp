@@ -36,4 +36,10 @@ public class DetailModel : AbpPageModel
         await _journalEntryAppService.DeleteAsync(Id);
         return RedirectToPage("./Index");
     }
+
+    public async Task<IActionResult> OnPostReverseAsync()
+    {
+        var reversal = await _journalEntryAppService.ReverseAsync(Id);
+        return RedirectToPage(new { id = reversal.Id });
+    }
 }

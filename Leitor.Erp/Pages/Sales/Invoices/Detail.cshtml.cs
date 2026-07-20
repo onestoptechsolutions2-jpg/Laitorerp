@@ -149,6 +149,12 @@ public class DetailModel : AbpPageModel
         return RedirectToPage(new { id = Id });
     }
 
+    public async Task<IActionResult> OnPostPostToLedgerAsync()
+    {
+        await _invoiceAppService.PostToLedgerAsync(Id);
+        return RedirectToPage(new { id = Id });
+    }
+
     public async Task<IActionResult> OnGetPdfAsync()
     {
         await LoadAsync();

@@ -10,6 +10,7 @@ using Leitor.Erp.Services.Procurement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -95,6 +96,23 @@ public class CreateModel : AbpPageModel
                 Quantity = poLine.Quantity,
                 DiscountPercent = poLine.DiscountPercent
             });
+        }
+
+        // Lines are only known once this loop finishes (unlike an Order->Invoice conversion,
+        // which builds everything atomically) - post to the ledger now that the total is real.
+        // A failure here (e.g. no account configured yet for a required system role) shouldn't
+        // undo an otherwise-successful invoice creation - the "Post to Ledger" button on Detail
+        // covers that retry case instead of surfacing an error on this page.
+        if (invoice.Status == SupplierInvoiceStatus.Issued && poLines.Count > 0)
+        {
+            try
+            {
+                await _supplierInvoiceAppService.PostToLedgerAsync(invoice.Id);
+            }
+            catch (UserFriendlyException)
+            {
+                // Swallowed deliberately - see comment above.
+            }
         }
 
         return RedirectToPage("./Detail", new { id = invoice.Id });

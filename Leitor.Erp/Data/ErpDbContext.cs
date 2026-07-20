@@ -285,6 +285,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.SourceDocumentType).HasMaxLength(64);
             b.HasIndex(x => x.EntryNumber).IsUnique();
             b.HasIndex(x => new { x.SourceDocumentType, x.SourceDocumentId });
+            b.HasIndex(x => x.ReversedEntryId);
         });
 
         builder.Entity<JournalEntryLine>(b =>

@@ -33,6 +33,9 @@ public class OrderAppService :
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
+    private readonly IRepository<Account, Guid> _accountRepository;
+    private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
+    private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -49,6 +52,9 @@ public class OrderAppService :
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
+        IRepository<Account, Guid> accountRepository,
+        IRepository<JournalEntry, Guid> journalEntryRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -64,6 +70,9 @@ public class OrderAppService :
         _fieldServiceJobRepository = fieldServiceJobRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
+        _accountRepository = accountRepository;
+        _journalEntryRepository = journalEntryRepository;
+        _journalEntryLineRepository = journalEntryLineRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -283,6 +292,17 @@ public class OrderAppService :
         milestone.InvoiceId = invoice.Id;
         await _milestoneRepository.UpdateAsync(milestone, autoSave: true);
 
+        // This method (unlike a standalone Invoice created via InvoiceAppService.CreateAsync)
+        // builds the Invoice and its one line atomically with a known total, so it can auto-post
+        // immediately - no separate "Post to Ledger" step needed.
+        var total = invoiceLine.UnitPrice * (1 + invoiceLine.TaxRatePercent / 100m);
+        await JournalPostingService.PostAsync(
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
+            $"Invoice {invoice.InvoiceNumber}",
+            SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
+            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
+
         return invoice;
     }
 
@@ -349,6 +369,7 @@ public class OrderAppService :
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
 
+        var createdInvoiceLines = new List<InvoiceLine>();
         foreach (var orderLine in orderLines)
         {
             var invoiceLine = new InvoiceLine(GuidGenerator.Create(), invoice.Id, orderLine.Description, orderLine.UnitPrice)
@@ -360,9 +381,21 @@ public class OrderAppService :
                 TaxRatePercent = orderLine.TaxRatePercent
             };
             await _invoiceLineRepository.InsertAsync(invoiceLine, autoSave: true);
+            createdInvoiceLines.Add(invoiceLine);
         }
 
         await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", order.Id, WorkflowStage.FinalInvoiceIssued);
+
+        // Every line is created here, atomically, with the Order's own already-known totals - so
+        // (unlike a standalone Invoice built one line at a time via InvoiceAppService) this can
+        // auto-post immediately.
+        var total = createdInvoiceLines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * (1 + x.TaxRatePercent / 100m));
+        await JournalPostingService.PostAsync(
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
+            $"Invoice {invoice.InvoiceNumber}",
+            SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
+            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
 
         return ObjectMapper.Map<Invoice, InvoiceDto>(invoice);
     }

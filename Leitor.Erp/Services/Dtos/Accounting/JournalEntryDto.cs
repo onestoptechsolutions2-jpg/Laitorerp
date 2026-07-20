@@ -12,9 +12,12 @@ public class JournalEntryDto : FullAuditedEntityDto<Guid>
     public string? SourceDocumentType { get; set; }
     public Guid? SourceDocumentId { get; set; }
     public bool IsSystemGenerated { get; set; }
+    public Guid? ReversedEntryId { get; set; }
 
     // Resolved by JournalEntryAppService - not stored columns.
     public List<JournalEntryLineDto> Lines { get; set; } = new();
     public decimal TotalDebit { get; set; }
     public decimal TotalCredit { get; set; }
+    public string? ReversedEntryNumber { get; set; }
+    public bool IsReversed { get; set; }
 }

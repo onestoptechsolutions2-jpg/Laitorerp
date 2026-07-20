@@ -130,4 +130,10 @@ public class DetailModel : AbpPageModel
         await _vendorPaymentAppService.DeleteAsync(paymentId);
         return RedirectToPage(new { id = Id });
     }
+
+    public async Task<IActionResult> OnPostPostToLedgerAsync()
+    {
+        await _supplierInvoiceAppService.PostToLedgerAsync(Id);
+        return RedirectToPage(new { id = Id });
+    }
 }

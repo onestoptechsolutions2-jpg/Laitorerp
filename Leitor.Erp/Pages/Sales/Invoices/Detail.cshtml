@@ -1,6 +1,7 @@
 @page "{id}"
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Sales
 @using Leitor.Erp.Services.Dtos.Sales
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Sales.Invoices.DetailModel
@@ -12,6 +13,16 @@
             <span class="pill @StatusPill.For(Model.Invoice.PaymentStatus) ms-2">@L[$"Enum:InvoicePaymentStatus:{(int)Model.Invoice.PaymentStatus}"]</span>
         </h5>
         <div>
+            @if (Model.CanEdit && Model.Invoice.Status == InvoiceStatus.Issued && !Model.Invoice.IsPostedToLedger)
+            {
+                <form method="post" asp-page-handler="PostToLedger" class="d-inline">
+                    <button type="submit" class="btn btn-outline-primary">@L["PostToLedger"]</button>
+                </form>
+            }
+            else if (Model.Invoice.IsPostedToLedger)
+            {
+                <span class="pill pill-success">@L["PostedToLedger"]</span>
+            }
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Invoice.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
             {

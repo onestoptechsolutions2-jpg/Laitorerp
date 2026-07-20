@@ -16,8 +16,8 @@ namespace Leitor.Erp.Services.Accounting;
 
 // Not a CrudAppService: a journal entry is only meaningful as a single atomic, balanced
 // transaction - same reasoning GoodsReceiptAppService uses for covering multiple PurchaseOrderLines
-// in one call. CreateAsync is the one place that validates and persists an entry's lines together;
-// JournalPostingService (auto-posting from Invoices/Payments/etc.) instead inserts
+// in one call. CreateAsync is the one place that validates and persists a manual entry's lines
+// together; JournalPostingService (auto-posting from Invoices/Payments/etc.) instead inserts
 // JournalEntry/JournalEntryLine directly through repositories, the same way OrderAppService builds
 // Invoice/InvoiceLine directly rather than calling InvoiceAppService.
 public class JournalEntryAppService : ApplicationService
@@ -79,6 +79,15 @@ public class JournalEntryAppService : ApplicationService
         var lines = await _lineRepository.GetListAsync(x => x.JournalEntryId == id);
         var dto = ToDto(entry, lines);
         await ResolveAccountNamesAsync(dto.Lines);
+
+        if (entry.ReversedEntryId.HasValue)
+        {
+            var reversedEntry = await _repository.FindAsync(entry.ReversedEntryId.Value);
+            dto.ReversedEntryNumber = reversedEntry?.EntryNumber;
+        }
+
+        dto.IsReversed = (await _repository.GetListAsync(x => x.ReversedEntryId == id)).Any();
+
         return dto;
     }
 
@@ -162,9 +171,77 @@ public class JournalEntryAppService : ApplicationService
         };
     }
 
+    // The only way to undo a system-generated entry (which can't be deleted directly) - inserts
+    // an equal-and-opposite entry referencing the original rather than mutating or deleting it,
+    // preserving the audit trail. Works for manual entries too (fixing a mis-keyed one without
+    // losing the record of the mistake). Guarded against reversing the same entry twice.
+    public async Task<JournalEntryDto> ReverseAsync(Guid id)
+    {
+        await CheckPolicyAsync(ErpPermissions.Accounting.Edit);
+
+        var alreadyReversed = (await _repository.GetListAsync(x => x.ReversedEntryId == id)).Any();
+        if (alreadyReversed)
+        {
+            throw new UserFriendlyException("This entry has already been reversed.");
+        }
+
+        var original = await _repository.GetAsync(id);
+        var originalLines = await _lineRepository.GetListAsync(x => x.JournalEntryId == id);
+
+        var entryNumber = await DocumentNumbering.NextAsync(_repository, _dataFilter, "JE-");
+        var reversal = new JournalEntry(GuidGenerator.Create(), entryNumber, Clock.Now, $"Reversal of {original.EntryNumber}")
+        {
+            SourceDocumentType = original.SourceDocumentType,
+            SourceDocumentId = original.SourceDocumentId,
+            IsSystemGenerated = original.IsSystemGenerated,
+            ReversedEntryId = original.Id
+        };
+        await _repository.InsertAsync(reversal, autoSave: true);
+
+        var lineDtos = new List<JournalEntryLineDto>();
+        foreach (var line in originalLines)
+        {
+            var reversedLine = new JournalEntryLine(GuidGenerator.Create(), reversal.Id, line.AccountId)
+            {
+                Debit = line.Credit,
+                Credit = line.Debit,
+                CurrencyCode = line.CurrencyCode,
+                ExchangeRateToBase = line.ExchangeRateToBase
+            };
+            await _lineRepository.InsertAsync(reversedLine, autoSave: true);
+
+            lineDtos.Add(new JournalEntryLineDto
+            {
+                Id = reversedLine.Id,
+                JournalEntryId = reversal.Id,
+                AccountId = reversedLine.AccountId,
+                Debit = reversedLine.Debit,
+                Credit = reversedLine.Credit,
+                CurrencyCode = reversedLine.CurrencyCode,
+                ExchangeRateToBase = reversedLine.ExchangeRateToBase
+            });
+        }
+
+        await ResolveAccountNamesAsync(lineDtos);
+
+        return new JournalEntryDto
+        {
+            Id = reversal.Id,
+            EntryNumber = reversal.EntryNumber,
+            EntryDate = reversal.EntryDate,
+            Description = reversal.Description,
+            IsSystemGenerated = reversal.IsSystemGenerated,
+            ReversedEntryId = reversal.ReversedEntryId,
+            ReversedEntryNumber = original.EntryNumber,
+            Lines = lineDtos,
+            TotalDebit = lineDtos.Sum(x => x.Debit * x.ExchangeRateToBase),
+            TotalCredit = lineDtos.Sum(x => x.Credit * x.ExchangeRateToBase)
+        };
+    }
+
     // System-generated entries trace back to a live document (Invoice/Payment/etc.) and are never
-    // directly deletable - see JournalPostingService.ReverseAsync for how to undo one. Manual
-    // entries route through DeletionGate like every other top-level deletable entity.
+    // directly deletable - use ReverseAsync instead. Manual entries route through DeletionGate
+    // like every other top-level deletable entity.
     public async Task DeleteAsync(Guid id)
     {
         await CheckPolicyAsync(ErpPermissions.Accounting.Edit);
@@ -194,6 +271,7 @@ public class JournalEntryAppService : ApplicationService
             SourceDocumentType = entry.SourceDocumentType,
             SourceDocumentId = entry.SourceDocumentId,
             IsSystemGenerated = entry.IsSystemGenerated,
+            ReversedEntryId = entry.ReversedEntryId,
             CreationTime = entry.CreationTime,
             CreatorId = entry.CreatorId,
             Lines = lines.Select(line => new JournalEntryLineDto

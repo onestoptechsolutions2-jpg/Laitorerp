@@ -16,6 +16,11 @@ public class JournalEntry : FullAuditedAggregateRoot<Guid>
     public Guid? SourceDocumentId { get; set; }
     public bool IsSystemGenerated { get; set; }
 
+    // Set only on a reversal entry, pointing back at the JournalEntry it reverses - lets
+    // JournalEntryAppService.ReverseAsync block reversing the same entry twice and lets the
+    // Detail page show "Reverses JE-xxx" / "Reversed by JE-xxx".
+    public Guid? ReversedEntryId { get; set; }
+
     protected JournalEntry()
     {
     }

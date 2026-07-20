@@ -1,5 +1,6 @@
 @page "{id}"
 @using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Entities.Procurement
 @using Leitor.Erp.Localization
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Procurement.SupplierInvoices.DetailModel
@@ -7,7 +8,19 @@
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0"><span class="doc-no">@Model.SupplierInvoice.SupplierInvoiceNumber</span></h5>
-        <a asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@Model.SupplierInvoice.PurchaseOrderId" class="btn btn-secondary">@L["BackToList"]</a>
+        <div>
+            @if (Model.CanEdit && Model.SupplierInvoice.Status == SupplierInvoiceStatus.Issued && !Model.SupplierInvoice.IsPostedToLedger)
+            {
+                <form method="post" asp-page-handler="PostToLedger" class="d-inline">
+                    <button type="submit" class="btn btn-outline-primary">@L["PostToLedger"]</button>
+                </form>
+            }
+            else if (Model.SupplierInvoice.IsPostedToLedger)
+            {
+                <span class="pill pill-success">@L["PostedToLedger"]</span>
+            }
+            <a asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@Model.SupplierInvoice.PurchaseOrderId" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
     </div>
     <div class="card-body">
         <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />

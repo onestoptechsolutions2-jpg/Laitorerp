@@ -23,4 +23,5 @@ public class SupplierInvoiceDto : FullAuditedEntityDto<Guid>
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
     public InvoicePaymentStatus PaymentStatus { get; set; }
+    public bool IsPostedToLedger { get; set; }
 }
