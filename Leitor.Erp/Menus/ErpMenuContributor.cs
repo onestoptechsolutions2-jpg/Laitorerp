@@ -206,6 +206,12 @@ public class ErpMenuContributor : IMenuContributor
             accountingMenu.AddItem(
                 new ApplicationMenuItem(ErpMenus.AccountingExchangeRates, l["Menu:ExchangeRates"], "~/Accounting/ExchangeRates", order: 2)
             );
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingChartOfAccounts, l["Menu:ChartOfAccounts"], "~/Accounting/ChartOfAccounts", order: 3)
+            );
+            accountingMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.AccountingJournalEntries, l["Menu:JournalEntries"], "~/Accounting/JournalEntries", order: 4)
+            );
 
             context.Menu.Items.Add(accountingMenu);
         }

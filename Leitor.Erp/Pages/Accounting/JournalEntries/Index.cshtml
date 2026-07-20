@@ -1,0 +1,48 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.JournalEntries.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["JournalEntries"]</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewJournalEntry"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["EntryNumber"]</th>
+                        <th>@L["EntryDate"]</th>
+                        <th>@L["Description"]</th>
+                        <th>@L["TotalDebit"]</th>
+                        <th>@L["IsSystemGenerated"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Entries.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var entry in Model.Entries)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@entry.Id">@entry.EntryNumber</a></td>
+                            <td>@entry.EntryDate.ToShortDateString()</td>
+                            <td>@entry.Description</td>
+                            <td>@entry.TotalDebit.ToString("N2")</td>
+                            <td>@(entry.IsSystemGenerated ? "✓" : "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

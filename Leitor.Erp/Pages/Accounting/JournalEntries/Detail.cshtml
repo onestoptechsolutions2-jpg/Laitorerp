@@ -1,0 +1,76 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.JournalEntries.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Entry.EntryNumber</h5>
+        <div>
+            @if (Model.CanEdit && !Model.Entry.IsSystemGenerated)
+            {
+                <form method="post" asp-page-handler="Delete" onsubmit="return confirm('@L["AreYouSureToDelete"]');" class="d-inline">
+                    <button type="submit" class="btn btn-outline-danger">@L["Delete"]</button>
+                </form>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["EntryDate"]</dt>
+            <dd class="col-sm-4">@Model.Entry.EntryDate.ToShortDateString()</dd>
+            <dt class="col-sm-2">@L["IsSystemGenerated"]</dt>
+            <dd class="col-sm-4">@(Model.Entry.IsSystemGenerated ? L["Yes"] : L["No"])</dd>
+
+            <dt class="col-sm-2">@L["Description"]</dt>
+            <dd class="col-sm-10">@Model.Entry.Description</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Entry.SourceDocumentType))
+            {
+                <dt class="col-sm-2">@L["SourceDocument"]</dt>
+                <dd class="col-sm-10">@Model.Entry.SourceDocumentType</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Lines"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Account"]</th>
+                        <th>@L["Debit"]</th>
+                        <th>@L["Credit"]</th>
+                        <th>@L["Currency"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in Model.Entry.Lines)
+                    {
+                        <tr>
+                            <td>@line.AccountCode - @line.AccountName</td>
+                            <td>@(line.Debit > 0 ? line.Debit.ToString("N2") : "")</td>
+                            <td>@(line.Credit > 0 ? line.Credit.ToString("N2") : "")</td>
+                            <td>@line.CurrencyCode</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>@L["Total"]</th>
+                        <th>@Model.Entry.TotalDebit.ToString("N2")</th>
+                        <th>@Model.Entry.TotalCredit.ToString("N2")</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

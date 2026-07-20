@@ -26,6 +26,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 
     public DbSet<Currency> Currencies { get; set; } = null!;
     public DbSet<ExchangeRate> ExchangeRates { get; set; } = null!;
+    public DbSet<Account> Accounts { get; set; } = null!;
+    public DbSet<JournalEntry> JournalEntries { get; set; } = null!;
+    public DbSet<JournalEntryLine> JournalEntryLines { get; set; } = null!;
 
     public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
     public DbSet<WorkflowStageEvent> WorkflowStageEvents { get; set; } = null!;
@@ -262,6 +265,38 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.RateToBaseCurrency).HasColumnType("decimal(18,6)");
             b.Property(x => x.Source).IsRequired().HasMaxLength(32);
             b.HasIndex(x => new { x.CurrencyCode, x.RateDate }).IsUnique();
+        });
+
+        builder.Entity<Account>(b =>
+        {
+            b.ToTable("Accounts");
+            b.ConfigureByConvention();
+            b.Property(x => x.Code).IsRequired().HasMaxLength(16);
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.Code).IsUnique();
+        });
+
+        builder.Entity<JournalEntry>(b =>
+        {
+            b.ToTable("JournalEntries");
+            b.ConfigureByConvention();
+            b.Property(x => x.EntryNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Description).IsRequired().HasMaxLength(256);
+            b.Property(x => x.SourceDocumentType).HasMaxLength(64);
+            b.HasIndex(x => x.EntryNumber).IsUnique();
+            b.HasIndex(x => new { x.SourceDocumentType, x.SourceDocumentId });
+        });
+
+        builder.Entity<JournalEntryLine>(b =>
+        {
+            b.ToTable("JournalEntryLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Debit).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Credit).HasColumnType("decimal(18,2)");
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8);
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)");
+            b.HasIndex(x => x.JournalEntryId);
+            b.HasIndex(x => x.AccountId);
         });
 
         builder.Entity<Product>(b =>
