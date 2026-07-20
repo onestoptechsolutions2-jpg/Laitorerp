@@ -392,3 +392,90 @@ dl.row dd {
 .badge.bg-danger    { background-color: var(--leitor-danger) !important; }
 .badge.bg-info      { background-color: var(--leitor-info) !important; color: #fff !important; }
 .badge.bg-secondary { background-color: var(--leitor-neutral) !important; }
+
+/* ============================= Overflow hardening ============================= */
+/* Images/icons never force horizontal scroll; wide tables already scroll within their own
+   .table-responsive container rather than the page body (see per-page markup). */
+
+img, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================= Auth pages (Login, ...) ============================= */
+/* Scopes Pages/Account/Login.cshtml, the only Account-module page overridden so far -
+   Register/ForgotPassword/etc still render with the stock module markup until overridden too.
+   The outer LeptonXLite Account layout (background/centering chrome) is left untouched since
+   its source isn't publicly inspectable (private theme repo) - .leitor-auth-wrap self-centers
+   and self-constrains so the card looks right regardless of what that outer shell provides. */
+
+.leitor-auth-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 56px 16px;
+}
+
+.leitor-auth-card-outer {
+  width: 100%;
+  max-width: 400px;
+  min-width: 0;
+}
+
+.leitor-auth-card .card-body {
+  padding: 36px 32px;
+}
+
+.leitor-auth-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--leitor-ink);
+}
+
+.leitor-auth-subtitle {
+  color: var(--leitor-ink-soft);
+  font-size: 14px;
+  margin: 4px 0 26px;
+}
+
+.leitor-auth-card a.small {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.leitor-auth-card .input-group .btn {
+  border-color: var(--leitor-border);
+  background: var(--leitor-surface);
+  color: var(--leitor-ink-soft);
+}
+.leitor-auth-card .input-group .btn:hover {
+  background: var(--leitor-surface-sunken);
+}
+
+.leitor-auth-card .form-check {
+  font-size: 13.5px;
+  color: var(--leitor-ink-soft);
+}
+
+.leitor-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 16px;
+  color: var(--leitor-ink-soft);
+  font-size: 12.5px;
+}
+.leitor-auth-divider::before,
+.leitor-auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--leitor-border-soft);
+}
+
+.leitor-auth-footer {
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--leitor-ink-soft);
+  margin-top: 20px;
+}

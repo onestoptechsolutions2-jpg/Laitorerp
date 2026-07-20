@@ -1,0 +1,105 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Volo.Abp.Account.Localization
+@using Volo.Abp.Account.Settings
+@using Volo.Abp.Account.Web.Pages.Account;
+@using Volo.Abp.AspNetCore.Mvc.UI.Theming;
+@using Volo.Abp.Identity;
+@using Volo.Abp.Settings
+@using Leitor.Erp.Localization
+@model Volo.Abp.Account.Web.Pages.Account.LoginModel
+@inject IHtmlLocalizer<AccountResource> L
+@inject IHtmlLocalizer<ErpResource> EL
+@inject IThemeManager ThemeManager
+@inject Volo.Abp.Settings.ISettingProvider SettingProvider
+
+@{
+    Layout = ThemeManager.CurrentTheme.GetAccountLayout();
+}
+
+@section scripts
+    {
+    <abp-script-bundle name="@typeof(LoginModel).FullName">
+        <abp-script src="/Pages/Account/Login.js" />
+    </abp-script-bundle>
+}
+
+<div class="leitor-auth-wrap">
+    <div class="leitor-auth-card-outer">
+
+        @if (Model.ShowRequireMigrateSeedMessage)
+        {
+            <div class="alert alert-danger mb-3">
+                <h4 class="alert-heading">@L["RequireMigrateSeedTitle"]</h4>
+                <p class="mb-0">@L["RequireMigrateSeedMessage"]</p>
+            </div>
+        }
+
+        <div class="card leitor-auth-card">
+            <div class="card-body">
+                <div class="leitor-auth-title">@L["Login"]</div>
+                <div class="leitor-auth-subtitle">@EL["Auth:SignInSubtitle"]</div>
+
+                @if (Model.EnableLocalLogin)
+                {
+                    <form method="post">
+                        <div class="mb-3">
+                            <label asp-for="LoginInput.UserNameOrEmailAddress" class="form-label"></label>
+                            <input asp-for="LoginInput.UserNameOrEmailAddress" class="form-control" autofocus="autofocus" />
+                            <span asp-validation-for="LoginInput.UserNameOrEmailAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label asp-for="LoginInput.Password" class="form-label mb-0"></label>
+                                <a href="@Url.Page("./ForgotPassword", new { returnUrl = Model.ReturnUrl, returnUrlHash = Model.ReturnUrlHash })" class="small">@L["ForgotPassword"]</a>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" class="form-control" autocomplete="new-password" maxlength="@IdentityUserConsts.MaxPasswordLength" asp-for="LoginInput.Password" />
+                                <button class="btn btn-outline-secondary" type="button" id="PasswordVisibilityButton"><i class="fa fa-eye-slash" aria-hidden="true"></i></button>
+                            </div>
+                            <span asp-validation-for="LoginInput.Password"></span>
+                        </div>
+
+                        <abp-input asp-for="LoginInput.RememberMe" class="mb-4" />
+
+                        <div class="d-grid gap-2">
+                            <abp-button type="submit" button-type="Primary" name="Action" value="Login">@L["Login"]</abp-button>
+                            @if (Model.ShowCancelButton)
+                            {
+                                <abp-button type="submit" button-type="Secondary" formnovalidate="formnovalidate" name="Action" value="Cancel">@L["Cancel"]</abp-button>
+                            }
+                        </div>
+                    </form>
+                }
+
+                @if (Model.VisibleExternalProviders.Any())
+                {
+                    <div class="leitor-auth-divider"><span>@L["OrLoginWith"]</span></div>
+                    <form asp-page="./Login" asp-page-handler="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" asp-route-returnUrlHash="@Model.ReturnUrlHash" method="post" class="d-grid gap-2">
+                        @foreach (var provider in Model.VisibleExternalProviders)
+                        {
+                            <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.AuthenticationScheme" title="@L["LogInUsingYourProviderAccount", provider.DisplayName]">@provider.DisplayName</button>
+                        }
+                    </form>
+                }
+
+                @if (!Model.EnableLocalLogin && !Model.VisibleExternalProviders.Any())
+                {
+                    <div class="alert alert-warning mb-0">
+                        <strong>@L["InvalidLoginRequest"]</strong>
+                        @L["ThereAreNoLoginSchemesConfiguredForThisClient"]
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (await SettingProvider.IsTrueAsync(AccountSettingNames.IsSelfRegistrationEnabled))
+        {
+            <div class="leitor-auth-footer">
+                @L["AreYouANewUser"]
+                <a href="@Url.Page("./Register", new { returnUrl = Model.ReturnUrl, returnUrlHash = Model.ReturnUrlHash })">@L["Register"]</a>
+            </div>
+        }
+    </div>
+</div>
