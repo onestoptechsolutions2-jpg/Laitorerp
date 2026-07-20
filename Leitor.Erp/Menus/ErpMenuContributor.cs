@@ -1,4 +1,5 @@
-﻿using Leitor.Erp.Localization;
+﻿using System.Linq;
+using Leitor.Erp.Localization;
 using Leitor.Erp.Permissions;
 using Volo.Abp.Identity.Web.Navigation;
 using Volo.Abp.SettingManagement.Web.Navigation;
@@ -202,7 +203,9 @@ public class ErpMenuContributor : IMenuContributor
         }
 
         // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of
-        // which business module it reports on - shown if the user can see any one of them.
+        // which business module it reports on - lives under Administration (not the main module
+        // area) since it's a cross-module utility area, same reasoning AuditLogs/DeletionApprovals
+        // already follow. Shown if the user can see any one of its children.
         var canViewWorkflowMonitor = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
         var canViewSalesAnalytics = await context.IsGrantedAsync(ErpPermissions.Sales.Default);
         var canViewGeneralLedgerReports = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
@@ -213,8 +216,7 @@ public class ErpMenuContributor : IMenuContributor
             var reportsMenu = new ApplicationMenuItem(
                 ErpMenus.Reports,
                 l["Menu:Reports"],
-                icon: "fas fa-chart-line",
-                order: 11
+                icon: "fas fa-chart-line"
             );
 
             if (canViewWorkflowMonitor)
@@ -251,49 +253,58 @@ public class ErpMenuContributor : IMenuContributor
                 );
             }
 
-            context.Menu.Items.Add(reportsMenu);
+            administration.Items.Add(reportsMenu);
         }
 
         // Cross-cutting: every rarely-touched reference/configuration page in the app, regardless
-        // of which business module it configures - shown if the user can see any one of them.
+        // of which business module it configures. Rather than adding a second, competing
+        // "Settings" entry, these are appended onto the Settings group the SettingManagement
+        // module already contributes to Administration (Email/Timezone etc.) - one Settings menu
+        // in the whole app, not two.
         var canViewCatalogSettings = await context.IsGrantedAsync(ErpPermissions.Catalog.Default);
 
         if (canViewCatalogSettings || canViewGeneralLedgerReports)
         {
-            var settingsMenu = new ApplicationMenuItem(
+            var nativeSettingsGroup = administration.Items.FirstOrDefault(x => x.Name == SettingManagementMenuNames.GroupName);
+
+            // Falls back to a standalone group in the (unexpected) case the SettingManagement
+            // module hasn't contributed its own item yet when this contributor runs.
+            var settingsMenu = nativeSettingsGroup ?? new ApplicationMenuItem(
                 ErpMenus.Settings,
                 l["Menu:Settings"],
-                icon: "fas fa-gears",
-                order: 12
+                icon: "fas fa-gears"
             );
 
             if (canViewCatalogSettings)
             {
                 settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsTaxRates, l["Menu:TaxRates"], "~/Catalog/TaxRates", order: 1)
+                    new ApplicationMenuItem(ErpMenus.SettingsTaxRates, l["Menu:TaxRates"], "~/Catalog/TaxRates", order: 10)
                 );
                 settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsCategories, l["Menu:Categories"], "~/Catalog/Categories", order: 2)
+                    new ApplicationMenuItem(ErpMenus.SettingsCategories, l["Menu:Categories"], "~/Catalog/Categories", order: 11)
                 );
                 settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsPriceLists, l["Menu:PriceLists"], "~/Catalog/PriceLists", order: 3)
+                    new ApplicationMenuItem(ErpMenus.SettingsPriceLists, l["Menu:PriceLists"], "~/Catalog/PriceLists", order: 12)
                 );
             }
 
             if (canViewGeneralLedgerReports)
             {
                 settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsCurrencies, l["Menu:Currencies"], "~/Accounting/Currencies", order: 4)
+                    new ApplicationMenuItem(ErpMenus.SettingsCurrencies, l["Menu:Currencies"], "~/Accounting/Currencies", order: 13)
                 );
                 settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsExchangeRates, l["Menu:ExchangeRates"], "~/Accounting/ExchangeRates", order: 5)
+                    new ApplicationMenuItem(ErpMenus.SettingsExchangeRates, l["Menu:ExchangeRates"], "~/Accounting/ExchangeRates", order: 14)
                 );
                 settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsChartOfAccounts, l["Menu:ChartOfAccounts"], "~/Accounting/ChartOfAccounts", order: 6)
+                    new ApplicationMenuItem(ErpMenus.SettingsChartOfAccounts, l["Menu:ChartOfAccounts"], "~/Accounting/ChartOfAccounts", order: 15)
                 );
             }
 
-            context.Menu.Items.Add(settingsMenu);
+            if (nativeSettingsGroup == null)
+            {
+                administration.Items.Add(settingsMenu);
+            }
         }
 
         if (await context.IsGrantedAsync(ErpPermissions.DeletionApprovals.Default))

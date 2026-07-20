@@ -479,3 +479,19 @@ img, svg {
   color: var(--leitor-ink-soft);
   margin-top: 20px;
 }
+
+/* The Account layout wraps its language-switch toolbar in the same .card markup used for real
+   content cards, so it was inheriting the full soft/elevated treatment - 24px of card-body
+   padding plus a big ambient shadow around what's just a language dropdown, rendering as an
+   oversized blank card above the login form. Scoped to pages that render .leitor-auth-wrap
+   (Login, and any future Account-module override) so it can never affect a real content card
+   elsewhere; flattens that toolbar back to an unstyled bar instead. */
+body:has(.leitor-auth-wrap) .card:not(.leitor-auth-card):not(:has(.leitor-auth-card)) {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+}
+body:has(.leitor-auth-wrap) .card:not(.leitor-auth-card):not(:has(.leitor-auth-card)) .card-body {
+  padding: 8px 16px;
+}
