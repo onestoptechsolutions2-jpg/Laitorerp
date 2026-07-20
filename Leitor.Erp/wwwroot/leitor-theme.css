@@ -325,6 +325,15 @@ dl.row dd {
   min-width: 0;
 }
 
+/* A KPI tile's label is short and disposable if it doesn't fit - truncate with an ellipsis
+   instead of letting a too-narrow column (e.g. 6-across on a sidebar-heavy layout) force the
+   browser to wrap mid-word into unreadable one-letter-per-line text. */
+.kpi-card .kpi-body > .text-muted {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .kpi-card .display-6 {
   font-size: 28px;
   font-weight: 700;

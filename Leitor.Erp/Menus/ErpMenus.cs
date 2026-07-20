@@ -1,4 +1,4 @@
-﻿namespace Leitor.Erp.Menus;
+namespace Leitor.Erp.Menus;
 
 public class ErpMenus
 {
@@ -12,7 +12,6 @@ public class ErpMenus
     public const string SalesQuotes = Sales + ".Quotes";
     public const string SalesOrders = Sales + ".Orders";
     public const string SalesInvoices = Sales + ".Invoices";
-    public const string SalesAnalytics = Sales + ".Analytics";
     public const string FieldService = Prefix + ".FieldService";
     public const string FieldServiceJobs = FieldService + ".Jobs";
     public const string SupportTickets = Prefix + ".Support.Tickets";
@@ -22,17 +21,29 @@ public class ErpMenus
     public const string ProcurementPurchaseOrders = Procurement + ".PurchaseOrders";
     public const string ProcurementSupplierInvoices = Procurement + ".SupplierInvoices";
     public const string Accounting = Prefix + ".Accounting";
-    public const string AccountingCurrencies = Accounting + ".Currencies";
-    public const string AccountingExchangeRates = Accounting + ".ExchangeRates";
-    public const string AccountingChartOfAccounts = Accounting + ".ChartOfAccounts";
     public const string AccountingJournalEntries = Accounting + ".JournalEntries";
-    public const string AccountingTrialBalance = Accounting + ".TrialBalance";
-    public const string AccountingIncomeStatement = Accounting + ".IncomeStatement";
-    public const string AccountingBalanceSheet = Accounting + ".BalanceSheet";
-    public const string AuditLogs = Prefix + ".AuditLogs";
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";
-    public const string WorkflowMonitor = Prefix + ".WorkflowMonitor";
+
+    // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of which
+    // business module it reports on - separated from the transactional Module menus above.
+    public const string Reports = Prefix + ".Reports";
+    public const string ReportsWorkflowMonitor = Reports + ".WorkflowMonitor";
+    public const string ReportsSalesAnalytics = Reports + ".SalesAnalytics";
+    public const string ReportsTrialBalance = Reports + ".TrialBalance";
+    public const string ReportsIncomeStatement = Reports + ".IncomeStatement";
+    public const string ReportsBalanceSheet = Reports + ".BalanceSheet";
+    public const string ReportsAuditLogs = Reports + ".AuditLogs";
+
+    // Cross-cutting: every rarely-touched reference/configuration page in the app, regardless of
+    // which business module it configures - separated from the transactional Module menus above.
+    public const string Settings = Prefix + ".Settings";
+    public const string SettingsTaxRates = Settings + ".TaxRates";
+    public const string SettingsCategories = Settings + ".Categories";
+    public const string SettingsPriceLists = Settings + ".PriceLists";
+    public const string SettingsCurrencies = Settings + ".Currencies";
+    public const string SettingsExchangeRates = Settings + ".ExchangeRates";
+    public const string SettingsChartOfAccounts = Settings + ".ChartOfAccounts";
 
     //Add your menu items here...
 
