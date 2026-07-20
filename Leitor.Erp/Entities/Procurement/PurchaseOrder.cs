@@ -18,6 +18,11 @@ public class PurchaseOrder : FullAuditedAggregateRoot<Guid>
     public Guid? SourceOrderId { get; set; }
     public bool ShipToCustomer { get; set; }
 
+    // Snapshotted at creation/edit time via CurrencyRateResolver, never recomputed later - same
+    // discipline as Entities/Sales/Quote.cs.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     protected PurchaseOrder()
     {
     }

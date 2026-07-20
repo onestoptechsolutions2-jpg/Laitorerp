@@ -467,6 +467,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.PONumber).IsRequired().HasMaxLength(32);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.VendorId);
             b.HasIndex(x => x.PONumber).IsUnique();
             b.HasIndex(x => x.SourceOrderId);
@@ -506,6 +508,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.SupplierInvoiceNumber).IsRequired().HasMaxLength(64);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.PurchaseOrderId);
             b.HasIndex(x => x.VendorId);
         });
@@ -528,6 +532,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
             b.Property(x => x.Reference).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
+            b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
             b.HasIndex(x => x.SupplierInvoiceId);
         });
 

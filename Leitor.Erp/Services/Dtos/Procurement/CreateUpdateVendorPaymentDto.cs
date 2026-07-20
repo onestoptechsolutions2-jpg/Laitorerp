@@ -22,4 +22,9 @@ public class CreateUpdateVendorPaymentDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    // Optional - defaults from the parent SupplierInvoice's CurrencyCode when left blank (see
+    // VendorPaymentAppService.MapToEntityAsync).
+    [StringLength(8)]
+    public string? CurrencyCode { get; set; }
 }

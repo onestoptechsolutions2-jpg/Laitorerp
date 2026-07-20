@@ -16,6 +16,7 @@
             <abp-input asp-for="Quote.Status" />
             <abp-input asp-for="Quote.IssueDate" />
             <abp-input asp-for="Quote.ExpiryDate" />
+            <abp-select asp-for="Quote.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
             <abp-input asp-for="Quote.Notes" />
 
             <div class="mt-3">

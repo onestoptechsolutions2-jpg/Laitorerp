@@ -55,7 +55,7 @@
             <dd class="col-sm-4">@Model.Order.TaxAmount.ToString("N2")</dd>
 
             <dt class="col-sm-2">@L["Total"]</dt>
-            <dd class="col-sm-4">@Model.Order.Total.ToString("N2")</dd>
+            <dd class="col-sm-4">@Model.Order.Total.ToString("N2") @Model.Order.CurrencyCode</dd>
 
             @if (!string.IsNullOrWhiteSpace(Model.Order.Notes))
             {
@@ -172,7 +172,7 @@
                             <td>@purchaseOrder.VendorName</td>
                             <td><span class="pill @StatusPill.For(purchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</span></td>
                             <td>@(purchaseOrder.ShipToCustomer ? L["Yes"] : L["No"])</td>
-                            <td>@purchaseOrder.Total.ToString("N2")</td>
+                            <td>@purchaseOrder.Total.ToString("N2") @purchaseOrder.CurrencyCode</td>
                         </tr>
                     }
                 </tbody>

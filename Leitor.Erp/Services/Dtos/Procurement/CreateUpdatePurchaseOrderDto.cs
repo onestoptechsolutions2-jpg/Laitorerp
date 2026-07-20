@@ -24,4 +24,8 @@ public class CreateUpdatePurchaseOrderDto
     public Guid? SourceOrderId { get; set; }
 
     public bool ShipToCustomer { get; set; }
+
+    [Required]
+    [StringLength(8)]
+    public string CurrencyCode { get; set; } = string.Empty;
 }

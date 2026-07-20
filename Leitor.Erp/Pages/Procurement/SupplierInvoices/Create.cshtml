@@ -16,6 +16,7 @@
             <abp-input asp-for="SupplierInvoice.Status" />
             <abp-input asp-for="SupplierInvoice.IssueDate" />
             <abp-input asp-for="SupplierInvoice.DueDate" />
+            <abp-select asp-for="SupplierInvoice.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
             <abp-input asp-for="SupplierInvoice.Notes" />
 
             <p class="text-muted small mt-2">@L["SupplierInvoiceLinesSeeded"]</p>

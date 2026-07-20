@@ -19,6 +19,10 @@ public class SupplierInvoice : FullAuditedAggregateRoot<Guid>
     public DateTime DueDate { get; set; }
     public string? Notes { get; set; }
 
+    // Snapshotted at creation/edit time via CurrencyRateResolver, never recomputed later.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     protected SupplierInvoice()
     {
     }

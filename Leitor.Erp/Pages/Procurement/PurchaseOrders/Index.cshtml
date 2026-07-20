@@ -45,7 +45,7 @@
                             <td>@purchaseOrder.VendorName</td>
                             <td>@purchaseOrder.OrderDate.ToShortDateString()</td>
                             <td><span class="pill @StatusPill.For(purchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</span></td>
-                            <td>@purchaseOrder.Total.ToString("N2")</td>
+                            <td>@purchaseOrder.Total.ToString("N2") @purchaseOrder.CurrencyCode</td>
                             <td>
                                 @if (Model.CanDelete)
                                 {

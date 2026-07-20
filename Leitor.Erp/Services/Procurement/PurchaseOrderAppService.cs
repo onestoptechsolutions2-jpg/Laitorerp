@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
@@ -27,6 +29,8 @@ public class PurchaseOrderAppService :
     private readonly IRepository<SupplierInvoice, Guid> _supplierInvoiceRepository;
     private readonly IRepository<SupplierInvoiceLine, Guid> _supplierInvoiceLineRepository;
     private readonly IRepository<VendorPayment, Guid> _vendorPaymentRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -40,6 +44,8 @@ public class PurchaseOrderAppService :
         IRepository<SupplierInvoice, Guid> supplierInvoiceRepository,
         IRepository<SupplierInvoiceLine, Guid> supplierInvoiceLineRepository,
         IRepository<VendorPayment, Guid> vendorPaymentRepository,
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -52,6 +58,8 @@ public class PurchaseOrderAppService :
         _supplierInvoiceRepository = supplierInvoiceRepository;
         _supplierInvoiceLineRepository = supplierInvoiceLineRepository;
         _vendorPaymentRepository = vendorPaymentRepository;
+        _currencyRepository = currencyRepository;
+        _exchangeRateRepository = exchangeRateRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -173,13 +181,16 @@ public class PurchaseOrderAppService :
 
         var entity = new PurchaseOrder(GuidGenerator.Create(), createInput.VendorId, poNumber);
         CopyToEntity(createInput, entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
         return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdatePurchaseOrderDto updateInput, PurchaseOrder entity)
+    protected override async Task MapToEntityAsync(CreateUpdatePurchaseOrderDto updateInput, PurchaseOrder entity)
     {
         CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
     }
 
     private static void CopyToEntity(CreateUpdatePurchaseOrderDto input, PurchaseOrder entity)
@@ -191,5 +202,6 @@ public class PurchaseOrderAppService :
         entity.Notes = input.Notes;
         entity.SourceOrderId = input.SourceOrderId;
         entity.ShipToCustomer = input.ShipToCustomer;
+        entity.CurrencyCode = input.CurrencyCode;
     }
 }

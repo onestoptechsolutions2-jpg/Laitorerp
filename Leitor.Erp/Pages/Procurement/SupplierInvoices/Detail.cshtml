@@ -28,9 +28,9 @@
             <dd class="col-sm-4">@Model.SupplierInvoice.DueDate.ToShortDateString()</dd>
 
             <dt class="col-sm-2">@L["Total"]</dt>
-            <dd class="col-sm-4">@Model.SupplierInvoice.Total.ToString("N2")</dd>
+            <dd class="col-sm-4">@Model.SupplierInvoice.Total.ToString("N2") @Model.SupplierInvoice.CurrencyCode</dd>
             <dt class="col-sm-2">@L["AmountPaid"]</dt>
-            <dd class="col-sm-4">@Model.SupplierInvoice.AmountPaid.ToString("N2")</dd>
+            <dd class="col-sm-4">@Model.SupplierInvoice.AmountPaid.ToString("N2") @Model.SupplierInvoice.CurrencyCode</dd>
 
             @if (!string.IsNullOrWhiteSpace(Model.SupplierInvoice.Notes))
             {

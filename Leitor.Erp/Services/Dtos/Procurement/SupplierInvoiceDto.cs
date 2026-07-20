@@ -14,6 +14,8 @@ public class SupplierInvoiceDto : FullAuditedEntityDto<Guid>
     public DateTime IssueDate { get; set; }
     public DateTime DueDate { get; set; }
     public string? Notes { get; set; }
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
 
     // Resolved/computed by SupplierInvoiceAppService - not stored columns, Mapperly won't map them.
     public string? VendorName { get; set; }

@@ -130,6 +130,8 @@ public class CreateFromOrderModel : AbpPageModel
             return RedirectToPage(new { orderId = OrderId });
         }
 
+        var sourceOrder = await _orderAppService.GetAsync(OrderId);
+
         var purchaseOrder = await _purchaseOrderAppService.CreateAsync(new CreateUpdatePurchaseOrderDto
         {
             VendorId = VendorId.Value,
@@ -138,7 +140,11 @@ public class CreateFromOrderModel : AbpPageModel
             ExpectedDeliveryDate = ExpectedDeliveryDate,
             Notes = Notes,
             SourceOrderId = OrderId,
-            ShipToCustomer = ShipToCustomer
+            ShipToCustomer = ShipToCustomer,
+            // A dropship PO is priced in whatever currency the sourcing vendor bills in, but this
+            // form has no vendor-currency concept yet - defaulting to the source Order's currency
+            // is the closest sensible v1 behavior; editable afterward on the PO itself.
+            CurrencyCode = sourceOrder.CurrencyCode
         });
 
         foreach (var line in Lines.Where(x => x.Include))

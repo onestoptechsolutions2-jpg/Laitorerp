@@ -14,6 +14,8 @@ public class PurchaseOrderDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public Guid? SourceOrderId { get; set; }
     public bool ShipToCustomer { get; set; }
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
 
     // Resolved/computed by PurchaseOrderAppService - not stored columns, Mapperly won't map them.
     public string? VendorName { get; set; }

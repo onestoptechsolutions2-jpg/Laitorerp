@@ -41,9 +41,9 @@
             <dd class="col-sm-4">@Model.Invoice.TaxAmount.ToString("N2")</dd>
 
             <dt class="col-sm-2">@L["Total"]</dt>
-            <dd class="col-sm-4">@Model.Invoice.Total.ToString("N2")</dd>
+            <dd class="col-sm-4">@Model.Invoice.Total.ToString("N2") @Model.Invoice.CurrencyCode</dd>
             <dt class="col-sm-2">@L["AmountPaid"]</dt>
-            <dd class="col-sm-4">@Model.Invoice.AmountPaid.ToString("N2")</dd>
+            <dd class="col-sm-4">@Model.Invoice.AmountPaid.ToString("N2") @Model.Invoice.CurrencyCode</dd>
 
             @if (!string.IsNullOrWhiteSpace(Model.Invoice.Notes))
             {

@@ -45,7 +45,7 @@
                             <td>@quote.Title</td>
                             <td>@quote.CustomerName</td>
                             <td><span class="pill @StatusPill.For(quote.Status)">@L[$"Enum:QuoteStatus:{(int)quote.Status}"]</span></td>
-                            <td>@quote.Total.ToString("N2")</td>
+                            <td>@quote.Total.ToString("N2") @quote.CurrencyCode</td>
                             <td>
                                 @if (Model.CanDelete)
                                 {

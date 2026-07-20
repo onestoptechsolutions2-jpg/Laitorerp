@@ -14,6 +14,11 @@ public class VendorPayment : FullAuditedAggregateRoot<Guid>
     public string? Reference { get; set; }
     public string? Notes { get; set; }
 
+    // Defaults from the parent SupplierInvoice's CurrencyCode at creation but stays independently
+    // editable+snapshotted - same rationale as Entities/Sales/Payment.cs.
+    public string CurrencyCode { get; set; } = string.Empty;
+    public decimal ExchangeRateToBase { get; set; } = 1m;
+
     protected VendorPayment()
     {
     }

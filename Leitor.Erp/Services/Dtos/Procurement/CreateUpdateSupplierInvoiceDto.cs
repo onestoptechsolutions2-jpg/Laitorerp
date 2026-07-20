@@ -26,4 +26,8 @@ public class CreateUpdateSupplierInvoiceDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    [Required]
+    [StringLength(8)]
+    public string CurrencyCode { get; set; } = string.Empty;
 }

@@ -43,7 +43,7 @@
                             <td>@invoice.VendorName</td>
                             <td><a class="doc-no" asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@invoice.PurchaseOrderId">@invoice.PONumber</a></td>
                             <td>@invoice.DueDate.ToShortDateString()</td>
-                            <td>@invoice.Total.ToString("N2")</td>
+                            <td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td>
                             <td>@invoice.AmountPaid.ToString("N2")</td>
                             <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
                             <td>

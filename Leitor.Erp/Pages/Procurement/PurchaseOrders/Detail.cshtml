@@ -39,7 +39,7 @@
             <dd class="col-sm-4">@(Model.PurchaseOrder.ExpectedDeliveryDate?.ToShortDateString())</dd>
 
             <dt class="col-sm-2">@L["Total"]</dt>
-            <dd class="col-sm-4">@Model.PurchaseOrder.Total.ToString("N2")</dd>
+            <dd class="col-sm-4">@Model.PurchaseOrder.Total.ToString("N2") @Model.PurchaseOrder.CurrencyCode</dd>
 
             @if (Model.PurchaseOrder.SourceOrderId.HasValue)
             {
@@ -232,8 +232,8 @@
                             <tr>
                                 <td><a class="doc-no" asp-page="/Procurement/SupplierInvoices/Detail" asp-route-id="@invoice.Id">@invoice.SupplierInvoiceNumber</a></td>
                                 <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
-                                <td>@invoice.Total.ToString("N2")</td>
-                                <td>@invoice.AmountPaid.ToString("N2")</td>
+                                <td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td>
+                                <td>@invoice.AmountPaid.ToString("N2") @invoice.CurrencyCode</td>
                             </tr>
                         }
                     </tbody>

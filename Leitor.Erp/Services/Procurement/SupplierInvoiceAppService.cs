@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
@@ -21,6 +23,8 @@ public class SupplierInvoiceAppService :
     private readonly IRepository<VendorPayment, Guid> _paymentRepository;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public SupplierInvoiceAppService(
@@ -29,6 +33,8 @@ public class SupplierInvoiceAppService :
         IRepository<VendorPayment, Guid> paymentRepository,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
@@ -36,6 +42,8 @@ public class SupplierInvoiceAppService :
         _paymentRepository = paymentRepository;
         _vendorRepository = vendorRepository;
         _purchaseOrderRepository = purchaseOrderRepository;
+        _currencyRepository = currencyRepository;
+        _exchangeRateRepository = exchangeRateRepository;
         _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Procurement.Default;
@@ -139,17 +147,20 @@ public class SupplierInvoiceAppService :
         return invoice.AmountPaid > invoice.Total ? InvoicePaymentStatus.Overpaid : InvoicePaymentStatus.PaidInFull;
     }
 
-    protected override Task<SupplierInvoice> MapToEntityAsync(CreateUpdateSupplierInvoiceDto createInput)
+    protected override async Task<SupplierInvoice> MapToEntityAsync(CreateUpdateSupplierInvoiceDto createInput)
     {
         var entity = new SupplierInvoice(GuidGenerator.Create(), createInput.PurchaseOrderId, createInput.VendorId, createInput.SupplierInvoiceNumber);
         CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateSupplierInvoiceDto updateInput, SupplierInvoice entity)
+    protected override async Task MapToEntityAsync(CreateUpdateSupplierInvoiceDto updateInput, SupplierInvoice entity)
     {
         CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
     }
 
     private static void CopyToEntity(CreateUpdateSupplierInvoiceDto input, SupplierInvoice entity)
@@ -161,5 +172,6 @@ public class SupplierInvoiceAppService :
         entity.IssueDate = input.IssueDate;
         entity.DueDate = input.DueDate;
         entity.Notes = input.Notes;
+        entity.CurrencyCode = input.CurrencyCode;
     }
 }
