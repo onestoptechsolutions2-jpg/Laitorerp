@@ -1,0 +1,97 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Workspace.IndexModel
+
+@if (Model.Workspace.PendingDeletionRequestCount.HasValue)
+{
+    <div class="card mb-3">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <span>@L["PendingDeletionRequests"]</span>
+            <span class="pill @(Model.Workspace.PendingDeletionRequestCount > 0 ? "pill-warning" : "pill-neutral")">
+                @Model.Workspace.PendingDeletionRequestCount
+            </span>
+        </div>
+    </div>
+}
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["MyOpenTickets"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Workspace.Tickets.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["TicketNumber"]</th>
+                            <th>@L["Subject"]</th>
+                            <th>@L["Customer"]</th>
+                            <th>@L["Priority"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["SlaDueDate"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in Model.Workspace.Tickets)
+                        {
+                            <tr>
+                                <td><a asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
+                                <td>@ticket.Subject</td>
+                                <td>@ticket.CustomerName</td>
+                                <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
+                                <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
+                                <td>@(ticket.SlaDueDate?.ToString("g") ?? "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["MyUpcomingJobs"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Workspace.Jobs.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["Customer"]</th>
+                            <th>@L["Type"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["ScheduledDate"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var job in Model.Workspace.Jobs)
+                        {
+                            <tr>
+                                <td><a asp-page="/FieldService/Jobs/Detail" asp-route-id="@job.Id">@job.CustomerName</a></td>
+                                <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
+                                <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
+                                <td>@job.ScheduledDate.ToString("g")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

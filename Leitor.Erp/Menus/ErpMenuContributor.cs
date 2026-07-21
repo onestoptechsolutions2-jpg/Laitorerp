@@ -52,6 +52,21 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
+        // A staff member's own "what's on my plate" view (open Tickets/FieldServiceJobs assigned
+        // to them, plus a pending-DeletionRequests count if they can act on those) - distinct from
+        // the customer/vendor-facing "My Portal" link above, which routes external accounts to
+        // Pages/Portal/Client or /Vendor. No permission gate: every logged-in staff account has a
+        // workspace, the same way every account has a Dashboard.
+        context.Menu.Items.Add(
+            new ApplicationMenuItem(
+                ErpMenus.Workspace,
+                l["Menu:MyWorkspace"],
+                "~/Workspace",
+                icon: "fas fa-list-check",
+                order: 1
+            )
+        );
+
         if (await context.IsGrantedAsync(ErpPermissions.Leads.Default))
         {
             context.Menu.Items.Add(
