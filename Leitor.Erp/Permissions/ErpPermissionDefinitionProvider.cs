@@ -103,6 +103,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         serviceRequestsPermission.AddChild(ErpPermissions.ServiceRequests.Edit, L("Permission:Edit"));
         serviceRequestsPermission.AddChild(ErpPermissions.ServiceRequests.Delete, L("Permission:Delete"));
 
+        var assetsGroup = context.AddGroup(ErpPermissions.Assets.GroupName, L("Permission:Assets"));
+        var assetsPermission = assetsGroup.AddPermission(ErpPermissions.Assets.Default, L("Permission:Assets"));
+        assetsPermission.AddChild(ErpPermissions.Assets.Create, L("Permission:Create"));
+        assetsPermission.AddChild(ErpPermissions.Assets.Edit, L("Permission:Edit"));
+        assetsPermission.AddChild(ErpPermissions.Assets.Delete, L("Permission:Delete"));
+
         var moduleTogglesGroup = context.AddGroup(ErpPermissions.ModuleToggles.GroupName, L("Permission:ModuleToggles"));
         var moduleTogglesPermission = moduleTogglesGroup.AddPermission(ErpPermissions.ModuleToggles.Default, L("Permission:ModuleToggles"));
         moduleTogglesPermission.AddChild(ErpPermissions.ModuleToggles.Manage, L("Permission:Manage"));

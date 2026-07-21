@@ -21,6 +21,10 @@ public class FieldServiceJob : FullAuditedAggregateRoot<Guid>
     public string? SiteAddress { get; set; }
     public string? Description { get; set; }
 
+    // Optional CMDB link (see Entities/Assets/ConfigurationItem.cs) - which specific asset this
+    // visit serviced, when Asset Management is enabled.
+    public Guid? ConfigurationItemId { get; set; }
+
     protected FieldServiceJob()
     {
     }

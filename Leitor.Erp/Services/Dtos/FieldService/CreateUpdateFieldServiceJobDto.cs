@@ -29,4 +29,6 @@ public class CreateUpdateFieldServiceJobDto
 
     [StringLength(2000)]
     public string? Description { get; set; }
+
+    public Guid? ConfigurationItemId { get; set; }
 }

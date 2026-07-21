@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
@@ -30,6 +31,7 @@ public class FieldServiceJobAppService :
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<OrderPaymentMilestone, Guid> _milestoneRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
+    private readonly IRepository<ConfigurationItem, Guid> _configurationItemRepository;
     private readonly IClock _clock;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -43,6 +45,7 @@ public class FieldServiceJobAppService :
         IRepository<Order, Guid> orderRepository,
         IRepository<OrderPaymentMilestone, Guid> milestoneRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
+        IRepository<ConfigurationItem, Guid> configurationItemRepository,
         IClock clock,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -55,6 +58,7 @@ public class FieldServiceJobAppService :
         _orderRepository = orderRepository;
         _milestoneRepository = milestoneRepository;
         _stageEventRepository = stageEventRepository;
+        _configurationItemRepository = configurationItemRepository;
         _clock = clock;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -136,6 +140,15 @@ public class FieldServiceJobAppService :
             ? (await _vendorRepository.GetListAsync(x => vendorIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
             : new Dictionary<Guid, string>();
 
+        var ciIds = jobs
+            .Where(x => x.ConfigurationItemId.HasValue)
+            .Select(x => x.ConfigurationItemId!.Value)
+            .Distinct()
+            .ToList();
+        var ciNamesById = ciIds.Count > 0
+            ? (await _configurationItemRepository.GetListAsync(x => ciIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
         foreach (var job in jobs)
         {
             if (customerNamesById.TryGetValue(job.CustomerId, out var customerName))
@@ -151,6 +164,11 @@ public class FieldServiceJobAppService :
             if (job.VendorId.HasValue && vendorNamesById.TryGetValue(job.VendorId.Value, out var vendorName))
             {
                 job.VendorName = vendorName;
+            }
+
+            if (job.ConfigurationItemId.HasValue && ciNamesById.TryGetValue(job.ConfigurationItemId.Value, out var ciName))
+            {
+                job.ConfigurationItemName = ciName;
             }
         }
     }
@@ -215,6 +233,7 @@ public class FieldServiceJobAppService :
         entity.VendorId = input.VendorId;
         entity.SiteAddress = input.SiteAddress;
         entity.Description = input.Description;
+        entity.ConfigurationItemId = input.ConfigurationItemId;
 
         // Completed and Incomplete are both terminal "visit concluded" outcomes (see
         // FieldServiceJobStatus.cs) - CompletedDate tracks the transition into either, cleared if

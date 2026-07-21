@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Leitor.Erp.Entities.Accounting;
+using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
@@ -92,6 +93,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<ServiceCatalogItem> ServiceCatalogItems { get; set; } = null!;
 
     public DbSet<ServiceRequest> ServiceRequests { get; set; } = null!;
+
+    public DbSet<ConfigurationItem> ConfigurationItems { get; set; } = null!;
+    public DbSet<ConfigurationItemRelationship> ConfigurationItemRelationships { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -484,6 +488,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.AssignedToUserId);
             b.HasIndex(x => x.VendorId);
             b.HasIndex(x => x.OrderId);
+            b.HasIndex(x => x.ConfigurationItemId);
         });
 
         builder.Entity<FieldServiceJobNote>(b =>
@@ -704,6 +709,24 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.ServiceCatalogItemId);
             b.HasIndex(x => x.RequestNumber).IsUnique();
+        });
+
+        builder.Entity<ConfigurationItem>(b =>
+        {
+            b.ToTable("ConfigurationItems");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.SerialNumber).HasMaxLength(128);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<ConfigurationItemRelationship>(b =>
+        {
+            b.ToTable("ConfigurationItemRelationships");
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.SourceCiId);
+            b.HasIndex(x => x.TargetCiId);
         });
 
         builder.Entity<DeletionRequest>(b =>

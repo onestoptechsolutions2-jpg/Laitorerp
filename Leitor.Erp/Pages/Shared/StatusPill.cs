@@ -1,3 +1,4 @@
+using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
@@ -177,6 +178,15 @@ public static class StatusPill
         ServiceRequestStatus.InProgress => Warning,
         ServiceRequestStatus.Fulfilled => Success,
         ServiceRequestStatus.Rejected => Danger,
+        _ => Neutral
+    };
+
+    public static string For(ConfigurationItemStatus status) => status switch
+    {
+        ConfigurationItemStatus.InUse => Success,
+        ConfigurationItemStatus.InStorage => Info,
+        ConfigurationItemStatus.UnderMaintenance => Warning,
+        ConfigurationItemStatus.Retired => Neutral,
         _ => Neutral
     };
 }

@@ -31,6 +31,7 @@ public class ErpMenus
     public const string TaxCompliance = Prefix + ".TaxCompliance";
     public const string ServiceCatalog = Prefix + ".ServiceCatalog";
     public const string ServiceRequests = Prefix + ".ServiceRequests";
+    public const string Assets = Prefix + ".Assets";
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";
     public const string ModuleToggles = Prefix + ".ModuleToggles";

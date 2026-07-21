@@ -17,10 +17,12 @@ public class FieldServiceJobDto : FullAuditedEntityDto<Guid>
     public Guid? VendorId { get; set; }
     public string? SiteAddress { get; set; }
     public string? Description { get; set; }
+    public Guid? ConfigurationItemId { get; set; }
 
-    // Resolved by FieldServiceJobAppService from Customer/IdentityUser/Vendor repositories - not
-    // stored columns, Mapperly won't map them.
+    // Resolved by FieldServiceJobAppService from Customer/IdentityUser/Vendor/ConfigurationItem
+    // repositories - not stored columns, Mapperly won't map them.
     public string? CustomerName { get; set; }
     public string? AssignedToUserName { get; set; }
     public string? VendorName { get; set; }
+    public string? ConfigurationItemName { get; set; }
 }
