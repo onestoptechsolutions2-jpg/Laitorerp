@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Inventory;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -23,17 +26,26 @@ public class GoodsReceiptAppService : ApplicationService
     private readonly IRepository<GoodsReceiptLine, Guid> _lineRepository;
     private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
     private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+    private readonly IRepository<Warehouse, Guid> _warehouseRepository;
+    private readonly IRepository<StockMovement, Guid> _stockMovementRepository;
 
     public GoodsReceiptAppService(
         IRepository<GoodsReceipt, Guid> repository,
         IRepository<GoodsReceiptLine, Guid> lineRepository,
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
-        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository)
+        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
+        IRepository<Product, Guid> productRepository,
+        IRepository<Warehouse, Guid> warehouseRepository,
+        IRepository<StockMovement, Guid> stockMovementRepository)
     {
         _repository = repository;
         _lineRepository = lineRepository;
         _purchaseOrderRepository = purchaseOrderRepository;
         _purchaseOrderLineRepository = purchaseOrderLineRepository;
+        _productRepository = productRepository;
+        _warehouseRepository = warehouseRepository;
+        _stockMovementRepository = stockMovementRepository;
     }
 
     public async Task<List<GoodsReceiptDto>> GetListAsync(GetGoodsReceiptListInput input)
@@ -62,6 +74,7 @@ public class GoodsReceiptAppService : ApplicationService
             PurchaseOrderId = receipt.PurchaseOrderId,
             ReceivedDate = receipt.ReceivedDate,
             Notes = receipt.Notes,
+            WarehouseId = receipt.WarehouseId,
             CreationTime = receipt.CreationTime,
             CreatorId = receipt.CreatorId,
             Lines = linesByReceiptId[receipt.Id].Select(line => new GoodsReceiptLineDto
@@ -111,11 +124,23 @@ public class GoodsReceiptAppService : ApplicationService
             }
         }
 
+        var warehouseId = input.WarehouseId
+            ?? (await _warehouseRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault()?.Id
+            ?? throw new UserFriendlyException("No default warehouse is configured - set one on the Warehouses page first.");
+
         var receipt = new GoodsReceipt(GuidGenerator.Create(), input.PurchaseOrderId, input.ReceivedDate)
         {
-            Notes = input.Notes
+            Notes = input.Notes,
+            WarehouseId = warehouseId
         };
         await _repository.InsertAsync(receipt, autoSave: true);
+
+        // Only lines tied to a real, inventory-tracked Product move stock - a free-text PO line
+        // (no ProductId) or a non-stock Product (TrackInventory == false) never touches the ledger.
+        var productIds = poLines.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
+        var trackedProductIds = productIds.Count > 0
+            ? (await _productRepository.GetListAsync(x => productIds.Contains(x.Id) && x.TrackInventory)).Select(x => x.Id).ToHashSet()
+            : new HashSet<Guid>();
 
         var lineDtos = new List<GoodsReceiptLineDto>();
         foreach (var line in lines)
@@ -123,6 +148,15 @@ public class GoodsReceiptAppService : ApplicationService
             var receiptLine = new GoodsReceiptLine(GuidGenerator.Create(), receipt.Id, line.PurchaseOrderLineId, line.QuantityReceived);
             await _lineRepository.InsertAsync(receiptLine, autoSave: true);
             receivedSoFarByLineId[line.PurchaseOrderLineId] = receivedSoFarByLineId.GetValueOrDefault(line.PurchaseOrderLineId) + line.QuantityReceived;
+
+            var poLine = poLinesById[line.PurchaseOrderLineId];
+            if (poLine.ProductId.HasValue && trackedProductIds.Contains(poLine.ProductId.Value))
+            {
+                await InventoryPostingService.PostAsync(
+                    _stockMovementRepository, GuidGenerator, poLine.ProductId.Value, warehouseId,
+                    input.ReceivedDate, line.QuantityReceived, StockMovementType.Receipt,
+                    InventoryPostingService.SourceDocumentTypes.GoodsReceipt, receipt.Id);
+            }
 
             lineDtos.Add(new GoodsReceiptLineDto
             {
@@ -148,6 +182,7 @@ public class GoodsReceiptAppService : ApplicationService
             PurchaseOrderId = receipt.PurchaseOrderId,
             ReceivedDate = receipt.ReceivedDate,
             Notes = receipt.Notes,
+            WarehouseId = receipt.WarehouseId,
             CreationTime = receipt.CreationTime,
             Lines = lineDtos
         };

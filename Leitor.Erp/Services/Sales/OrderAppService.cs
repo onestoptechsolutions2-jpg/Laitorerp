@@ -6,11 +6,13 @@ using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services.Inventory;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -36,6 +38,9 @@ public class OrderAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+    private readonly IRepository<Warehouse, Guid> _warehouseRepository;
+    private readonly IRepository<StockMovement, Guid> _stockMovementRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -55,6 +60,9 @@ public class OrderAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<Product, Guid> productRepository,
+        IRepository<Warehouse, Guid> warehouseRepository,
+        IRepository<StockMovement, Guid> stockMovementRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -73,6 +81,9 @@ public class OrderAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _productRepository = productRepository;
+        _warehouseRepository = warehouseRepository;
+        _stockMovementRepository = stockMovementRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -171,6 +182,12 @@ public class OrderAppService :
         CopyToEntity(createInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
             _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
+
+        if (entity.WarehouseId == Guid.Empty)
+        {
+            entity.WarehouseId = (await _warehouseRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault()?.Id ?? Guid.Empty;
+        }
+
         return entity;
     }
 
@@ -185,6 +202,7 @@ public class OrderAppService :
 
         var wasUnlocked = entity.UnlockedByUserId != null;
         var wasConfirmed = entity.Status == OrderStatus.Confirmed;
+        var wasFulfilled = entity.Status == OrderStatus.Fulfilled;
 
         CopyToEntity(updateInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
@@ -201,6 +219,11 @@ public class OrderAppService :
         if (!wasConfirmed && entity.Status == OrderStatus.Confirmed)
         {
             await OnOrderConfirmedAsync(entity);
+        }
+
+        if (!wasFulfilled && entity.Status == OrderStatus.Fulfilled)
+        {
+            await OnOrderFulfilledAsync(entity);
         }
     }
 
@@ -253,6 +276,40 @@ public class OrderAppService :
 
         await CreateInvoiceForMilestoneAsync(order, deposit, subtotal);
         await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", order.Id, WorkflowStage.DepositInvoiceIssued);
+    }
+
+    // Fired the moment an Order's Status transitions into Fulfilled - the point at which goods
+    // actually leave the warehouse, so it's also when stock gets deducted. Only lines tied to a
+    // real, inventory-tracked Product move stock (a free-text line or a Service never does).
+    private async Task OnOrderFulfilledAsync(Order order)
+    {
+        var lines = await _lineRepository.GetListAsync(x => x.OrderId == order.Id && x.ProductId.HasValue);
+        if (lines.Count == 0)
+        {
+            return;
+        }
+
+        var productIds = lines.Select(x => x.ProductId!.Value).Distinct().ToList();
+        var trackedProductIds = (await _productRepository.GetListAsync(x => productIds.Contains(x.Id) && x.TrackInventory))
+            .Select(x => x.Id)
+            .ToHashSet();
+
+        var warehouseId = order.WarehouseId != Guid.Empty
+            ? order.WarehouseId
+            : (await _warehouseRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault()?.Id;
+
+        if (warehouseId == null)
+        {
+            return;
+        }
+
+        foreach (var line in lines.Where(x => trackedProductIds.Contains(x.ProductId!.Value)))
+        {
+            await InventoryPostingService.PostAsync(
+                _stockMovementRepository, GuidGenerator, line.ProductId!.Value, warehouseId.Value,
+                Clock.Now, line.Quantity, StockMovementType.Issue,
+                InventoryPostingService.SourceDocumentTypes.Order, order.Id);
+        }
     }
 
     // Shared by the automatic deposit trigger above and ConvertMilestoneToInvoiceAsync below.
@@ -315,6 +372,10 @@ public class OrderAppService :
         entity.Notes = input.Notes;
         entity.PaymentTerms = input.PaymentTerms;
         entity.CurrencyCode = input.CurrencyCode;
+        if (input.WarehouseId.HasValue)
+        {
+            entity.WarehouseId = input.WarehouseId.Value;
+        }
     }
 
     // The concrete mechanism behind "order becomes an invoice" - carries line items and pricing

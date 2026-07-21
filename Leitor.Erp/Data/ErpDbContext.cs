@@ -3,6 +3,7 @@ using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
@@ -29,6 +30,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Account> Accounts { get; set; } = null!;
     public DbSet<JournalEntry> JournalEntries { get; set; } = null!;
     public DbSet<JournalEntryLine> JournalEntryLines { get; set; } = null!;
+
+    public DbSet<Warehouse> Warehouses { get; set; } = null!;
+    public DbSet<StockMovement> StockMovements { get; set; } = null!;
 
     public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
     public DbSet<WorkflowStageEvent> WorkflowStageEvents { get; set; } = null!;
@@ -309,6 +313,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Description).HasMaxLength(2000);
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
+            b.Property(x => x.ReorderPoint).HasColumnType("decimal(18,2)");
+            b.Property(x => x.ReorderQuantity).HasColumnType("decimal(18,2)");
             b.HasIndex(x => x.CategoryId);
         });
 
@@ -390,6 +396,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");
             b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)").HasDefaultValue(1m);
+            // Guid.Empty for pre-Inventory-feature rows only - every Order created going forward
+            // always gets a real resolved default-warehouse id from OrderAppService.
+            b.Property(x => x.WarehouseId).HasDefaultValue(Guid.Empty);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.OrderNumber).IsUnique();
         });
@@ -521,11 +530,32 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.PurchaseOrderId);
         });
 
+        builder.Entity<Warehouse>(b =>
+        {
+            b.ToTable("Warehouses");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Address).HasMaxLength(512);
+        });
+
+        builder.Entity<StockMovement>(b =>
+        {
+            b.ToTable("StockMovements");
+            b.ConfigureByConvention();
+            b.Property(x => x.Quantity).HasColumnType("decimal(18,2)");
+            b.Property(x => x.SourceDocumentType).HasMaxLength(64);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.ProductId);
+            b.HasIndex(x => x.WarehouseId);
+            b.HasIndex(x => new { x.SourceDocumentType, x.SourceDocumentId });
+        });
+
         builder.Entity<GoodsReceipt>(b =>
         {
             b.ToTable("GoodsReceipts");
             b.ConfigureByConvention();
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.WarehouseId).HasDefaultValue(Guid.Empty);
             b.HasIndex(x => x.PurchaseOrderId);
         });
 

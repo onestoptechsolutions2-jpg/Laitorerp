@@ -24,4 +24,8 @@ public class CreateUpdateOrderDto
     [Required]
     [StringLength(8)]
     public string CurrencyCode { get; set; } = string.Empty;
+
+    // Optional - defaults to whichever Warehouse has IsDefault set when left blank (see
+    // OrderAppService.MapToEntityAsync).
+    public Guid? WarehouseId { get; set; }
 }

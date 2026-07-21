@@ -1,0 +1,77 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Inventory.StockMovements.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["StockMovements"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="Add" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">@L["Product"]</label>
+                    <select asp-for="NewAdjustment.ProductId" asp-items="Model.ProductOptions" class="form-select">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["MovementDate"]</label>
+                    <input asp-for="NewAdjustment.MovementDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Quantity"]</label>
+                    <input asp-for="NewAdjustment.Quantity" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["AdjustmentDirection"]</label>
+                    <select asp-for="NewAdjustment.IsIncrease" class="form-select">
+                        <option value="true">@L["Increase"]</option>
+                        <option value="false">@L["Decrease"]</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@L["Notes"]</label>
+                    <input asp-for="NewAdjustment.Notes" class="form-control" />
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">@L["RecordAdjustment"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["MovementDate"]</th>
+                        <th>@L["Product"]</th>
+                        <th>@L["Warehouse"]</th>
+                        <th>@L["Type"]</th>
+                        <th>@L["Quantity"]</th>
+                        <th>@L["Notes"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Movements.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var movement in Model.Movements)
+                    {
+                        <tr>
+                            <td>@movement.MovementDate.ToString("yyyy-MM-dd")</td>
+                            <td>@movement.ProductName</td>
+                            <td>@movement.WarehouseName</td>
+                            <td>@L[$"Enum:StockMovementType:{(int)movement.MovementType}"]</td>
+                            <td class="@(movement.Quantity < 0 ? "text-danger" : "text-success")">@movement.Quantity.ToString("N2")</td>
+                            <td>@movement.Notes</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

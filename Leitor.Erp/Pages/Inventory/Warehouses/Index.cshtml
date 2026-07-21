@@ -1,0 +1,56 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Inventory.Warehouses.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Warehouses"]</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewWarehouse"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["Address"]</th>
+                        <th>@L["IsDefault"]</th>
+                        <th>@L["Active"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Warehouses.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var warehouse in Model.Warehouses)
+                    {
+                        <tr>
+                            <td>@warehouse.Name</td>
+                            <td>@warehouse.Address</td>
+                            <td>@(warehouse.IsDefault ? "✓" : "")</td>
+                            <td>@(warehouse.IsActive ? "✓" : "")</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@warehouse.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@warehouse.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

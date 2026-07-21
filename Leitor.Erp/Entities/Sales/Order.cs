@@ -4,8 +4,9 @@ using Volo.Abp.Domain.Entities.Auditing;
 namespace Leitor.Erp.Entities.Sales;
 
 // Simplified from eShop's original OrderStatus (Submitted/AwaitingValidation/StockConfirmed/
-// Paid/Shipped/Cancelled) since there's no real inventory/shipping concept here - just
-// Submitted/Confirmed/Fulfilled/Cancelled.
+// Paid/Shipped/Cancelled) down to Submitted/Confirmed/Fulfilled/Cancelled - the transition into
+// Fulfilled is also the moment OrderAppService auto-posts a stock Issue movement per line (see
+// WarehouseId below).
 public class Order : FullAuditedAggregateRoot<Guid>
 {
     public Guid CustomerId { get; set; }
@@ -14,6 +15,10 @@ public class Order : FullAuditedAggregateRoot<Guid>
     public OrderStatus Status { get; set; } = OrderStatus.Submitted;
     public DateTime OrderDate { get; set; }
     public string? Notes { get; set; }
+
+    // Which stock location fulfills this order - defaults to the warehouse flagged IsDefault.
+    // Only consulted for lines whose Product has TrackInventory set.
+    public Guid WarehouseId { get; set; }
 
     // Defaulted from Customer.DefaultPaymentTerms at creation, editable afterwards - drives the
     // suggested due date when this order is converted to an Invoice (see

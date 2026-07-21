@@ -37,6 +37,20 @@
                 <dt class="col-sm-2">@L["IsBundle"]</dt>
                 <dd class="col-sm-4"><span class="pill pill-info">@L["Yes"]</span></dd>
             }
+            @if (Model.Product.TrackInventory)
+            {
+                <dt class="col-sm-2">@L["QuantityOnHand"]</dt>
+                <dd class="col-sm-4">
+                    <span class="pill @(Model.Product.ReorderPoint.HasValue && Model.Product.QuantityOnHand <= Model.Product.ReorderPoint ? "pill-warning" : "pill-neutral")">
+                        @(Model.Product.QuantityOnHand ?? 0)
+                    </span>
+                </dd>
+                @if (Model.Product.ReorderPoint.HasValue)
+                {
+                    <dt class="col-sm-2">@L["ReorderPoint"]</dt>
+                    <dd class="col-sm-4">@Model.Product.ReorderPoint</dd>
+                }
+            }
 
             @if (!string.IsNullOrWhiteSpace(Model.Product.Description))
             {

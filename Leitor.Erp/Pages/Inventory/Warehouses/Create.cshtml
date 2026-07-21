@@ -1,0 +1,25 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Inventory.Warehouses.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewWarehouse"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="Warehouse.Name" />
+            <abp-input asp-for="Warehouse.Address" />
+            <abp-input asp-for="Warehouse.IsDefault" />
+            <abp-input asp-for="Warehouse.IsActive" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

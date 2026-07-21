@@ -29,4 +29,12 @@ public class CreateUpdateProductDto
     public Guid? TaxRateId { get; set; }
     public Guid? CategoryId { get; set; }
     public bool IsBundle { get; set; }
+
+    public bool TrackInventory { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? ReorderPoint { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? ReorderQuantity { get; set; }
 }

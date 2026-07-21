@@ -16,6 +16,7 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public int Version { get; set; }
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+    public Guid WarehouseId { get; set; }
     public bool IsLocked { get; set; }
     public Guid? UnlockedByUserId { get; set; }
     public DateTime? UnlockedAt { get; set; }

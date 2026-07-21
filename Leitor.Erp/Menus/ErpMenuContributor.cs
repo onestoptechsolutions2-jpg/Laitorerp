@@ -202,6 +202,25 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.Inventory.Default))
+        {
+            var inventoryMenu = new ApplicationMenuItem(
+                ErpMenus.Inventory,
+                l["Menu:Inventory"],
+                icon: "fas fa-warehouse",
+                order: 11
+            );
+
+            inventoryMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.InventoryWarehouses, l["Menu:Warehouses"], "~/Inventory/Warehouses", order: 1)
+            );
+            inventoryMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.InventoryStockMovements, l["Menu:StockMovements"], "~/Inventory/StockMovements", order: 2)
+            );
+
+            context.Menu.Items.Add(inventoryMenu);
+        }
+
         // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of
         // which business module it reports on - lives under Administration (not the main module
         // area) since it's a cross-module utility area, same reasoning AuditLogs/DeletionApprovals
@@ -210,8 +229,9 @@ public class ErpMenuContributor : IMenuContributor
         var canViewSalesAnalytics = await context.IsGrantedAsync(ErpPermissions.Sales.Default);
         var canViewGeneralLedgerReports = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
         var canViewAuditLogs = await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default);
+        var canViewInventoryReports = await context.IsGrantedAsync(ErpPermissions.Inventory.Default);
 
-        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewGeneralLedgerReports || canViewAuditLogs)
+        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewGeneralLedgerReports || canViewAuditLogs || canViewInventoryReports)
         {
             var reportsMenu = new ApplicationMenuItem(
                 ErpMenus.Reports,
@@ -250,6 +270,16 @@ public class ErpMenuContributor : IMenuContributor
             {
                 reportsMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 6)
+                );
+            }
+
+            if (canViewInventoryReports)
+            {
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 7)
+                );
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 8)
                 );
             }
 

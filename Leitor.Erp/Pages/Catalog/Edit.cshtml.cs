@@ -53,7 +53,10 @@ public class EditModel : AbpPageModel
             Cost = product.Cost,
             TaxRateId = product.TaxRateId,
             CategoryId = product.CategoryId,
-            IsBundle = product.IsBundle
+            IsBundle = product.IsBundle,
+            TrackInventory = product.TrackInventory,
+            ReorderPoint = product.ReorderPoint,
+            ReorderQuantity = product.ReorderQuantity
         };
         await LoadOptionsAsync();
     }

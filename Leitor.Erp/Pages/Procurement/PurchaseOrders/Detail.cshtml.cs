@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
@@ -35,6 +36,7 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<GoodsReceiptLine, Guid> _goodsReceiptLineRepository;
+    private readonly IRepository<Warehouse, Guid> _warehouseRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyOptions _companyOptions;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -49,6 +51,7 @@ public class DetailModel : AbpPageModel
         IRepository<Order, Guid> orderRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<GoodsReceiptLine, Guid> goodsReceiptLineRepository,
+        IRepository<Warehouse, Guid> warehouseRepository,
         IEmailSender emailSender,
         IOptions<ErpCompanyOptions> companyOptions,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -62,6 +65,7 @@ public class DetailModel : AbpPageModel
         _orderRepository = orderRepository;
         _customerRepository = customerRepository;
         _goodsReceiptLineRepository = goodsReceiptLineRepository;
+        _warehouseRepository = warehouseRepository;
         _emailSender = emailSender;
         _companyOptions = companyOptions.Value;
         _deletionRequestRepository = deletionRequestRepository;
@@ -84,6 +88,7 @@ public class DetailModel : AbpPageModel
 
     public IReadOnlyList<GoodsReceiptDto> Receipts { get; set; } = Array.Empty<GoodsReceiptDto>();
     public IReadOnlyList<SupplierInvoiceDto> SupplierInvoices { get; set; } = Array.Empty<SupplierInvoiceDto>();
+    public List<SelectListItem> WarehouseOptions { get; set; } = new();
 
     [BindProperty]
     public CreateGoodsReceiptDto NewReceipt { get; set; } = new()
@@ -147,7 +152,11 @@ public class DetailModel : AbpPageModel
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.QuantityReceived))
             : new Dictionary<Guid, decimal>();
 
+        var warehouses = await _warehouseRepository.GetListAsync(x => x.IsActive);
+        WarehouseOptions = warehouses.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList();
+
         NewReceipt.PurchaseOrderId = Id;
+        NewReceipt.WarehouseId ??= warehouses.FirstOrDefault(x => x.IsDefault)?.Id;
         NewReceipt.Lines = Lines
             .Select(line => new CreateGoodsReceiptLineDto
             {

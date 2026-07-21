@@ -1,0 +1,54 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Inventory.Reports.StockOnHand.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["StockOnHand"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Product"]</th>
+                        <th>@L["Sku"]</th>
+                        <th>@L["QuantityOnHand"]</th>
+                        <th>@L["Cost"]</th>
+                        <th>@L["Value"]</th>
+                        <th>@L["ReorderPoint"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Lines.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var line in Model.Lines)
+                    {
+                        <tr>
+                            <td>@line.ProductName</td>
+                            <td>@line.Sku</td>
+                            <td class="@(line.ReorderPoint.HasValue && line.QuantityOnHand <= line.ReorderPoint ? "text-danger" : "")">@line.QuantityOnHand.ToString("N2")</td>
+                            <td>@line.Cost.ToString("N2")</td>
+                            <td>@line.Value.ToString("N2")</td>
+                            <td>@line.ReorderPoint</td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model.Lines.Any())
+                {
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" class="text-end">@L["Total"]</th>
+                            <th>@Model.TotalValue.ToString("N2")</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+</div>

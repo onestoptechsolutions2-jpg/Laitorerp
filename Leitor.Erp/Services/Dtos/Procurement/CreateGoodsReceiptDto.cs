@@ -15,6 +15,10 @@ public class CreateGoodsReceiptDto
     [StringLength(2000)]
     public string? Notes { get; set; }
 
+    // Optional - defaults to whichever Warehouse has IsDefault set when left blank (see
+    // GoodsReceiptAppService.CreateAsync).
+    public Guid? WarehouseId { get; set; }
+
     public List<CreateGoodsReceiptLineDto> Lines { get; set; } = new();
 }
 

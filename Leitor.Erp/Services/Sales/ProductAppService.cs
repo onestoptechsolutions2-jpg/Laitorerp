@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -16,13 +17,16 @@ public class ProductAppService :
     CrudAppService<Product, ProductDto, Guid, GetProductListInput, CreateUpdateProductDto>
 {
     private readonly IRepository<ProductCategory, Guid> _categoryRepository;
+    private readonly IRepository<StockMovement, Guid> _stockMovementRepository;
 
     public ProductAppService(
         IRepository<Product, Guid> repository,
-        IRepository<ProductCategory, Guid> categoryRepository)
+        IRepository<ProductCategory, Guid> categoryRepository,
+        IRepository<StockMovement, Guid> stockMovementRepository)
         : base(repository)
     {
         _categoryRepository = categoryRepository;
+        _stockMovementRepository = stockMovementRepository;
 
         GetPolicyName = ErpPermissions.Catalog.Default;
         GetListPolicyName = ErpPermissions.Catalog.Default;
@@ -61,11 +65,23 @@ public class ProductAppService :
             ? (await _categoryRepository.GetListAsync(x => categoryIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
             : new Dictionary<Guid, string>();
 
+        var trackedProductIds = products.Where(x => x.TrackInventory).Select(x => x.Id).ToList();
+        var onHandByProductId = trackedProductIds.Count > 0
+            ? (await _stockMovementRepository.GetListAsync(x => trackedProductIds.Contains(x.ProductId)))
+                .GroupBy(x => x.ProductId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity))
+            : new Dictionary<Guid, decimal>();
+
         foreach (var product in products)
         {
             if (product.CategoryId.HasValue && namesById.TryGetValue(product.CategoryId.Value, out var categoryName))
             {
                 product.CategoryName = categoryName;
+            }
+
+            if (product.TrackInventory)
+            {
+                product.QuantityOnHand = onHandByProductId.GetValueOrDefault(product.Id);
             }
         }
     }
@@ -98,5 +114,8 @@ public class ProductAppService :
         entity.TaxRateId = input.TaxRateId;
         entity.CategoryId = input.CategoryId;
         entity.IsBundle = input.IsBundle;
+        entity.TrackInventory = input.TrackInventory;
+        entity.ReorderPoint = input.ReorderPoint;
+        entity.ReorderQuantity = input.ReorderQuantity;
     }
 }

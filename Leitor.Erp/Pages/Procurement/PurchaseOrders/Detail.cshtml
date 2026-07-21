@@ -142,7 +142,11 @@
                         <label class="form-label">@L["ReceivedDate"]</label>
                         <input asp-for="NewReceipt.ReceivedDate" type="date" class="form-control" />
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-4">
+                        <label class="form-label">@L["Warehouse"]</label>
+                        <select asp-for="NewReceipt.WarehouseId" asp-items="Model.WarehouseOptions" class="form-select"></select>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">@L["Notes"]</label>
                         <input asp-for="NewReceipt.Notes" class="form-control" />
                     </div>

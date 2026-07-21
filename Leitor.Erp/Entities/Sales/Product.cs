@@ -31,6 +31,14 @@ public class Product : FullAuditedAggregateRoot<Guid>
     // later edit here never changes an already-issued document.
     public Guid? TaxRateId { get; set; }
 
+    // Services never carry stock - TrackInventory defaults true only for Type == Product, and can
+    // still be turned off per-item (e.g. a non-stock/drop-ship product). ReorderPoint/
+    // ReorderQuantity are only meaningful when this is true; StockMovement quantities are never
+    // touched for a product with TrackInventory == false.
+    public bool TrackInventory { get; set; }
+    public decimal? ReorderPoint { get; set; }
+    public decimal? ReorderQuantity { get; set; }
+
     protected Product()
     {
     }

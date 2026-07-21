@@ -1,0 +1,42 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Inventory.Reports.LowStock.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["LowStock"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Product"]</th>
+                        <th>@L["Sku"]</th>
+                        <th>@L["QuantityOnHand"]</th>
+                        <th>@L["ReorderPoint"]</th>
+                        <th>@L["ReorderQuantity"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Lines.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var line in Model.Lines)
+                    {
+                        <tr>
+                            <td>@line.ProductName</td>
+                            <td>@line.Sku</td>
+                            <td class="text-danger">@line.QuantityOnHand.ToString("N2")</td>
+                            <td>@line.ReorderPoint</td>
+                            <td>@line.ReorderQuantity</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

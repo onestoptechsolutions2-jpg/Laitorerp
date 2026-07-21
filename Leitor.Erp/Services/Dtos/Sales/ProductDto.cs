@@ -16,7 +16,11 @@ public class ProductDto : FullAuditedEntityDto<Guid>
     public Guid? TaxRateId { get; set; }
     public Guid? CategoryId { get; set; }
     public bool IsBundle { get; set; }
+    public bool TrackInventory { get; set; }
+    public decimal? ReorderPoint { get; set; }
+    public decimal? ReorderQuantity { get; set; }
 
     // Resolved by ProductAppService - not a stored column, Mapperly won't map it.
     public string? CategoryName { get; set; }
+    public decimal? QuantityOnHand { get; set; }
 }

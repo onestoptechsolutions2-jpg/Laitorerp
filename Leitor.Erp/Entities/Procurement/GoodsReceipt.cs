@@ -13,6 +13,10 @@ public class GoodsReceipt : FullAuditedAggregateRoot<Guid>
     public DateTime ReceivedDate { get; set; }
     public string? Notes { get; set; }
 
+    // Which stock location received these goods - defaults to the warehouse flagged IsDefault,
+    // editable for multi-location shops. Drives the auto-posted StockMovement (Receipt) per line.
+    public Guid WarehouseId { get; set; }
+
     protected GoodsReceipt()
     {
     }
