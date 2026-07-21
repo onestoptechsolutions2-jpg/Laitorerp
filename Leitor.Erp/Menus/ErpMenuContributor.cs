@@ -396,8 +396,9 @@ public class ErpMenuContributor : IMenuContributor
         // module already contributes to Administration (Email/Timezone etc.) - one Settings menu
         // in the whole app, not two.
         var canViewCatalogSettings = await context.IsGrantedAsync(ErpPermissions.Catalog.Default);
+        var canManageAppSettings = await context.IsGrantedAsync(ErpPermissions.AppSettings.Manage);
 
-        if (canViewCatalogSettings || canViewGeneralLedgerReports)
+        if (canViewCatalogSettings || canViewGeneralLedgerReports || canManageAppSettings)
         {
             var nativeSettingsGroup = administration.Items.FirstOrDefault(x => x.Name == SettingManagementMenuNames.GroupName);
 
@@ -432,6 +433,13 @@ public class ErpMenuContributor : IMenuContributor
                 );
                 settingsMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.SettingsChartOfAccounts, l["Menu:ChartOfAccounts"], "~/Accounting/ChartOfAccounts", order: 15)
+                );
+            }
+
+            if (canManageAppSettings)
+            {
+                settingsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.SettingsAppSettings, l["Menu:AppSettings"], "~/Administration/AppSettings", order: 20)
                 );
             }
 

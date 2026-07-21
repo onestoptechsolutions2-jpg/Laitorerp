@@ -119,6 +119,10 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         var moduleTogglesGroup = context.AddGroup(ErpPermissions.ModuleToggles.GroupName, L("Permission:ModuleToggles"));
         var moduleTogglesPermission = moduleTogglesGroup.AddPermission(ErpPermissions.ModuleToggles.Default, L("Permission:ModuleToggles"));
         moduleTogglesPermission.AddChild(ErpPermissions.ModuleToggles.Manage, L("Permission:Manage"));
+
+        var appSettingsGroup = context.AddGroup(ErpPermissions.AppSettings.GroupName, L("Permission:AppSettings"));
+        var appSettingsPermission = appSettingsGroup.AddPermission(ErpPermissions.AppSettings.Default, L("Permission:AppSettings"));
+        appSettingsPermission.AddChild(ErpPermissions.AppSettings.Manage, L("Permission:Manage"));
     }
 
     private static LocalizableString L(string name)

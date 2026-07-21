@@ -1,0 +1,40 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Administration.AppSettings.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["AppSettings"]</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">@L["AppSettingsHint"]</p>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Setting"]</th>
+                        <th>@L["Value"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td>@row.DisplayName</td>
+                            <td>
+                                <form method="post" asp-page-handler="Save" class="d-flex gap-2">
+                                    <input type="hidden" name="name" value="@row.Name" />
+                                    <input type="number" name="value" value="@row.Value" step="0.01" min="0" class="form-control form-control-sm" style="max-width: 8rem;" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">@L["Save"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

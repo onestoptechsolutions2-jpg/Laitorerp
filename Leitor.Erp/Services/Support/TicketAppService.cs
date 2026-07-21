@@ -8,12 +8,14 @@ using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Settings;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
+using Volo.Abp.Settings;
 using Volo.Abp.Timing;
 
 namespace Leitor.Erp.Services.Support;
@@ -29,6 +31,7 @@ public class TicketAppService :
     private readonly IClock _clock;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly ISettingProvider _settingProvider;
 
     public TicketAppService(
         IRepository<Ticket, Guid> repository,
@@ -39,7 +42,8 @@ public class TicketAppService :
         IRepository<CustomerContract, Guid> contractRepository,
         IClock clock,
         IDataFilter dataFilter,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        ISettingProvider settingProvider)
         : base(repository)
     {
         _messageRepository = messageRepository;
@@ -50,6 +54,7 @@ public class TicketAppService :
         _clock = clock;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
+        _settingProvider = settingProvider;
 
         GetPolicyName = ErpPermissions.Support.Default;
         GetListPolicyName = ErpPermissions.Support.Default;
@@ -174,16 +179,25 @@ public class TicketAppService :
             }
         }
 
-        return DefaultSlaWindow(priority);
+        return await DefaultSlaWindowAsync(priority);
     }
 
-    private static TimeSpan DefaultSlaWindow(TicketPriority priority) => priority switch
+    // Reads from Settings/ErpSettings.cs (admin-editable via Pages/Administration/AppSettings) -
+    // falls back to the setting definition's own default if unset, same 4/24/72/168-hour table
+    // this used to hardcode directly.
+    private async Task<TimeSpan> DefaultSlaWindowAsync(TicketPriority priority)
     {
-        TicketPriority.Urgent => TimeSpan.FromHours(4),
-        TicketPriority.High => TimeSpan.FromHours(24),
-        TicketPriority.Medium => TimeSpan.FromHours(72),
-        _ => TimeSpan.FromHours(168)
-    };
+        var settingName = priority switch
+        {
+            TicketPriority.Urgent => ErpSettings.SlaHoursUrgent,
+            TicketPriority.High => ErpSettings.SlaHoursHigh,
+            TicketPriority.Medium => ErpSettings.SlaHoursMedium,
+            _ => ErpSettings.SlaHoursLow
+        };
+
+        var hours = await _settingProvider.GetOrNullAsync(settingName);
+        return TimeSpan.FromHours(double.Parse(hours!));
+    }
 
     // CreateUpdateTicketDto -> Ticket is mapped manually rather than via Mapperly - same reason as
     // every other entity in this app (protected Id setter + constructor args Mapperly can't

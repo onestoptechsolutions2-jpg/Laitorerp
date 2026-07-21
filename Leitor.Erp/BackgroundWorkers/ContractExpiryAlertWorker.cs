@@ -4,22 +4,25 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
 using Volo.Abp.Identity;
+using Volo.Abp.Settings;
 using Volo.Abp.Threading;
 using Volo.Abp.Timing;
 using Volo.Abp.Uow;
 
 namespace Leitor.Erp.BackgroundWorkers;
 
-// Runs once daily: emails a customer's account owner when an Active CustomerContract is within 30
-// days of its EndDate, then stamps LastExpiryAlertSentDate so the same crossing isn't re-alerted
-// tomorrow. A contract with no account owner (or an owner with no email) is skipped, not stamped,
-// so it's picked up again once an owner is assigned.
+// Runs once daily: emails a customer's account owner when an Active CustomerContract is within
+// ErpSettings.ContractExpiryAlertLeadDays (admin-editable, default 30) of its EndDate, then stamps
+// LastExpiryAlertSentDate so the same crossing isn't re-alerted tomorrow. A contract with no
+// account owner (or an owner with no email) is skipped, not stamped, so it's picked up again once
+// an owner is assigned.
 public class ContractExpiryAlertWorker : AsyncPeriodicBackgroundWorkerBase
 {
     public ContractExpiryAlertWorker(AbpAsyncTimer timer, IServiceScopeFactory serviceScopeFactory)
@@ -37,9 +40,12 @@ public class ContractExpiryAlertWorker : AsyncPeriodicBackgroundWorkerBase
         var emailSender = workerContext.ServiceProvider.GetRequiredService<IEmailSender>();
         var clock = workerContext.ServiceProvider.GetRequiredService<IClock>();
         var companyOptions = workerContext.ServiceProvider.GetRequiredService<IOptions<ErpCompanyOptions>>().Value;
+        var settingProvider = workerContext.ServiceProvider.GetRequiredService<ISettingProvider>();
+
+        var leadDays = double.Parse((await settingProvider.GetOrNullAsync(ErpSettings.ContractExpiryAlertLeadDays))!);
 
         var now = clock.Now;
-        var cutoff = now.AddDays(30);
+        var cutoff = now.AddDays(leadDays);
 
         var expiringContracts = await contractRepository.GetListAsync(x =>
             x.Status == CustomerContractStatus.Active &&

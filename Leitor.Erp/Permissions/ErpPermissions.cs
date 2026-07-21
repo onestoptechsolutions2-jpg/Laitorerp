@@ -210,4 +210,14 @@ public static class ErpPermissions
         public const string Default = GroupName;
         public const string Manage = Default + ".Manage";
     }
+
+    // Gates the admin screen that edits the business-tunable values in Settings/ErpSettings.cs
+    // (Ticket SLA hours per priority, contract expiry alert lead time) - separate from
+    // ModuleToggles since it's about tuning always-on behavior, not turning modules on/off.
+    public static class AppSettings
+    {
+        public const string GroupName = "Erp.AppSettings";
+        public const string Default = GroupName;
+        public const string Manage = Default + ".Manage";
+    }
 }

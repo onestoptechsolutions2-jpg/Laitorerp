@@ -59,6 +59,7 @@ public class ErpMenus
     public const string SettingsCurrencies = Settings + ".Currencies";
     public const string SettingsExchangeRates = Settings + ".ExchangeRates";
     public const string SettingsChartOfAccounts = Settings + ".ChartOfAccounts";
+    public const string SettingsAppSettings = Settings + ".AppSettings";
 
     //Add your menu items here...
 
