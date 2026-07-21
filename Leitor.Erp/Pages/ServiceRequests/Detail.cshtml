@@ -1,0 +1,73 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.ServiceRequests
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.ServiceRequests.DetailModel
+
+@{
+    var isTerminal = Model.ServiceRequest.Status is ServiceRequestStatus.Fulfilled or ServiceRequestStatus.Rejected;
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.ServiceRequest.RequestNumber</span></h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.ServiceRequest.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+                @if (!isTerminal)
+                {
+                    @if (Model.ServiceRequest.Status != ServiceRequestStatus.Approved)
+                    {
+                        <form method="post" asp-page-handler="SetStatus" asp-route-status="1" class="d-inline">
+                            <button type="submit" class="btn btn-secondary">@L["Enum:ServiceRequestStatus:1"]</button>
+                        </form>
+                    }
+                    @if (Model.ServiceRequest.Status != ServiceRequestStatus.InProgress)
+                    {
+                        <form method="post" asp-page-handler="SetStatus" asp-route-status="2" class="d-inline">
+                            <button type="submit" class="btn btn-info">@L["Enum:ServiceRequestStatus:2"]</button>
+                        </form>
+                    }
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
+                        <button type="submit" class="btn btn-success">@L["Enum:ServiceRequestStatus:3"]</button>
+                    </form>
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                        <button type="submit" class="btn btn-outline-danger">@L["Enum:ServiceRequestStatus:4"]</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="0" class="d-inline">
+                        <button type="submit" class="btn btn-secondary">@L["Reopen"]</button>
+                    </form>
+                }
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Customer"]</dt>
+            <dd class="col-sm-4"><a asp-page="/Customers/Detail" asp-route-id="@Model.ServiceRequest.CustomerId">@Model.ServiceRequest.CustomerName</a></dd>
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.ServiceRequest.Status)">@L[$"Enum:ServiceRequestStatus:{(int)Model.ServiceRequest.Status}"]</span></dd>
+
+            <dt class="col-sm-2">@L["RequestedDate"]</dt>
+            <dd class="col-sm-4">@Model.ServiceRequest.RequestedDate.ToShortDateString()</dd>
+            <dt class="col-sm-2">@L["FulfilledDate"]</dt>
+            <dd class="col-sm-4">@(Model.ServiceRequest.FulfilledDate?.ToShortDateString())</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.ServiceRequest.ServiceCatalogItemName))
+            {
+                <dt class="col-sm-2">@L["ServiceCatalog"]</dt>
+                <dd class="col-sm-4">@Model.ServiceRequest.ServiceCatalogItemName</dd>
+            }
+
+            <dt class="col-sm-2">@L["Description"]</dt>
+            <dd class="col-sm-10">@Model.ServiceRequest.Description</dd>
+        </dl>
+    </div>
+</div>

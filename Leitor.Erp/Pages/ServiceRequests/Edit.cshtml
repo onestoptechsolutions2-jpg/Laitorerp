@@ -1,0 +1,27 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.ServiceRequests.EditModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["EditServiceRequest"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="ServiceRequest.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-select asp-for="ServiceRequest.ServiceCatalogItemId" asp-items="Model.ServiceCatalogItemOptions" label="@L["ServiceCatalog"]" />
+            <abp-input asp-for="ServiceRequest.Description" />
+            <abp-input asp-for="ServiceRequest.Status" />
+            <abp-input asp-for="ServiceRequest.RequestedDate" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Detail" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

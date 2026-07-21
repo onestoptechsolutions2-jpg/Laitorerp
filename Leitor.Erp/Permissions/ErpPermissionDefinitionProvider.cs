@@ -97,6 +97,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         var serviceCatalogPermission = serviceCatalogGroup.AddPermission(ErpPermissions.ServiceCatalog.Default, L("Permission:ServiceCatalog"));
         serviceCatalogPermission.AddChild(ErpPermissions.ServiceCatalog.Edit, L("Permission:Edit"));
 
+        var serviceRequestsGroup = context.AddGroup(ErpPermissions.ServiceRequests.GroupName, L("Permission:ServiceRequests"));
+        var serviceRequestsPermission = serviceRequestsGroup.AddPermission(ErpPermissions.ServiceRequests.Default, L("Permission:ServiceRequests"));
+        serviceRequestsPermission.AddChild(ErpPermissions.ServiceRequests.Create, L("Permission:Create"));
+        serviceRequestsPermission.AddChild(ErpPermissions.ServiceRequests.Edit, L("Permission:Edit"));
+        serviceRequestsPermission.AddChild(ErpPermissions.ServiceRequests.Delete, L("Permission:Delete"));
+
         var moduleTogglesGroup = context.AddGroup(ErpPermissions.ModuleToggles.GroupName, L("Permission:ModuleToggles"));
         var moduleTogglesPermission = moduleTogglesGroup.AddPermission(ErpPermissions.ModuleToggles.Default, L("Permission:ModuleToggles"));
         moduleTogglesPermission.AddChild(ErpPermissions.ModuleToggles.Manage, L("Permission:Manage"));

@@ -5,6 +5,7 @@ using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.ServiceRequests;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Services.Dtos.Sales;
 
@@ -166,6 +167,16 @@ public static class StatusPill
         ProjectStatus.OnHold => Neutral,
         ProjectStatus.Completed => Success,
         ProjectStatus.Cancelled => Neutral,
+        _ => Neutral
+    };
+
+    public static string For(ServiceRequestStatus status) => status switch
+    {
+        ServiceRequestStatus.Submitted => Info,
+        ServiceRequestStatus.Approved => Warning,
+        ServiceRequestStatus.InProgress => Warning,
+        ServiceRequestStatus.Fulfilled => Success,
+        ServiceRequestStatus.Rejected => Danger,
         _ => Neutral
     };
 }
