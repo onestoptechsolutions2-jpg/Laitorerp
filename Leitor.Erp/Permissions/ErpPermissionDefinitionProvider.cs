@@ -93,6 +93,10 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         var taxComplianceGroup = context.AddGroup(ErpPermissions.TaxCompliance.GroupName, L("Permission:TaxCompliance"));
         taxComplianceGroup.AddPermission(ErpPermissions.TaxCompliance.Default, L("Permission:TaxCompliance"));
 
+        var serviceCatalogGroup = context.AddGroup(ErpPermissions.ServiceCatalog.GroupName, L("Permission:ServiceCatalog"));
+        var serviceCatalogPermission = serviceCatalogGroup.AddPermission(ErpPermissions.ServiceCatalog.Default, L("Permission:ServiceCatalog"));
+        serviceCatalogPermission.AddChild(ErpPermissions.ServiceCatalog.Edit, L("Permission:Edit"));
+
         var moduleTogglesGroup = context.AddGroup(ErpPermissions.ModuleToggles.GroupName, L("Permission:ModuleToggles"));
         var moduleTogglesPermission = moduleTogglesGroup.AddPermission(ErpPermissions.ModuleToggles.Default, L("Permission:ModuleToggles"));
         moduleTogglesPermission.AddChild(ErpPermissions.ModuleToggles.Manage, L("Permission:Manage"));

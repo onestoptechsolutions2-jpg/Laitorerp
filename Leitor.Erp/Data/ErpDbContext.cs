@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Entities.ServiceCatalog;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -86,6 +87,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
+
+    public DbSet<ServiceCatalogItem> ServiceCatalogItems { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -678,6 +681,15 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Title).IsRequired().HasMaxLength(256);
             b.Property(x => x.Description).HasMaxLength(2000);
             b.HasIndex(x => x.ProjectId);
+        });
+
+        builder.Entity<ServiceCatalogItem>(b =>
+        {
+            b.ToTable("ServiceCatalogItems");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.Category).HasMaxLength(128);
         });
 
         builder.Entity<DeletionRequest>(b =>

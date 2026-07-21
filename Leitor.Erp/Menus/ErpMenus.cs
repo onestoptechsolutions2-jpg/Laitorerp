@@ -29,6 +29,7 @@ public class ErpMenus
     public const string InventoryStockMovements = Inventory + ".StockMovements";
     public const string Projects = Prefix + ".Projects";
     public const string TaxCompliance = Prefix + ".TaxCompliance";
+    public const string ServiceCatalog = Prefix + ".ServiceCatalog";
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";
     public const string ModuleToggles = Prefix + ".ModuleToggles";
