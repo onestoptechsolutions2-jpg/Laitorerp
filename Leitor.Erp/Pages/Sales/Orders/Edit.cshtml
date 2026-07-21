@@ -36,15 +36,15 @@
             <form method="post">
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="All" class="text-danger"></div>
-                <abp-select asp-for="Order.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+                <abp-select asp-for="Order.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
                 <abp-input asp-for="Order.Status" />
                 <abp-input asp-for="Order.OrderDate" />
                 <abp-input asp-for="Order.PaymentTerms" />
-                <abp-select asp-for="Order.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
-                <abp-select asp-for="Order.WarehouseId" asp-items="Model.WarehouseOptions" label="@L["Warehouse"]" />
+                <abp-select asp-for="Order.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
+                <abp-select asp-for="Order.WarehouseId" asp-items="Model.WarehouseOptions" label="@L["Warehouse"].Value" />
                 @if (Model.CanUseProjects)
                 {
-                    <abp-select asp-for="Order.ProjectId" asp-items="Model.ProjectOptions" label="@L["Project"]" />
+                    <abp-select asp-for="Order.ProjectId" asp-items="Model.ProjectOptions" label="@L["Project"].Value" />
                 }
                 <abp-input asp-for="Order.Notes" />
 

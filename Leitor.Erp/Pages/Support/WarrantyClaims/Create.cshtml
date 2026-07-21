@@ -11,10 +11,10 @@
     <div class="card-body">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="WarrantyClaim.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
-            <abp-select asp-for="WarrantyClaim.ContractId" asp-items="Model.ContractOptions" label="@L["Contract"]" />
-            <abp-select asp-for="WarrantyClaim.JobId" asp-items="Model.JobOptions" label="@L["Job"]" />
-            <abp-select asp-for="WarrantyClaim.TicketId" asp-items="Model.TicketOptions" label="@L["Tickets"]" />
+            <abp-select asp-for="WarrantyClaim.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
+            <abp-select asp-for="WarrantyClaim.ContractId" asp-items="Model.ContractOptions" label="@L["Contract"].Value" />
+            <abp-select asp-for="WarrantyClaim.JobId" asp-items="Model.JobOptions" label="@L["Job"].Value" />
+            <abp-select asp-for="WarrantyClaim.TicketId" asp-items="Model.TicketOptions" label="@L["Tickets"].Value" />
             <abp-input asp-for="WarrantyClaim.Description" />
             <abp-input asp-for="WarrantyClaim.Status" />
             <abp-input asp-for="WarrantyClaim.FiledDate" />

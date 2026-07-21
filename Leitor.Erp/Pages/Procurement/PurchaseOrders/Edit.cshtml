@@ -12,11 +12,11 @@
         <form method="post">
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="PurchaseOrder.VendorId" asp-items="Model.VendorOptions" label="@L["Vendor"]" />
+            <abp-select asp-for="PurchaseOrder.VendorId" asp-items="Model.VendorOptions" label="@L["Vendor"].Value" />
             <abp-input asp-for="PurchaseOrder.Status" />
             <abp-input asp-for="PurchaseOrder.OrderDate" />
             <abp-input asp-for="PurchaseOrder.ExpectedDeliveryDate" />
-            <abp-select asp-for="PurchaseOrder.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
+            <abp-select asp-for="PurchaseOrder.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
             <abp-input asp-for="PurchaseOrder.Notes" />
 
             <div class="mt-3">

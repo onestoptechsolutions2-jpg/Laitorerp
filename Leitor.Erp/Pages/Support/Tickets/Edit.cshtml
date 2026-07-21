@@ -12,16 +12,16 @@
         <form method="post">
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="Ticket.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
-            <abp-select asp-for="Ticket.OrderId" asp-items="Model.OrderOptions" label="@L["Order"]" />
-            <abp-select asp-for="Ticket.JobId" asp-items="Model.JobOptions" label="@L["Job"]" />
-            <abp-select asp-for="Ticket.ContractId" asp-items="Model.ContractOptions" label="@L["Contract"]" />
-            <abp-select asp-for="Ticket.ProblemId" asp-items="Model.ProblemOptions" label="@L["Problem"]" />
+            <abp-select asp-for="Ticket.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
+            <abp-select asp-for="Ticket.OrderId" asp-items="Model.OrderOptions" label="@L["Order"].Value" />
+            <abp-select asp-for="Ticket.JobId" asp-items="Model.JobOptions" label="@L["Job"].Value" />
+            <abp-select asp-for="Ticket.ContractId" asp-items="Model.ContractOptions" label="@L["Contract"].Value" />
+            <abp-select asp-for="Ticket.ProblemId" asp-items="Model.ProblemOptions" label="@L["Problem"].Value" />
             <abp-input asp-for="Ticket.Subject" />
             <abp-input asp-for="Ticket.Type" />
             <abp-input asp-for="Ticket.Status" />
             <abp-input asp-for="Ticket.Priority" />
-            <abp-select asp-for="Ticket.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-select asp-for="Ticket.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"].Value" />
             <abp-input asp-for="Ticket.CustomerSatisfactionRating" />
 
             <div class="mt-3">

@@ -11,12 +11,12 @@
     <div class="card-body">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="Invoice.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-select asp-for="Invoice.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
             <abp-input asp-for="Invoice.Status" />
             <abp-input asp-for="Invoice.IssueDate" />
             <abp-input asp-for="Invoice.DueDate" />
             <abp-input asp-for="Invoice.PaymentTerms" />
-            <abp-select asp-for="Invoice.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
+            <abp-select asp-for="Invoice.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
             <abp-input asp-for="Invoice.Notes" />
 
             <div class="mt-3">

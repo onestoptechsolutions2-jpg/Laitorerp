@@ -22,10 +22,10 @@
             <abp-input asp-for="Vendor.PostalCode" />
             <abp-input asp-for="Vendor.Country" />
             <abp-input asp-for="Vendor.Notes" />
-            <abp-select asp-for="Vendor.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"]" />
+            <abp-select asp-for="Vendor.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"].Value" />
             @if (Model.CanUseTaxCompliance)
             {
-                <abp-select asp-for="Vendor.WithholdingTaxRateId" asp-items="Model.WithholdingTaxRateOptions" label="@L["WithholdingTaxRate"]" />
+                <abp-select asp-for="Vendor.WithholdingTaxRateId" asp-items="Model.WithholdingTaxRateOptions" label="@L["WithholdingTaxRate"].Value" />
             }
 
             <div class="mt-3">

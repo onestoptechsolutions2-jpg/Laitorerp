@@ -22,7 +22,7 @@
             <abp-input asp-for="Vendor.Notes" />
             @if (Model.CanUseTaxCompliance)
             {
-                <abp-select asp-for="Vendor.WithholdingTaxRateId" asp-items="Model.WithholdingTaxRateOptions" label="@L["WithholdingTaxRate"]" />
+                <abp-select asp-for="Vendor.WithholdingTaxRateId" asp-items="Model.WithholdingTaxRateOptions" label="@L["WithholdingTaxRate"].Value" />
             }
 
             <div class="mt-3">

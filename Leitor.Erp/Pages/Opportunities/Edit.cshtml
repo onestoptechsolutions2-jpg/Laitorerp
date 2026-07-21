@@ -12,12 +12,12 @@
         <form method="post">
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="Opportunity.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-select asp-for="Opportunity.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
             <abp-input asp-for="Opportunity.Name" />
             <abp-input asp-for="Opportunity.Status" />
             <abp-input asp-for="Opportunity.EstimatedValue" />
             <abp-input asp-for="Opportunity.ExpectedCloseDate" />
-            <abp-select asp-for="Opportunity.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-select asp-for="Opportunity.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"].Value" />
             <abp-input asp-for="Opportunity.LostReason" />
             <abp-input asp-for="Opportunity.Notes" />
 

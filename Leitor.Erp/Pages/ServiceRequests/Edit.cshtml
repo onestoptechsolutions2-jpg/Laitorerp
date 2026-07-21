@@ -12,8 +12,8 @@
         <form method="post">
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="ServiceRequest.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
-            <abp-select asp-for="ServiceRequest.ServiceCatalogItemId" asp-items="Model.ServiceCatalogItemOptions" label="@L["ServiceCatalog"]" />
+            <abp-select asp-for="ServiceRequest.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
+            <abp-select asp-for="ServiceRequest.ServiceCatalogItemId" asp-items="Model.ServiceCatalogItemOptions" label="@L["ServiceCatalog"].Value" />
             <abp-input asp-for="ServiceRequest.Description" />
             <abp-input asp-for="ServiceRequest.Status" />
             <abp-input asp-for="ServiceRequest.RequestedDate" />

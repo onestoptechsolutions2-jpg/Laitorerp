@@ -15,7 +15,7 @@
             <abp-input asp-for="Item.Name" />
             <abp-input asp-for="Item.Description" />
             <abp-input asp-for="Item.Category" />
-            <abp-select asp-for="Item.OwnerUserId" asp-items="Model.UserOptions" label="@L["Owner"]" />
+            <abp-select asp-for="Item.OwnerUserId" asp-items="Model.UserOptions" label="@L["Owner"].Value" />
             <abp-input asp-for="Item.TargetSlaHours" />
             <abp-input asp-for="Item.IsActive" />
 

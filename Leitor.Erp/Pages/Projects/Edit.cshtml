@@ -12,7 +12,7 @@
         <form method="post">
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="Project.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+            <abp-select asp-for="Project.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
             <abp-input asp-for="Project.Title" />
             <abp-input asp-for="Project.Description" />
             <abp-input asp-for="Project.Status" />

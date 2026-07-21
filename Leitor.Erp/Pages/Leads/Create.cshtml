@@ -17,7 +17,7 @@
             <abp-input asp-for="Lead.Phone" />
             <abp-input asp-for="Lead.Source" />
             <abp-input asp-for="Lead.Status" />
-            <abp-select asp-for="Lead.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"]" />
+            <abp-select asp-for="Lead.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"].Value" />
             <abp-input asp-for="Lead.Notes" />
             <abp-input asp-for="Lead.DoNotContact" />
 

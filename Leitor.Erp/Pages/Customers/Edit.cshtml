@@ -17,9 +17,9 @@
             <abp-input asp-for="Customer.PhoneNumber" />
             <abp-input asp-for="Customer.Status" />
             <abp-input asp-for="Customer.DefaultPaymentTerms" />
-            <abp-select asp-for="Customer.AccountOwnerUserId" asp-items="Model.UserOptions" label="@L["AccountOwner"]" />
-            <abp-select asp-for="Customer.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"]" />
-            <abp-select asp-for="Customer.DefaultPriceListId" asp-items="Model.PriceListOptions" label="@L["DefaultPriceList"]" />
+            <abp-select asp-for="Customer.AccountOwnerUserId" asp-items="Model.UserOptions" label="@L["AccountOwner"].Value" />
+            <abp-select asp-for="Customer.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"].Value" />
+            <abp-select asp-for="Customer.DefaultPriceListId" asp-items="Model.PriceListOptions" label="@L["DefaultPriceList"].Value" />
             <abp-input asp-for="Customer.AddressLine" />
             <abp-input asp-for="Customer.City" />
             <abp-input asp-for="Customer.State" />

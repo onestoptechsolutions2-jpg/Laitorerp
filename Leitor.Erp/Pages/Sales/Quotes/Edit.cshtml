@@ -36,12 +36,12 @@
             <form method="post">
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="All" class="text-danger"></div>
-                <abp-select asp-for="Quote.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"]" />
+                <abp-select asp-for="Quote.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
                 <abp-input asp-for="Quote.Title" />
                 <abp-input asp-for="Quote.Status" />
                 <abp-input asp-for="Quote.IssueDate" />
                 <abp-input asp-for="Quote.ExpiryDate" />
-                <abp-select asp-for="Quote.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
+                <abp-select asp-for="Quote.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
                 <abp-input asp-for="Quote.Notes" />
 
                 <div class="mt-3">
