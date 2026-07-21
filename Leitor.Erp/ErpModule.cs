@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
@@ -182,6 +184,7 @@ public class ErpModule : AbpModule
         context.Services.AddHttpClient("OpenExchangeRates");
 
         ConfigureAuthentication(context);
+        ConfigureIdentityOptions();
         ConfigureMultiTenancy();
         ConfigureUrls(configuration);
         ConfigureBundles();
@@ -200,6 +203,24 @@ public class ErpModule : AbpModule
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;
+        });
+    }
+
+    // Reasonable named defaults for a business-data ERP, not tuned to any specific compliance
+    // regime - MFA enrollment is a separate, much larger effort left out of this pass.
+    private void ConfigureIdentityOptions()
+    {
+        Configure<IdentityOptions>(options =>
+        {
+            options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.AllowedForNewUsers = true;
         });
     }
 
