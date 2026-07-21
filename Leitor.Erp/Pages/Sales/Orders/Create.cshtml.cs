@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
@@ -21,15 +22,18 @@ public class CreateModel : AbpPageModel
     private readonly OrderAppService _orderAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<Warehouse, Guid> _warehouseRepository;
 
     public CreateModel(
         OrderAppService orderAppService,
         IRepository<Customer, Guid> customerRepository,
-        IRepository<Currency, Guid> currencyRepository)
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<Warehouse, Guid> warehouseRepository)
     {
         _orderAppService = orderAppService;
         _customerRepository = customerRepository;
         _currencyRepository = currencyRepository;
+        _warehouseRepository = warehouseRepository;
     }
 
     [BindProperty]
@@ -40,11 +44,13 @@ public class CreateModel : AbpPageModel
 
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
+    public List<SelectListItem> WarehouseOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
         await LoadCustomerOptionsAsync();
         await LoadCurrencyOptionsAsync();
+        await LoadWarehouseOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -53,6 +59,7 @@ public class CreateModel : AbpPageModel
         {
             await LoadCustomerOptionsAsync();
             await LoadCurrencyOptionsAsync();
+            await LoadWarehouseOptionsAsync();
             return Page();
         }
 
@@ -81,5 +88,16 @@ public class CreateModel : AbpPageModel
         {
             Order.CurrencyCode = currencies.FirstOrDefault(x => x.IsBaseCurrency)?.Code ?? string.Empty;
         }
+    }
+
+    private async Task LoadWarehouseOptionsAsync()
+    {
+        var warehouses = await _warehouseRepository.GetListAsync(x => x.IsActive);
+        WarehouseOptions = warehouses
+            .OrderBy(x => x.Name)
+            .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+            .ToList();
+
+        Order.WarehouseId ??= warehouses.FirstOrDefault(x => x.IsDefault)?.Id;
     }
 }

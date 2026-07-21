@@ -22,6 +22,7 @@ public static class JournalPostingService
         public const string Payment = "Payment";
         public const string SupplierInvoice = "SupplierInvoice";
         public const string VendorPayment = "VendorPayment";
+        public const string Order = "Order";
     }
 
     public static async Task<bool> IsAlreadyPostedAsync(

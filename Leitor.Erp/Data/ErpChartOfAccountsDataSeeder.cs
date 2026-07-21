@@ -38,7 +38,10 @@ public class ErpChartOfAccountsDataSeeder : IDataSeedContributor, ITransientDepe
         {
             SystemRole = SystemAccountRole.AccountsReceivable
         });
-        await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "1200", "Inventory", AccountType.Asset));
+        await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "1200", "Inventory", AccountType.Asset)
+        {
+            SystemRole = SystemAccountRole.Inventory
+        });
         await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "2000", "Accounts Payable", AccountType.Liability)
         {
             SystemRole = SystemAccountRole.AccountsPayable

@@ -290,9 +290,8 @@ public class OrderAppService :
         }
 
         var productIds = lines.Select(x => x.ProductId!.Value).Distinct().ToList();
-        var trackedProductIds = (await _productRepository.GetListAsync(x => productIds.Contains(x.Id) && x.TrackInventory))
-            .Select(x => x.Id)
-            .ToHashSet();
+        var trackedProducts = (await _productRepository.GetListAsync(x => productIds.Contains(x.Id) && x.TrackInventory))
+            .ToDictionary(x => x.Id);
 
         var warehouseId = order.WarehouseId != Guid.Empty
             ? order.WarehouseId
@@ -303,12 +302,30 @@ public class OrderAppService :
             return;
         }
 
-        foreach (var line in lines.Where(x => trackedProductIds.Contains(x.ProductId!.Value)))
+        // Cost of goods sold: Dr COGS / Cr Inventory for each tracked line, at the Product's own
+        // Cost (the same flat, no-per-product-account-mapping simplification the rest of the GL
+        // uses) - a separate JournalEntry from the AR/Revenue one ConvertToInvoiceAsync posts, so
+        // this never touches or double-counts the sale price itself.
+        decimal cogsTotal = 0;
+
+        foreach (var line in lines.Where(x => trackedProducts.ContainsKey(x.ProductId!.Value)))
         {
             await InventoryPostingService.PostAsync(
                 _stockMovementRepository, GuidGenerator, line.ProductId!.Value, warehouseId.Value,
                 Clock.Now, line.Quantity, StockMovementType.Issue,
                 InventoryPostingService.SourceDocumentTypes.Order, order.Id);
+
+            cogsTotal += trackedProducts[line.ProductId!.Value].Cost * line.Quantity;
+        }
+
+        if (cogsTotal > 0)
+        {
+            await JournalPostingService.PostAsync(
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                Clock.Now, JournalPostingService.SourceDocumentTypes.Order, order.Id,
+                $"Cost of Goods Sold - Order {order.OrderNumber}",
+                SystemAccountRole.Expense, SystemAccountRole.Inventory,
+                cogsTotal, order.CurrencyCode, order.ExchangeRateToBase);
         }
     }
 

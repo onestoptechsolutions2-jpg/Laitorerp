@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Procurement;
@@ -30,6 +31,7 @@ public class SupplierInvoiceAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -44,6 +46,7 @@ public class SupplierInvoiceAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<Product, Guid> productRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -57,6 +60,7 @@ public class SupplierInvoiceAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _productRepository = productRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -179,12 +183,41 @@ public class SupplierInvoiceAppService :
             throw new UserFriendlyException("Add at least one line before posting this supplier invoice to the ledger.");
         }
 
-        await JournalPostingService.PostAsync(
-            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
-            invoice.IssueDate, JournalPostingService.SourceDocumentTypes.SupplierInvoice, invoice.Id,
-            $"Supplier Invoice {invoice.SupplierInvoiceNumber}",
-            SystemAccountRole.Expense, SystemAccountRole.AccountsPayable,
-            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
+        // Split by whether each line's Product has inventory tracking on - the tracked portion
+        // debits the Inventory asset (1200) instead of the flat Expense/COGS account, so purchased
+        // stock shows up on the Balance Sheet until it's sold (see OrderAppService.
+        // OnOrderFulfilledAsync, which then debits COGS/credits Inventory at fulfillment). Both
+        // pieces credit AccountsPayable exactly like the old single-line posting did, so this never
+        // changes what the vendor is owed - only which debit account absorbs the cost.
+        var productIds = lines.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
+        var trackedProductIds = productIds.Count > 0
+            ? (await _productRepository.GetListAsync(x => productIds.Contains(x.Id) && x.TrackInventory)).Select(x => x.Id).ToHashSet()
+            : new HashSet<Guid>();
+
+        var inventoryTotal = lines
+            .Where(x => x.ProductId.HasValue && trackedProductIds.Contains(x.ProductId.Value))
+            .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+        var expenseTotal = total - inventoryTotal;
+
+        if (inventoryTotal > 0)
+        {
+            await JournalPostingService.PostAsync(
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                invoice.IssueDate, JournalPostingService.SourceDocumentTypes.SupplierInvoice, invoice.Id,
+                $"Supplier Invoice {invoice.SupplierInvoiceNumber} (Inventory)",
+                SystemAccountRole.Inventory, SystemAccountRole.AccountsPayable,
+                inventoryTotal, invoice.CurrencyCode, invoice.ExchangeRateToBase);
+        }
+
+        if (expenseTotal > 0)
+        {
+            await JournalPostingService.PostAsync(
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                invoice.IssueDate, JournalPostingService.SourceDocumentTypes.SupplierInvoice, invoice.Id,
+                $"Supplier Invoice {invoice.SupplierInvoiceNumber}",
+                SystemAccountRole.Expense, SystemAccountRole.AccountsPayable,
+                expenseTotal, invoice.CurrencyCode, invoice.ExchangeRateToBase);
+        }
     }
 
     // Same rule InvoiceAppService.ComputePaymentStatus already uses, on the payable side.
