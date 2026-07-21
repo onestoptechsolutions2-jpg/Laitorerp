@@ -44,6 +44,10 @@
                     </form>
                 }
             }
+            @if (Model.CanPromoteToKnowledgeBase && isTerminal)
+            {
+                <a asp-page="/KnowledgeBase/Create" asp-route-SourceTicketId="@Model.Ticket.Id" asp-route-SourceTitle="@Model.Ticket.Subject" class="btn btn-outline-secondary">@L["PromoteToKnowledgeBase"]</a>
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

@@ -2,6 +2,7 @@ using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Projects;
@@ -187,6 +188,14 @@ public static class StatusPill
         ConfigurationItemStatus.InStorage => Info,
         ConfigurationItemStatus.UnderMaintenance => Warning,
         ConfigurationItemStatus.Retired => Neutral,
+        _ => Neutral
+    };
+
+    public static string For(KnowledgeArticleStatus status) => status switch
+    {
+        KnowledgeArticleStatus.Draft => Neutral,
+        KnowledgeArticleStatus.Published => Success,
+        KnowledgeArticleStatus.Archived => Info,
         _ => Neutral
     };
 }

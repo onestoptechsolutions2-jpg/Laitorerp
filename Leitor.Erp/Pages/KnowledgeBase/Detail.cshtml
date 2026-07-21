@@ -1,0 +1,38 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.KnowledgeBase.DetailModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Article.Title</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Article.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
+        <dl class="row mb-3">
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Article.Status)">@L[$"Enum:KnowledgeArticleStatus:{(int)Model.Article.Status}"]</span></dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Article.Tags))
+            {
+                <dt class="col-sm-2">@L["Tags"]</dt>
+                <dd class="col-sm-4">@Model.Article.Tags</dd>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Article.SourceTicketNumber))
+            {
+                <dt class="col-sm-2">@L["Tickets"]</dt>
+                <dd class="col-sm-4"><a asp-page="/Support/Tickets/Detail" asp-route-id="@Model.Article.SourceTicketId">@Model.Article.SourceTicketNumber</a></dd>
+            }
+        </dl>
+        <div style="white-space: pre-wrap;">@Model.Article.Body</div>
+    </div>
+</div>

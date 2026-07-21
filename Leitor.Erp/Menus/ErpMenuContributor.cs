@@ -302,6 +302,21 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        // Toggleable module (see Features/ErpFeatures.cs).
+        if (await context.IsGrantedAsync(ErpPermissions.KnowledgeBase.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.KnowledgeManagement))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.KnowledgeBase,
+                    l["Menu:KnowledgeBase"],
+                    "~/KnowledgeBase",
+                    icon: "fas fa-book",
+                    order: 16
+                )
+            );
+        }
+
         // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of
         // which business module it reports on - lives under Administration (not the main module
         // area) since it's a cross-module utility area, same reasoning AuditLogs/DeletionApprovals

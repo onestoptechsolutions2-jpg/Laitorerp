@@ -4,6 +4,7 @@ using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
@@ -96,6 +97,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 
     public DbSet<ConfigurationItem> ConfigurationItems { get; set; } = null!;
     public DbSet<ConfigurationItemRelationship> ConfigurationItemRelationships { get; set; } = null!;
+
+    public DbSet<KnowledgeArticle> KnowledgeArticles { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -727,6 +730,15 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.HasIndex(x => x.SourceCiId);
             b.HasIndex(x => x.TargetCiId);
+        });
+
+        builder.Entity<KnowledgeArticle>(b =>
+        {
+            b.ToTable("KnowledgeArticles");
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Tags).HasMaxLength(512);
+            b.HasIndex(x => x.SourceTicketId);
         });
 
         builder.Entity<DeletionRequest>(b =>
