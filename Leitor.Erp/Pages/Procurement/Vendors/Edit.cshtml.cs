@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Governance;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Features;
 using Volo.Abp.Identity;
 
 namespace Leitor.Erp.Pages.Procurement.Vendors;
@@ -21,16 +24,22 @@ public class EditModel : AbpPageModel
 {
     private readonly VendorAppService _vendorAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IFeatureChecker _featureChecker;
 
     public EditModel(
         VendorAppService vendorAppService,
         IRepository<IdentityUser, Guid> identityUserRepository,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IFeatureChecker featureChecker)
     {
         _vendorAppService = vendorAppService;
         _identityUserRepository = identityUserRepository;
+        _taxRateRepository = taxRateRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _featureChecker = featureChecker;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -40,6 +49,8 @@ public class EditModel : AbpPageModel
     public CreateUpdateVendorDto Vendor { get; set; } = new();
 
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public List<SelectListItem> WithholdingTaxRateOptions { get; set; } = new();
+    public bool CanUseTaxCompliance { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
@@ -58,10 +69,12 @@ public class EditModel : AbpPageModel
             PostalCode = vendor.PostalCode,
             Country = vendor.Country,
             Notes = vendor.Notes,
-            PortalUserId = vendor.PortalUserId
+            PortalUserId = vendor.PortalUserId,
+            WithholdingTaxRateId = vendor.WithholdingTaxRateId
         };
 
         await LoadUserOptionsAsync();
+        await LoadWithholdingTaxRateOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -69,6 +82,7 @@ public class EditModel : AbpPageModel
         if (!ModelState.IsValid)
         {
             await LoadUserOptionsAsync();
+            await LoadWithholdingTaxRateOptionsAsync();
             return Page();
         }
 
@@ -82,6 +96,21 @@ public class EditModel : AbpPageModel
         UserOptions = new List<SelectListItem> { new(L["None"], "") };
         UserOptions.AddRange(
             users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
+        );
+    }
+
+    private async Task LoadWithholdingTaxRateOptionsAsync()
+    {
+        CanUseTaxCompliance = await _featureChecker.IsEnabledAsync(ErpFeatures.TaxCompliance);
+        if (!CanUseTaxCompliance)
+        {
+            return;
+        }
+
+        var rates = await _taxRateRepository.GetListAsync(x => x.TaxType == TaxType.WithholdingTax);
+        WithholdingTaxRateOptions = new List<SelectListItem> { new(L["None"], "") };
+        WithholdingTaxRateOptions.AddRange(
+            rates.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N1}%)", x.Id.ToString()))
         );
     }
 }

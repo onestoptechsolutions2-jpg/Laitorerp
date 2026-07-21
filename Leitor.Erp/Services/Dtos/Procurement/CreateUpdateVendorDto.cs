@@ -34,4 +34,5 @@ public class CreateUpdateVendorDto
     public string? Notes { get; set; }
 
     public Guid? PortalUserId { get; set; }
+    public Guid? WithholdingTaxRateId { get; set; }
 }

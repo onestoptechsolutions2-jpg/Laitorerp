@@ -1,0 +1,38 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Tax.VatReturn.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["VatReturn"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <div class="col-auto">
+                <label class="form-label">@L["FromDate"]</label>
+                <input type="date" name="FromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label">@L["ToDate"]</label>
+                <input type="date" name="ToDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        <p class="text-muted small">@L["VatReturnHint"]</p>
+
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <tbody>
+                    <tr><th>@L["OutputVat"]</th><td>@Model.Result.OutputVat.ToString("N2")</td></tr>
+                    <tr><th>@L["InputVat"]</th><td>@Model.Result.InputVat.ToString("N2")</td></tr>
+                    <tr class="table-active"><th>@L["NetVatPayable"]</th><td><strong>@Model.Result.NetVatPayable.ToString("N2")</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

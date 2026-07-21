@@ -20,6 +20,10 @@
             <abp-input asp-for="Vendor.PostalCode" />
             <abp-input asp-for="Vendor.Country" />
             <abp-input asp-for="Vendor.Notes" />
+            @if (Model.CanUseTaxCompliance)
+            {
+                <abp-select asp-for="Vendor.WithholdingTaxRateId" asp-items="Model.WithholdingTaxRateOptions" label="@L["WithholdingTaxRate"]" />
+            }
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>

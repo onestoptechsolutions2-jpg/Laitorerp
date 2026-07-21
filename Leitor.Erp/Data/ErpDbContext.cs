@@ -603,6 +603,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ToTable("VendorPayments");
             b.ConfigureByConvention();
             b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.WithholdingTaxAmount).HasColumnType("decimal(18,2)");
             b.Property(x => x.Reference).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8).HasDefaultValue("KES");

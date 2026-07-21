@@ -19,6 +19,12 @@ public class VendorPayment : FullAuditedAggregateRoot<Guid>
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
 
+    // Snapshotted at creation from the Vendor's own WithholdingTaxRateId (if any) x Amount, never
+    // recomputed later - same "snapshot, don't recompute" discipline as every other tax field in
+    // this app. Zero for vendors with no withholding rate configured. Reduces the actual Cash paid
+    // out without changing the Accounts Payable amount cleared - see VendorPaymentAppService.
+    public decimal WithholdingTaxAmount { get; set; }
+
     protected VendorPayment()
     {
     }

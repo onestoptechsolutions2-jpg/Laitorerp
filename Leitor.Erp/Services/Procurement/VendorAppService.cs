@@ -25,6 +25,7 @@ public class VendorAppService :
     private readonly IRepository<ProductVendor, Guid> _productVendorRepository;
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public VendorAppService(
@@ -34,6 +35,7 @@ public class VendorAppService :
         IRepository<ProductVendor, Guid> productVendorRepository,
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<TaxRate, Guid> taxRateRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
@@ -42,6 +44,7 @@ public class VendorAppService :
         _productVendorRepository = productVendorRepository;
         _fieldServiceJobRepository = fieldServiceJobRepository;
         _identityUserRepository = identityUserRepository;
+        _taxRateRepository = taxRateRepository;
         _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Vendors.Default;
@@ -95,18 +98,18 @@ public class VendorAppService :
     public override async Task<VendorDto> GetAsync(Guid id)
     {
         var dto = await base.GetAsync(id);
-        await ResolvePortalUserNamesAsync(new[] { dto });
+        await ResolveExtrasAsync(new[] { dto });
         return dto;
     }
 
     public override async Task<PagedResultDto<VendorDto>> GetListAsync(GetVendorListInput input)
     {
         var result = await base.GetListAsync(input);
-        await ResolvePortalUserNamesAsync(result.Items);
+        await ResolveExtrasAsync(result.Items);
         return result;
     }
 
-    private async Task ResolvePortalUserNamesAsync(IReadOnlyCollection<VendorDto> vendors)
+    private async Task ResolveExtrasAsync(IReadOnlyCollection<VendorDto> vendors)
     {
         var userIds = vendors
             .Where(x => x.PortalUserId.HasValue)
@@ -114,19 +117,30 @@ public class VendorAppService :
             .Distinct()
             .ToList();
 
-        if (userIds.Count == 0)
-        {
-            return;
-        }
+        var namesById = userIds.Count > 0
+            ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
+            : new Dictionary<Guid, string>();
 
-        var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
-        var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
+        var taxRateIds = vendors
+            .Where(x => x.WithholdingTaxRateId.HasValue)
+            .Select(x => x.WithholdingTaxRateId!.Value)
+            .Distinct()
+            .ToList();
+
+        var taxRateNamesById = taxRateIds.Count > 0
+            ? (await _taxRateRepository.GetListAsync(x => taxRateIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
 
         foreach (var vendor in vendors)
         {
             if (vendor.PortalUserId.HasValue && namesById.TryGetValue(vendor.PortalUserId.Value, out var userName))
             {
                 vendor.PortalUserName = userName;
+            }
+
+            if (vendor.WithholdingTaxRateId.HasValue && taxRateNamesById.TryGetValue(vendor.WithholdingTaxRateId.Value, out var taxRateName))
+            {
+                vendor.WithholdingTaxRateName = taxRateName;
             }
         }
     }
@@ -159,5 +173,6 @@ public class VendorAppService :
         entity.Country = input.Country;
         entity.Notes = input.Notes;
         entity.PortalUserId = input.PortalUserId;
+        entity.WithholdingTaxRateId = input.WithholdingTaxRateId;
     }
 }

@@ -164,6 +164,7 @@
                     <tr>
                         <th>@L["PaymentDate"]</th>
                         <th>@L["Amount"]</th>
+                        <th>@L["WithholdingTaxAmount"]</th>
                         <th>@L["Method"]</th>
                         <th>@L["Reference"]</th>
                         <th>@L["Actions"]</th>
@@ -175,6 +176,7 @@
                         <tr>
                             <td>@payment.PaymentDate.ToShortDateString()</td>
                             <td>@payment.Amount.ToString("N2")</td>
+                            <td>@(payment.WithholdingTaxAmount > 0 ? payment.WithholdingTaxAmount.ToString("N2") : "-")</td>
                             <td>@L[$"Enum:PaymentMethod:{(int)payment.Method}"]</td>
                             <td>@payment.Reference</td>
                             <td>

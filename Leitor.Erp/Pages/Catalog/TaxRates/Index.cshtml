@@ -22,6 +22,7 @@
                     <tr>
                         <th>@L["Name"]</th>
                         <th>@L["Percent"]</th>
+                        <th>@L["TaxType"]</th>
                         <th>@L["IsDefault"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
@@ -29,13 +30,14 @@
                 <tbody>
                     @if (!Model.TaxRates.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var taxRate in Model.TaxRates)
                     {
                         <tr>
                             <td>@taxRate.Name</td>
                             <td>@taxRate.Percent.ToString("N2")%</td>
+                            <td>@L[$"Enum:TaxType:{(int)taxRate.TaxType}"]</td>
                             <td>@(taxRate.IsDefault ? "✓" : "")</td>
                             <td>
                                 @if (Model.CanEdit)

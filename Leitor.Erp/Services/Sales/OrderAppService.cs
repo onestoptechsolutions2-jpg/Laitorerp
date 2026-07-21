@@ -332,7 +332,7 @@ public class OrderAppService :
     // Shared by the automatic deposit trigger above and ConvertMilestoneToInvoiceAsync below.
     private async Task<Invoice> CreateInvoiceForMilestoneAsync(Order order, OrderPaymentMilestone milestone, decimal orderSubtotal)
     {
-        var defaultTaxRate = (await _taxRateRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault();
+        var defaultTaxRate = (await _taxRateRepository.GetListAsync(x => x.IsDefault && x.TaxType == TaxType.Vat)).FirstOrDefault();
 
         var invoiceNumber = await DocumentNumbering.NextAsync(_invoiceRepository, _dataFilter, "INV-");
         var issueDate = Clock.Now;

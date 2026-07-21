@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Leitor.Erp.Entities.Sales;
 
 namespace Leitor.Erp.Services.Dtos.Sales;
 
@@ -12,4 +13,6 @@ public class CreateUpdateTaxRateDto
     public decimal Percent { get; set; }
 
     public bool IsDefault { get; set; }
+
+    public TaxType TaxType { get; set; } = TaxType.Vat;
 }

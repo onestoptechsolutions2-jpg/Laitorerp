@@ -46,6 +46,13 @@ public class ErpChartOfAccountsDataSeeder : IDataSeedContributor, ITransientDepe
         {
             SystemRole = SystemAccountRole.AccountsPayable
         });
+        // Only meaningful once Tax Compliance (ErpFeatures.TaxCompliance) is switched on and a
+        // Vendor has a withholding rate configured - harmless to seed unconditionally, same as
+        // every other system-role account here.
+        await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "2100", "Withholding Tax Payable", AccountType.Liability)
+        {
+            SystemRole = SystemAccountRole.WithholdingTaxPayable
+        });
         await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "3000", "Owner's Equity", AccountType.Equity));
         await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "4000", "Revenue", AccountType.Revenue)
         {

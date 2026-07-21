@@ -138,6 +138,15 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Gated behind ErpFeatures.TaxCompliance (see Features/ErpFeatures.cs) - a single view
+    // permission, since the VAT return is a read-only report over data already captured
+    // elsewhere (Sales/Procurement lines, Vendor withholding rates).
+    public static class TaxCompliance
+    {
+        public const string GroupName = "Erp.TaxCompliance";
+        public const string Default = GroupName;
+    }
+
     // Deletion is permission-based but gated by approval: Decide (Admin/Ops Manager) can delete a
     // scoped entity immediately; everyone else's delete action files a request here instead - see
     // Services/Governance/DeletionGate.cs.

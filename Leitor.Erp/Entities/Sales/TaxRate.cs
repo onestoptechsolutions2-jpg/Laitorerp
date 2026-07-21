@@ -14,6 +14,11 @@ public class TaxRate : FullAuditedAggregateRoot<Guid>
     public decimal Percent { get; set; }
     public bool IsDefault { get; set; }
 
+    // Vat (the original, pre-existing meaning of this table) or WithholdingTax (added for Tax
+    // Compliance - see Entities/Sales/TaxType.cs). IsDefault is enforced per-type, not globally,
+    // so a default VAT rate and a default withholding rate can coexist.
+    public TaxType TaxType { get; set; } = TaxType.Vat;
+
     protected TaxRate()
     {
     }

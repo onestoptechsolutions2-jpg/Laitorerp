@@ -29,7 +29,7 @@ public class TaxRateAppService :
     {
         if (createInput.IsDefault)
         {
-            await ClearOtherDefaultsAsync(currentId: null);
+            await ClearOtherDefaultsAsync(createInput.TaxType, currentId: null);
         }
 
         var entity = new TaxRate(GuidGenerator.Create(), createInput.Name, createInput.Percent);
@@ -41,17 +41,19 @@ public class TaxRateAppService :
     {
         if (updateInput.IsDefault)
         {
-            await ClearOtherDefaultsAsync(currentId: entity.Id);
+            await ClearOtherDefaultsAsync(updateInput.TaxType, currentId: entity.Id);
         }
 
         CopyToEntity(updateInput, entity);
     }
 
-    // Keeps "the default tax rate" unambiguous, since it's what every line without its own rate
-    // falls back to - same pattern as ProductVendorAppService.ClearOtherPreferredVendorsAsync.
-    private async Task ClearOtherDefaultsAsync(Guid? currentId)
+    // Keeps "the default tax rate" unambiguous per TaxType, since it's what every line without its
+    // own rate falls back to - same pattern as ProductVendorAppService.ClearOtherPreferredVendorsAsync.
+    // Scoped to TaxType (not global) so a default VAT rate and a default withholding rate can
+    // coexist without stealing each other's default flag.
+    private async Task ClearOtherDefaultsAsync(TaxType taxType, Guid? currentId)
     {
-        var others = await Repository.GetListAsync(x => x.IsDefault && x.Id != (currentId ?? Guid.Empty));
+        var others = await Repository.GetListAsync(x => x.IsDefault && x.TaxType == taxType && x.Id != (currentId ?? Guid.Empty));
 
         foreach (var other in others)
         {
@@ -69,5 +71,6 @@ public class TaxRateAppService :
         entity.Name = input.Name;
         entity.Percent = input.Percent;
         entity.IsDefault = input.IsDefault;
+        entity.TaxType = input.TaxType;
     }
 }

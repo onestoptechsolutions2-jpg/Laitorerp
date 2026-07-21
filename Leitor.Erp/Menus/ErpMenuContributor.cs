@@ -242,6 +242,21 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        // Toggleable module (see Features/ErpFeatures.cs).
+        if (await context.IsGrantedAsync(ErpPermissions.TaxCompliance.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.TaxCompliance))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.TaxCompliance,
+                    l["Menu:TaxCompliance"],
+                    "~/Tax/VatReturn",
+                    icon: "fas fa-receipt",
+                    order: 12
+                )
+            );
+        }
+
         // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of
         // which business module it reports on - lives under Administration (not the main module
         // area) since it's a cross-module utility area, same reasoning AuditLogs/DeletionApprovals

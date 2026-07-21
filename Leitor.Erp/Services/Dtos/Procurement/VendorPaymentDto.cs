@@ -14,4 +14,7 @@ public class VendorPaymentDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+
+    // Snapshotted by VendorPaymentAppService at creation - see VendorPayment.WithholdingTaxAmount.
+    public decimal WithholdingTaxAmount { get; set; }
 }

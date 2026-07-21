@@ -12,5 +12,6 @@ public enum SystemAccountRole
     Cash = 3,
     Revenue = 4,
     Expense = 5,
-    Inventory = 6
+    Inventory = 6,
+    WithholdingTaxPayable = 7
 }

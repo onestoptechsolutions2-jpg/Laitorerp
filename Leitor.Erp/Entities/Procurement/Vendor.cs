@@ -20,6 +20,11 @@ public class Vendor : FullAuditedAggregateRoot<Guid>
     // subcontracted-technician (Field Service Jobs) access, since both reference Vendor already.
     public Guid? PortalUserId { get; set; }
 
+    // A TaxRate row with TaxType.WithholdingTax (see Entities/Sales/TaxType.cs) - optional; a
+    // vendor with none set is never withheld from. VendorPaymentAppService snapshots the
+    // resulting amount onto VendorPayment.WithholdingTaxAmount at payment time.
+    public Guid? WithholdingTaxRateId { get; set; }
+
     protected Vendor()
     {
     }

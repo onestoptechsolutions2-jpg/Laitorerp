@@ -28,7 +28,9 @@ public static class TaxRateResolver
 
         if (taxRateId == null)
         {
-            var defaultRate = (await taxRateRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault();
+            // Vat-scoped: a default WithholdingTax rate (see Entities/Sales/TaxType.cs) must never
+            // leak in here - it only ever applies to VendorPayment, not sales lines.
+            var defaultRate = (await taxRateRepository.GetListAsync(x => x.IsDefault && x.TaxType == TaxType.Vat)).FirstOrDefault();
             return (defaultRate?.Id, defaultRate?.Percent ?? 0);
         }
 

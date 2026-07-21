@@ -32,7 +32,8 @@ public class EditModel : AbpPageModel
         {
             Name = taxRate.Name,
             Percent = taxRate.Percent,
-            IsDefault = taxRate.IsDefault
+            IsDefault = taxRate.IsDefault,
+            TaxType = taxRate.TaxType
         };
     }
 

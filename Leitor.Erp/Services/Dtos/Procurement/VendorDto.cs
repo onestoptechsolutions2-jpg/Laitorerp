@@ -15,7 +15,9 @@ public class VendorDto : FullAuditedEntityDto<Guid>
     public string? Country { get; set; }
     public string? Notes { get; set; }
     public Guid? PortalUserId { get; set; }
+    public Guid? WithholdingTaxRateId { get; set; }
 
-    // Resolved by VendorAppService from IdentityUser repository - not a stored column.
+    // Resolved by VendorAppService from IdentityUser/TaxRate repositories - not stored columns.
     public string? PortalUserName { get; set; }
+    public string? WithholdingTaxRateName { get; set; }
 }
