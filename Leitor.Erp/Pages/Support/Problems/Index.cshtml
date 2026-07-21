@@ -1,0 +1,64 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Support.Problems.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Problems"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewProblem"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Title"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["ProblemNumber"]</th>
+                        <th>@L["Title"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Tickets"]</th>
+                        <th>@L["IdentifiedDate"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Problems.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var problem in Model.Problems)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@problem.Id">@problem.ProblemNumber</a></td>
+                            <td>@problem.Title</td>
+                            <td><span class="pill @StatusPill.For(problem.Status)">@L[$"Enum:ProblemStatus:{(int)problem.Status}"]</span></td>
+                            <td>@problem.LinkedTicketCount</td>
+                            <td>@problem.IdentifiedDate.ToShortDateString()</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@problem.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

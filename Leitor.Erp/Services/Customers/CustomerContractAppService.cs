@@ -66,5 +66,10 @@ public class CustomerContractAppService :
 
         entity.Value = input.Value;
         entity.Notes = input.Notes;
+
+        entity.SlaUrgentHours = input.SlaUrgentHours;
+        entity.SlaHighHours = input.SlaHighHours;
+        entity.SlaMediumHours = input.SlaMediumHours;
+        entity.SlaLowHours = input.SlaLowHours;
     }
 }

@@ -24,6 +24,8 @@ public class TicketAppService :
     private readonly IRepository<TicketMessage, Guid> _messageRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Problem, Guid> _problemRepository;
+    private readonly IRepository<CustomerContract, Guid> _contractRepository;
     private readonly IClock _clock;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -33,6 +35,8 @@ public class TicketAppService :
         IRepository<TicketMessage, Guid> messageRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Problem, Guid> problemRepository,
+        IRepository<CustomerContract, Guid> contractRepository,
         IClock clock,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -41,6 +45,8 @@ public class TicketAppService :
         _messageRepository = messageRepository;
         _customerRepository = customerRepository;
         _identityUserRepository = identityUserRepository;
+        _problemRepository = problemRepository;
+        _contractRepository = contractRepository;
         _clock = clock;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
@@ -111,6 +117,15 @@ public class TicketAppService :
             ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
+        var problemIds = tickets
+            .Where(x => x.ProblemId.HasValue)
+            .Select(x => x.ProblemId!.Value)
+            .Distinct()
+            .ToList();
+        var problemNumbersById = problemIds.Count > 0
+            ? (await _problemRepository.GetListAsync(x => problemIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.ProblemNumber)
+            : new Dictionary<Guid, string>();
+
         var now = _clock.Now;
 
         foreach (var ticket in tickets)
@@ -125,14 +140,44 @@ public class TicketAppService :
                 ticket.AssignedToUserName = userName;
             }
 
+            if (ticket.ProblemId.HasValue && problemNumbersById.TryGetValue(ticket.ProblemId.Value, out var problemNumber))
+            {
+                ticket.ProblemNumber = problemNumber;
+            }
+
             var isOpen = ticket.Status is not (TicketStatus.Resolved or TicketStatus.Closed);
             ticket.IsSlaBreached = isOpen && ticket.SlaDueDate.HasValue && ticket.SlaDueDate.Value < now;
         }
     }
 
-    // Fixed priority -> response-time table, set once at creation and never recomputed on update
-    // (changing Priority later doesn't retroactively move an already-set target).
-    private static TimeSpan SlaWindow(TicketPriority priority) => priority switch
+    // Resolved once at creation and never recomputed on update (changing Priority or Contract
+    // later doesn't retroactively move an already-set target). Prefers the linked CustomerContract's
+    // own per-priority SLA hours (a Platinum-support contract can promise faster response than a
+    // Bronze one); falls back to the app-wide default table for tickets with no contract, or a
+    // contract that hasn't set that particular tier.
+    private async Task<TimeSpan> ResolveSlaWindowAsync(TicketPriority priority, Guid? contractId)
+    {
+        if (contractId.HasValue)
+        {
+            var contract = await _contractRepository.FindAsync(contractId.Value);
+            var contractHours = contract == null ? null : priority switch
+            {
+                TicketPriority.Urgent => contract.SlaUrgentHours,
+                TicketPriority.High => contract.SlaHighHours,
+                TicketPriority.Medium => contract.SlaMediumHours,
+                _ => contract.SlaLowHours
+            };
+
+            if (contractHours.HasValue)
+            {
+                return TimeSpan.FromHours(contractHours.Value);
+            }
+        }
+
+        return DefaultSlaWindow(priority);
+    }
+
+    private static TimeSpan DefaultSlaWindow(TicketPriority priority) => priority switch
     {
         TicketPriority.Urgent => TimeSpan.FromHours(4),
         TicketPriority.High => TimeSpan.FromHours(24),
@@ -149,7 +194,7 @@ public class TicketAppService :
 
         var entity = new Ticket(GuidGenerator.Create(), createInput.CustomerId, ticketNumber, createInput.Subject);
         CopyToEntity(createInput, entity);
-        entity.SlaDueDate = _clock.Now.Add(SlaWindow(entity.Priority));
+        entity.SlaDueDate = _clock.Now.Add(await ResolveSlaWindowAsync(entity.Priority, entity.ContractId));
         return entity;
     }
 
@@ -165,6 +210,7 @@ public class TicketAppService :
         entity.OrderId = input.OrderId;
         entity.JobId = input.JobId;
         entity.ContractId = input.ContractId;
+        entity.ProblemId = input.ProblemId;
         entity.Subject = input.Subject;
         entity.Type = input.Type;
         entity.Priority = input.Priority;

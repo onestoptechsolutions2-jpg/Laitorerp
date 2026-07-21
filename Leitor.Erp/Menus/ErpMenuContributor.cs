@@ -137,24 +137,24 @@ public class ErpMenuContributor : IMenuContributor
 
         if (await context.IsGrantedAsync(ErpPermissions.Support.Default))
         {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.SupportTickets,
-                    l["Menu:Support"],
-                    "~/Support/Tickets",
-                    icon: "fas fa-headset",
-                    order: 7
-                )
+            var supportMenu = new ApplicationMenuItem(
+                ErpMenus.Support,
+                l["Menu:Support"],
+                icon: "fas fa-headset",
+                order: 7
             );
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.SupportWarrantyClaims,
-                    l["Menu:WarrantyClaims"],
-                    "~/Support/WarrantyClaims",
-                    icon: "fas fa-shield-halved",
-                    order: 8
-                )
+
+            supportMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SupportTickets, l["Menu:Tickets"], "~/Support/Tickets", order: 1)
             );
+            supportMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SupportWarrantyClaims, l["Menu:WarrantyClaims"], "~/Support/WarrantyClaims", order: 2)
+            );
+            supportMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SupportProblems, l["Menu:Problems"], "~/Support/Problems", order: 3)
+            );
+
+            context.Menu.Items.Add(supportMenu);
         }
 
         var canViewVendors = await context.IsGrantedAsync(ErpPermissions.Vendors.Default);
@@ -166,7 +166,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Procurement,
                 l["Menu:Procurement"],
                 icon: "fas fa-truck-ramp-box",
-                order: 9
+                order: 8
             );
 
             if (canViewVendors)
@@ -197,7 +197,7 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:Accounting"],
                     "~/Accounting/JournalEntries",
                     icon: "fas fa-scale-balanced",
-                    order: 10
+                    order: 9
                 )
             );
         }
@@ -208,7 +208,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Inventory,
                 l["Menu:Inventory"],
                 icon: "fas fa-warehouse",
-                order: 11
+                order: 10
             );
 
             inventoryMenu.AddItem(
@@ -230,8 +230,9 @@ public class ErpMenuContributor : IMenuContributor
         var canViewGeneralLedgerReports = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
         var canViewAuditLogs = await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default);
         var canViewInventoryReports = await context.IsGrantedAsync(ErpPermissions.Inventory.Default);
+        var canViewSupportAnalytics = await context.IsGrantedAsync(ErpPermissions.Support.Default);
 
-        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewGeneralLedgerReports || canViewAuditLogs || canViewInventoryReports)
+        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewGeneralLedgerReports || canViewAuditLogs || canViewInventoryReports || canViewSupportAnalytics)
         {
             var reportsMenu = new ApplicationMenuItem(
                 ErpMenus.Reports,
@@ -280,6 +281,13 @@ public class ErpMenuContributor : IMenuContributor
                 );
                 reportsMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 8)
+                );
+            }
+
+            if (canViewSupportAnalytics)
+            {
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 9)
                 );
             }
 

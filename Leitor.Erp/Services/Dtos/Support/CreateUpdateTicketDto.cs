@@ -15,6 +15,8 @@ public class CreateUpdateTicketDto
 
     public Guid? ContractId { get; set; }
 
+    public Guid? ProblemId { get; set; }
+
     [Required]
     [StringLength(256)]
     public string Subject { get; set; } = string.Empty;

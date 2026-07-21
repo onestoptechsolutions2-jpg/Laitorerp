@@ -71,6 +71,7 @@ public class DetailModel : AbpPageModel
             OrderId = ticket.OrderId,
             JobId = ticket.JobId,
             ContractId = ticket.ContractId,
+            ProblemId = ticket.ProblemId,
             Subject = ticket.Subject,
             Type = ticket.Type,
             Status = status,

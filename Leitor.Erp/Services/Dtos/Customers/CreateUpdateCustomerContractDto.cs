@@ -30,4 +30,18 @@ public class CreateUpdateCustomerContractDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    // Per-priority SLA response targets in hours - leave blank to inherit the app-wide default
+    // table (see TicketAppService.ResolveSlaWindowAsync).
+    [Range(1, 8760)]
+    public int? SlaUrgentHours { get; set; }
+
+    [Range(1, 8760)]
+    public int? SlaHighHours { get; set; }
+
+    [Range(1, 8760)]
+    public int? SlaMediumHours { get; set; }
+
+    [Range(1, 8760)]
+    public int? SlaLowHours { get; set; }
 }

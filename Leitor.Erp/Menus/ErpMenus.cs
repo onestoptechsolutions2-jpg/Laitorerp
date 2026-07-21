@@ -14,8 +14,10 @@ public class ErpMenus
     public const string SalesInvoices = Sales + ".Invoices";
     public const string FieldService = Prefix + ".FieldService";
     public const string FieldServiceJobs = FieldService + ".Jobs";
-    public const string SupportTickets = Prefix + ".Support.Tickets";
-    public const string SupportWarrantyClaims = Prefix + ".Support.WarrantyClaims";
+    public const string Support = Prefix + ".Support";
+    public const string SupportTickets = Support + ".Tickets";
+    public const string SupportWarrantyClaims = Support + ".WarrantyClaims";
+    public const string SupportProblems = Support + ".Problems";
     public const string Procurement = Prefix + ".Procurement";
     public const string ProcurementVendors = Procurement + ".Vendors";
     public const string ProcurementPurchaseOrders = Procurement + ".PurchaseOrders";
@@ -39,6 +41,7 @@ public class ErpMenus
     public const string ReportsAuditLogs = Reports + ".AuditLogs";
     public const string ReportsStockOnHand = Reports + ".StockOnHand";
     public const string ReportsLowStock = Reports + ".LowStock";
+    public const string ReportsSupportAnalytics = Reports + ".SupportAnalytics";
 
     // Cross-cutting: every rarely-touched reference/configuration page in the app, regardless of
     // which business module it configures - separated from the transactional Module menus above.

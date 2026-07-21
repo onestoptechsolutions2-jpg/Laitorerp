@@ -15,4 +15,9 @@ public class CustomerContractDto : FullAuditedEntityDto<Guid>
     public DateTime? EndDate { get; set; }
     public decimal? Value { get; set; }
     public string? Notes { get; set; }
+
+    public int? SlaUrgentHours { get; set; }
+    public int? SlaHighHours { get; set; }
+    public int? SlaMediumHours { get; set; }
+    public int? SlaLowHours { get; set; }
 }

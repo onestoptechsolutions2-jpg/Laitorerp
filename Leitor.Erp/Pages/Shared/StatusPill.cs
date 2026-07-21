@@ -147,4 +147,14 @@ public static class StatusPill
         FieldServiceJobStatus.Cancelled => Neutral,
         _ => Neutral
     };
+
+    public static string For(ProblemStatus status) => status switch
+    {
+        ProblemStatus.Open => Danger,
+        ProblemStatus.Investigating => Warning,
+        ProblemStatus.KnownError => Info,
+        ProblemStatus.Resolved => Success,
+        ProblemStatus.Closed => Neutral,
+        _ => Neutral
+    };
 }

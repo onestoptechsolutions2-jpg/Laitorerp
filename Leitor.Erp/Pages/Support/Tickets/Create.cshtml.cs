@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.Support;
@@ -26,6 +27,7 @@ public class CreateModel : AbpPageModel
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
     private readonly IRepository<CustomerContract, Guid> _contractRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Problem, Guid> _problemRepository;
 
     public CreateModel(
         TicketAppService ticketAppService,
@@ -33,7 +35,8 @@ public class CreateModel : AbpPageModel
         IRepository<Order, Guid> orderRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
         IRepository<CustomerContract, Guid> contractRepository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Problem, Guid> problemRepository)
     {
         _ticketAppService = ticketAppService;
         _customerRepository = customerRepository;
@@ -41,6 +44,7 @@ public class CreateModel : AbpPageModel
         _jobRepository = jobRepository;
         _contractRepository = contractRepository;
         _identityUserRepository = identityUserRepository;
+        _problemRepository = problemRepository;
     }
 
     [BindProperty]
@@ -51,6 +55,7 @@ public class CreateModel : AbpPageModel
     public List<SelectListItem> JobOptions { get; set; } = new();
     public List<SelectListItem> ContractOptions { get; set; } = new();
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public List<SelectListItem> ProblemOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -109,6 +114,12 @@ public class CreateModel : AbpPageModel
         UserOptions = new List<SelectListItem> { new(L["None"], "") };
         UserOptions.AddRange(
             users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
+        );
+
+        var problems = await _problemRepository.GetListAsync();
+        ProblemOptions = new List<SelectListItem> { new(L["None"], "") };
+        ProblemOptions.AddRange(
+            problems.OrderByDescending(x => x.IdentifiedDate).Select(x => new SelectListItem($"{x.ProblemNumber} - {x.Title}", x.Id.ToString()))
         );
     }
 }

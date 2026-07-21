@@ -1,0 +1,99 @@
+@page
+@using System
+@using System.Linq
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Support.Analytics.IndexModel
+
+@{
+    var maxVolume = Model.VolumeTrend.Count > 0 ? Model.VolumeTrend.Max(x => x.Count) : 0;
+}
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["TicketVolumeTrend"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.VolumeTrend.All(x => x.Count == 0))
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            @foreach (var month in Model.VolumeTrend)
+            {
+                var widthPercent = maxVolume > 0 ? month.Count * 100 / maxVolume : 0;
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small">
+                        <span>@(new DateTime(month.Year, month.Month, 1).ToString("MMM yyyy"))</span>
+                        <span class="text-muted">@month.Count</span>
+                    </div>
+                    <div class="progress" style="height: 0.5rem;">
+                        <div class="progress-bar" role="progressbar" style="width: @(widthPercent)%;"></div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["SlaBreachTrend"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Month"]</th>
+                        <th>@L["Tickets"]</th>
+                        <th>@L["SlaBreached"]</th>
+                        <th>@L["BreachRate"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var month in Model.SlaBreachTrend)
+                    {
+                        <tr>
+                            <td>@(new DateTime(month.Year, month.Month, 1).ToString("MMM yyyy"))</td>
+                            <td>@month.TotalCount</td>
+                            <td>@month.BreachedCount</td>
+                            <td>@(month.TotalCount > 0 ? (month.BreachedCount * 100m / month.TotalCount).ToString("N0") + "%" : "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["CsatTrend"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Month"]</th>
+                        <th>@L["CustomerSatisfactionRating"]</th>
+                        <th>@L["RatedTickets"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var month in Model.CsatTrend)
+                    {
+                        <tr>
+                            <td>@(new DateTime(month.Year, month.Month, 1).ToString("MMM yyyy"))</td>
+                            <td>@(month.AverageRating.HasValue ? month.AverageRating.Value.ToString("N1") + " / 5" : "-")</td>
+                            <td>@month.RatedCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

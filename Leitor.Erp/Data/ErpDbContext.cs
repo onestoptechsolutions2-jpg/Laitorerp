@@ -81,6 +81,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Ticket> Tickets { get; set; } = null!;
     public DbSet<TicketMessage> TicketMessages { get; set; } = null!;
     public DbSet<WarrantyClaim> WarrantyClaims { get; set; } = null!;
+    public DbSet<Problem> Problems { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -613,6 +614,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.OrderId);
             b.HasIndex(x => x.JobId);
             b.HasIndex(x => x.ContractId);
+            b.HasIndex(x => x.ProblemId);
             b.HasIndex(x => x.AssignedToUserId);
             b.HasIndex(x => x.TicketNumber).IsUnique();
         });
@@ -636,6 +638,18 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.JobId);
             b.HasIndex(x => x.TicketId);
             b.HasIndex(x => x.ClaimNumber).IsUnique();
+        });
+
+        builder.Entity<Problem>(b =>
+        {
+            b.ToTable("Problems");
+            b.ConfigureByConvention();
+            b.Property(x => x.ProblemNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.RootCause).HasMaxLength(2000);
+            b.Property(x => x.Workaround).HasMaxLength(2000);
+            b.HasIndex(x => x.ProblemNumber).IsUnique();
         });
 
         builder.Entity<DeletionRequest>(b =>

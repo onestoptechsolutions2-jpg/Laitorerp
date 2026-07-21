@@ -1,0 +1,113 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Support
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Support.Problems.DetailModel
+
+@{
+    var isTerminal = Model.Problem.Status is ProblemStatus.Resolved or ProblemStatus.Closed;
+}
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><span class="doc-no">@Model.Problem.ProblemNumber</span> - @Model.Problem.Title</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Problem.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+                @if (!isTerminal)
+                {
+                    @if (Model.Problem.Status != ProblemStatus.Investigating)
+                    {
+                        <form method="post" asp-page-handler="SetStatus" asp-route-status="1" class="d-inline">
+                            <button type="submit" class="btn btn-secondary">@L["Enum:ProblemStatus:1"]</button>
+                        </form>
+                    }
+                    @if (Model.Problem.Status != ProblemStatus.KnownError)
+                    {
+                        <form method="post" asp-page-handler="SetStatus" asp-route-status="2" class="d-inline">
+                            <button type="submit" class="btn btn-info">@L["Enum:ProblemStatus:2"]</button>
+                        </form>
+                    }
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
+                        <button type="submit" class="btn btn-success">@L["Enum:ProblemStatus:3"]</button>
+                    </form>
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                        <button type="submit" class="btn btn-outline-danger">@L["Enum:ProblemStatus:4"]</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="0" class="d-inline">
+                        <button type="submit" class="btn btn-secondary">@L["Reopen"]</button>
+                    </form>
+                }
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Problem.Status)">@L[$"Enum:ProblemStatus:{(int)Model.Problem.Status}"]</span></dd>
+            <dt class="col-sm-2">@L["IdentifiedDate"]</dt>
+            <dd class="col-sm-4">@Model.Problem.IdentifiedDate.ToShortDateString()</dd>
+
+            <dt class="col-sm-2">@L["ResolvedDate"]</dt>
+            <dd class="col-sm-4">@(Model.Problem.ResolvedDate?.ToShortDateString())</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Problem.Description))
+            {
+                <dt class="col-sm-2">@L["Description"]</dt>
+                <dd class="col-sm-10">@Model.Problem.Description</dd>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Problem.RootCause))
+            {
+                <dt class="col-sm-2">@L["RootCause"]</dt>
+                <dd class="col-sm-10">@Model.Problem.RootCause</dd>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Problem.Workaround))
+            {
+                <dt class="col-sm-2">@L["Workaround"]</dt>
+                <dd class="col-sm-10">@Model.Problem.Workaround</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Tickets"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["TicketNumber"]</th>
+                        <th>@L["Subject"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Status"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.LinkedTickets.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var ticket in Model.LinkedTickets)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
+                            <td>@ticket.Subject</td>
+                            <td>@ticket.CustomerName</td>
+                            <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

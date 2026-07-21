@@ -9,6 +9,12 @@ public class Ticket : FullAuditedAggregateRoot<Guid>
     public Guid? OrderId { get; set; }
     public Guid? JobId { get; set; }
     public Guid? ContractId { get; set; }
+
+    // Root-cause grouping (ITIL4 Problem Management) - several Tickets can share one Problem
+    // rather than each being independently re-diagnosed. Optional and set manually once a pattern
+    // is noticed; never inferred automatically.
+    public Guid? ProblemId { get; set; }
+
     public string TicketNumber { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
     public TicketType Type { get; set; } = TicketType.General;

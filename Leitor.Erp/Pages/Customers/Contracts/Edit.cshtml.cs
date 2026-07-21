@@ -41,7 +41,11 @@ public class EditModel : AbpPageModel
             StartDate = contract.StartDate,
             EndDate = contract.EndDate,
             Value = contract.Value,
-            Notes = contract.Notes
+            Notes = contract.Notes,
+            SlaUrgentHours = contract.SlaUrgentHours,
+            SlaHighHours = contract.SlaHighHours,
+            SlaMediumHours = contract.SlaMediumHours,
+            SlaLowHours = contract.SlaLowHours
         };
     }
 
