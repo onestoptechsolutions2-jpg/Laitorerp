@@ -29,6 +29,7 @@ public class ErpMenus
     public const string InventoryStockMovements = Inventory + ".StockMovements";
     public const string Portal = Prefix + ".Portal";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";
+    public const string ModuleToggles = Prefix + ".ModuleToggles";
 
     // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of which
     // business module it reports on - separated from the transactional Module menus above.

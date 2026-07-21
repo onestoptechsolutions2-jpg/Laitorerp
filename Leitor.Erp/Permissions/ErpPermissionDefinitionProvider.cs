@@ -83,6 +83,10 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         var deletionApprovalsGroup = context.AddGroup(ErpPermissions.DeletionApprovals.GroupName, L("Permission:DeletionApprovals"));
         var deletionApprovalsPermission = deletionApprovalsGroup.AddPermission(ErpPermissions.DeletionApprovals.Default, L("Permission:DeletionApprovals"));
         deletionApprovalsPermission.AddChild(ErpPermissions.DeletionApprovals.Decide, L("Permission:Decide"));
+
+        var moduleTogglesGroup = context.AddGroup(ErpPermissions.ModuleToggles.GroupName, L("Permission:ModuleToggles"));
+        var moduleTogglesPermission = moduleTogglesGroup.AddPermission(ErpPermissions.ModuleToggles.Default, L("Permission:ModuleToggles"));
+        moduleTogglesPermission.AddChild(ErpPermissions.ModuleToggles.Manage, L("Permission:Manage"));
     }
 
     private static LocalizableString L(string name)

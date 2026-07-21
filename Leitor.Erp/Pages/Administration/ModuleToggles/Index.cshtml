@@ -1,0 +1,47 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Administration.ModuleToggles.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["ModuleToggles"]</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">@L["ModuleTogglesHint"]</p>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Module"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var module in Model.Modules)
+                    {
+                        <tr>
+                            <td>@module.DisplayName</td>
+                            <td>
+                                <span class="pill @(module.IsEnabled ? "pill-success" : "pill-neutral")">
+                                    @(module.IsEnabled ? L["Enabled"] : L["Disabled"])
+                                </span>
+                            </td>
+                            <td>
+                                <form method="post" asp-page-handler="Toggle" class="d-inline">
+                                    <input type="hidden" name="name" value="@module.Name" />
+                                    <input type="hidden" name="enabled" value="@(!module.IsEnabled)" />
+                                    <button type="submit" class="btn btn-sm @(module.IsEnabled ? "btn-outline-danger" : "btn-outline-primary")">
+                                        @(module.IsEnabled ? L["Disable"] : L["Enable"])
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

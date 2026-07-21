@@ -153,26 +153,33 @@ public class DetailModel : AbpPageModel
 
         Attachments = await _customerAttachmentAppService.GetListAsync(Id);
 
-        var fieldServiceJobs = await _fieldServiceJobAppService.GetListAsync(new GetFieldServiceJobListInput
-        {
-            CustomerId = Id,
-            MaxResultCount = 1000
-        });
-        FieldServiceJobs = fieldServiceJobs.Items;
-
-        var tickets = await _ticketAppService.GetListAsync(new GetTicketListInput
-        {
-            CustomerId = Id,
-            MaxResultCount = 1000
-        });
-        Tickets = tickets.Items;
-
         OriginatingLead = (await _leadRepository.GetListAsync(x => x.ConvertedCustomerId == Id)).FirstOrDefault();
 
-        // Opportunities.Default and Sales.Default aren't granted to every role that holds
-        // Customers.Default (e.g. Procurement/Dispatcher can view Customers but not
-        // Opportunities) - gate each section the same way DashboardAppService already gates its
-        // own sections, rather than letting GetListAsync throw for those roles.
+        // FieldService.Default/Support.Default/Opportunities.Default/Sales.Default aren't granted
+        // to every role that holds Customers.Default (e.g. a Procurement/Dispatcher role can view
+        // Customers but not Field Service or Support) - gate each section the same way
+        // DashboardAppService already gates its own sections, rather than letting GetListAsync
+        // throw for those roles.
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.FieldService.Default))
+        {
+            var fieldServiceJobs = await _fieldServiceJobAppService.GetListAsync(new GetFieldServiceJobListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            FieldServiceJobs = fieldServiceJobs.Items;
+        }
+
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Support.Default))
+        {
+            var tickets = await _ticketAppService.GetListAsync(new GetTicketListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            Tickets = tickets.Items;
+        }
+
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Default))
         {
             var opportunities = await _opportunityAppService.GetListAsync(new GetOpportunityListInput

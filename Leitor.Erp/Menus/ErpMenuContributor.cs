@@ -357,6 +357,18 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        if (await context.IsGrantedAsync(ErpPermissions.ModuleToggles.Manage))
+        {
+            administration.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.ModuleToggles,
+                    l["Menu:ModuleToggles"],
+                    "~/Administration/ModuleToggles",
+                    icon: "fas fa-toggle-on"
+                )
+            );
+        }
+
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);

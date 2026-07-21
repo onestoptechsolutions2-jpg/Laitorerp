@@ -136,4 +136,15 @@ public static class ErpPermissions
         public const string Default = GroupName;
         public const string Decide = Default + ".Decide";
     }
+
+    // Gates the admin screen that turns the optional modules in Features/ErpFeatures.cs on/off -
+    // a distinct capability from any single module's own permissions, since toggling Project
+    // Management off shouldn't require holding Projects.Edit (which won't even exist while it's
+    // off) and enabling it is itself a decision worth its own gate.
+    public static class ModuleToggles
+    {
+        public const string GroupName = "Erp.ModuleToggles";
+        public const string Default = GroupName;
+        public const string Manage = Default + ".Manage";
+    }
 }
