@@ -12,6 +12,12 @@
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Customer.Id" class="btn btn-outline-primary">@L["Edit"]</a>
             }
+            @if (Model.CanErase)
+            {
+                <form method="post" asp-page-handler="EraseData" class="d-inline" onsubmit="return confirm('@L["ConfirmEraseCustomerData"]');">
+                    <button type="submit" class="btn btn-outline-danger">@L["EraseCustomerData"]</button>
+                </form>
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

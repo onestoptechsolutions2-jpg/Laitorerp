@@ -109,11 +109,13 @@ public class DetailModel : AbpPageModel
     public CreateCustomerNoteDto NewNote { get; set; } = new();
 
     public bool CanEdit { get; set; }
+    public bool CanErase { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
+        CanErase = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Erase);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Customer", Id);
 
         await LoadAsync();
@@ -286,6 +288,12 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostDeleteAttachmentAsync(Guid attachmentId)
     {
         await _customerAttachmentAppService.DeleteAsync(attachmentId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostEraseDataAsync()
+    {
+        await _customerAppService.EraseDataAsync(Id);
         return RedirectToPage(new { id = Id });
     }
 }

@@ -18,6 +18,11 @@ public static class ErpPermissions
         public const string Create = Default + ".Create";
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
+
+        // Separate from Delete: anonymizing a customer's PII in place (data retention/GDPR-style
+        // erasure request) is a distinct, rarer action than removing the record entirely - see
+        // Services/Customers/CustomerAppService.cs.EraseDataAsync.
+        public const string Erase = Default + ".Erase";
     }
 
     // Covers Opportunity, NeedsAssessment/NeedsAssessmentAttachment, and Proposal together - same

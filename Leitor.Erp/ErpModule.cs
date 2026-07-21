@@ -181,6 +181,7 @@ public class ErpModule : AbpModule
         QuestPDF.Settings.License = LicenseType.Community;
         context.Services.Configure<ErpCompanyOptions>(configuration.GetSection("Company"));
         context.Services.Configure<OpenExchangeRatesOptions>(configuration.GetSection("OpenExchangeRates"));
+        context.Services.Configure<DataRetentionOptions>(configuration.GetSection("DataRetention"));
         context.Services.AddHttpClient("OpenExchangeRates");
 
         ConfigureAuthentication(context);
@@ -410,5 +411,6 @@ public class ErpModule : AbpModule
 
         await context.AddBackgroundWorkerAsync<ContractExpiryAlertWorker>();
         await context.AddBackgroundWorkerAsync<ExchangeRateSyncWorker>();
+        await context.AddBackgroundWorkerAsync<DataRetentionPurgeWorker>();
     }
 }

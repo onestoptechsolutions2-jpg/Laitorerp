@@ -41,6 +41,7 @@ public class CustomerAppService :
     private readonly IRepository<TicketMessage, Guid> _ticketMessageRepository;
     private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
 
     public CustomerAppService(
         IRepository<Customer, Guid> repository,
@@ -63,7 +64,8 @@ public class CustomerAppService :
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<TicketMessage, Guid> ticketMessageRepository,
         IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository)
         : base(repository)
     {
         _contactRepository = contactRepository;
@@ -86,6 +88,7 @@ public class CustomerAppService :
         _ticketMessageRepository = ticketMessageRepository;
         _warrantyClaimRepository = warrantyClaimRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _stageEventRepository = stageEventRepository;
 
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
@@ -165,6 +168,32 @@ public class CustomerAppService :
         await _warrantyClaimRepository.DeleteManyAsync(warrantyClaims);
 
         await Repository.DeleteAsync(id);
+    }
+
+    // Anonymizes PII in place rather than deleting the row - Orders/Invoices/Payments etc. keep a
+    // valid CustomerId to reference, so historical financial reporting stays intact. Separate from
+    // Delete (see ErpPermissions.Customers.Erase): this is the manual data-subject-erasure action
+    // the 2026-07-21 audit's data retention gap called for, distinct from routine record removal.
+    // Portal login access is cut by clearing PortalUserId, since a customer whose data has been
+    // erased shouldn't retain a working self-service login.
+    public async Task EraseDataAsync(Guid id)
+    {
+        await CheckPolicyAsync(ErpPermissions.Customers.Erase);
+
+        var entity = await Repository.GetAsync(id);
+        entity.Name = $"Erased Customer {entity.Id.ToString()[..8]}";
+        entity.Email = null;
+        entity.PhoneNumber = null;
+        entity.AddressLine = null;
+        entity.City = null;
+        entity.State = null;
+        entity.PostalCode = null;
+        entity.Country = null;
+        entity.Notes = null;
+        entity.PortalUserId = null;
+        await Repository.UpdateAsync(entity, autoSave: true);
+
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Customer", entity.Id, WorkflowStage.DataErased);
     }
 
     public override async Task<CustomerDto> GetAsync(Guid id)

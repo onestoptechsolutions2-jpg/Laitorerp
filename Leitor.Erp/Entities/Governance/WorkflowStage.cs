@@ -22,5 +22,6 @@ public enum WorkflowStage
     FinalInvoiceIssued = 13,
     ClosedWon = 14,
     ClosedLost = 15,
-    Unlocked = 16
+    Unlocked = 16,
+    DataErased = 17
 }
