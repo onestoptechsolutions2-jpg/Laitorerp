@@ -69,7 +69,7 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card mb-3">
     <div class="card-header">
         <h5 class="card-title mb-0">@L["CsatTrend"]</h5>
     </div>
@@ -90,6 +90,37 @@
                             <td>@(new DateTime(month.Year, month.Month, 1).ToString("MMM yyyy"))</td>
                             <td>@(month.AverageRating.HasValue ? month.AverageRating.Value.ToString("N1") + " / 5" : "-")</td>
                             <td>@month.RatedCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["ReopenRateTrend"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Month"]</th>
+                        <th>@L["Tickets"]</th>
+                        <th>@L["Reopened"]</th>
+                        <th>@L["ReopenRate"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var month in Model.ReopenRateTrend)
+                    {
+                        <tr>
+                            <td>@(new DateTime(month.Year, month.Month, 1).ToString("MMM yyyy"))</td>
+                            <td>@month.TotalCount</td>
+                            <td>@month.ReopenedCount</td>
+                            <td>@(month.TotalCount > 0 ? (month.ReopenedCount * 100m / month.TotalCount).ToString("N0") + "%" : "-")</td>
                         </tr>
                     }
                 </tbody>

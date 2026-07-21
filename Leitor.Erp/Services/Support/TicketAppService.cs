@@ -229,6 +229,11 @@ public class TicketAppService :
         }
         else if (!isTerminal)
         {
+            if (wasTerminal)
+            {
+                entity.ReopenCount++;
+            }
+
             entity.ResolvedDate = null;
         }
 

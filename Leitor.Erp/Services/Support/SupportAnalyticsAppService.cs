@@ -100,6 +100,34 @@ public class SupportAnalyticsAppService : ApplicationService
         });
     }
 
+    // ReopenCount is cumulative per ticket with no timestamp of *when* a reopen happened, so this
+    // groups by the ticket's CreationTime month (same basis as GetSlaBreachTrendAsync) rather than
+    // trying to attribute individual reopen events to a month - "of tickets opened in month X, how
+    // many were ever reopened" is the honest measure available from the data actually captured.
+    public async Task<List<ReopenRateMonthDto>> GetReopenRateTrendAsync()
+    {
+        await CheckPolicyAsync(ErpPermissions.Support.Default);
+
+        var since = Clock.Now.AddMonths(-11);
+        var tickets = await _ticketRepository.GetListAsync(x => x.CreationTime >= since);
+
+        var byMonth = tickets
+            .GroupBy(x => (x.CreationTime.Year, x.CreationTime.Month))
+            .ToDictionary(g => g.Key, g => new { Total = g.Count(), Reopened = g.Count(x => x.ReopenCount > 0) });
+
+        return BuildMonthlySeries(since, key =>
+        {
+            var month = byMonth.GetValueOrDefault(key);
+            return new ReopenRateMonthDto
+            {
+                Year = key.Year,
+                Month = key.Month,
+                TotalCount = month?.Total ?? 0,
+                ReopenedCount = month?.Reopened ?? 0
+            };
+        });
+    }
+
     // Shared "fill every month of the last 12, even the empty ones" cursor - same rolling-window
     // shape SalesAnalyticsAppService.GetWinRateTrendAsync already uses.
     private List<TResult> BuildMonthlySeries<TResult>(DateTime since, Func<(int Year, int Month), TResult> selector)

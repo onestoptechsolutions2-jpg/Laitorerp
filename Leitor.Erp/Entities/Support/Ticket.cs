@@ -30,6 +30,11 @@ public class Ticket : FullAuditedAggregateRoot<Guid>
     // InvoicePaymentStatus.
     public DateTime? SlaDueDate { get; set; }
 
+    // Incremented in TicketAppService.CopyToEntity every time Status moves from a terminal state
+    // (Resolved/Closed) back to a non-terminal one - the Continual Improvement signal the 2026-07-21
+    // ITSM audit flagged as missing (SupportAnalyticsAppService.GetReopenRateTrendAsync reports on it).
+    public int ReopenCount { get; set; }
+
     protected Ticket()
     {
     }

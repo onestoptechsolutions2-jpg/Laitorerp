@@ -21,11 +21,13 @@ public class IndexModel : AbpPageModel
     public List<TicketVolumeMonthDto> VolumeTrend { get; set; } = new();
     public List<SlaBreachMonthDto> SlaBreachTrend { get; set; } = new();
     public List<CsatMonthDto> CsatTrend { get; set; } = new();
+    public List<ReopenRateMonthDto> ReopenRateTrend { get; set; } = new();
 
     public async Task OnGetAsync()
     {
         VolumeTrend = await _supportAnalyticsAppService.GetTicketVolumeTrendAsync();
         SlaBreachTrend = await _supportAnalyticsAppService.GetSlaBreachTrendAsync();
         CsatTrend = await _supportAnalyticsAppService.GetCsatTrendAsync();
+        ReopenRateTrend = await _supportAnalyticsAppService.GetReopenRateTrendAsync();
     }
 }
