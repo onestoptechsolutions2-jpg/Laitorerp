@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Inventory;
+using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
@@ -13,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Features;
 
 namespace Leitor.Erp.Pages.Sales.Orders;
 
@@ -23,17 +26,23 @@ public class CreateModel : AbpPageModel
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
+    private readonly IFeatureChecker _featureChecker;
 
     public CreateModel(
         OrderAppService orderAppService,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Currency, Guid> currencyRepository,
-        IRepository<Warehouse, Guid> warehouseRepository)
+        IRepository<Warehouse, Guid> warehouseRepository,
+        IRepository<Project, Guid> projectRepository,
+        IFeatureChecker featureChecker)
     {
         _orderAppService = orderAppService;
         _customerRepository = customerRepository;
         _currencyRepository = currencyRepository;
         _warehouseRepository = warehouseRepository;
+        _projectRepository = projectRepository;
+        _featureChecker = featureChecker;
     }
 
     [BindProperty]
@@ -45,12 +54,15 @@ public class CreateModel : AbpPageModel
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
     public List<SelectListItem> WarehouseOptions { get; set; } = new();
+    public List<SelectListItem> ProjectOptions { get; set; } = new();
+    public bool CanUseProjects { get; set; }
 
     public async Task OnGetAsync()
     {
         await LoadCustomerOptionsAsync();
         await LoadCurrencyOptionsAsync();
         await LoadWarehouseOptionsAsync();
+        await LoadProjectOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -60,6 +72,7 @@ public class CreateModel : AbpPageModel
             await LoadCustomerOptionsAsync();
             await LoadCurrencyOptionsAsync();
             await LoadWarehouseOptionsAsync();
+            await LoadProjectOptionsAsync();
             return Page();
         }
 
@@ -99,5 +112,20 @@ public class CreateModel : AbpPageModel
             .ToList();
 
         Order.WarehouseId ??= warehouses.FirstOrDefault(x => x.IsDefault)?.Id;
+    }
+
+    private async Task LoadProjectOptionsAsync()
+    {
+        CanUseProjects = await _featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement);
+        if (!CanUseProjects)
+        {
+            return;
+        }
+
+        var projects = await _projectRepository.GetListAsync();
+        ProjectOptions = new List<SelectListItem> { new(L["None"], "") };
+        ProjectOptions.AddRange(
+            projects.OrderByDescending(x => x.StartDate).Select(x => new SelectListItem($"{x.ProjectNumber} - {x.Title}", x.Id.ToString()))
+        );
     }
 }

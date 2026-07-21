@@ -30,4 +30,6 @@ public class CreateJournalEntryLineDto
     [Required]
     [StringLength(8)]
     public string CurrencyCode { get; set; } = string.Empty;
+
+    public Guid? ProjectId { get; set; }
 }

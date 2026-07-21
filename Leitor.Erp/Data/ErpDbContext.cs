@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -82,6 +83,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<TicketMessage> TicketMessages { get; set; } = null!;
     public DbSet<WarrantyClaim> WarrantyClaims { get; set; } = null!;
     public DbSet<Problem> Problems { get; set; } = null!;
+
+    public DbSet<Project> Projects { get; set; } = null!;
+    public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -303,6 +307,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.ExchangeRateToBase).HasColumnType("decimal(18,6)");
             b.HasIndex(x => x.JournalEntryId);
             b.HasIndex(x => x.AccountId);
+            b.HasIndex(x => x.ProjectId);
         });
 
         builder.Entity<Product>(b =>
@@ -402,6 +407,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.WarehouseId).HasDefaultValue(Guid.Empty);
             b.HasIndex(x => x.CustomerId);
             b.HasIndex(x => x.OrderNumber).IsUnique();
+            b.HasIndex(x => x.ProjectId);
         });
 
         builder.Entity<OrderLine>(b =>
@@ -650,6 +656,27 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.RootCause).HasMaxLength(2000);
             b.Property(x => x.Workaround).HasMaxLength(2000);
             b.HasIndex(x => x.ProblemNumber).IsUnique();
+        });
+
+        builder.Entity<Project>(b =>
+        {
+            b.ToTable("Projects");
+            b.ConfigureByConvention();
+            b.Property(x => x.ProjectNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.Budget).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.ProjectNumber).IsUnique();
+        });
+
+        builder.Entity<ProjectTask>(b =>
+        {
+            b.ToTable("ProjectTasks");
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.HasIndex(x => x.ProjectId);
         });
 
         builder.Entity<DeletionRequest>(b =>

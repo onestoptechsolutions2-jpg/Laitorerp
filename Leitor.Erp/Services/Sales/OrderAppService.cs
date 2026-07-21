@@ -325,7 +325,7 @@ public class OrderAppService :
                 Clock.Now, JournalPostingService.SourceDocumentTypes.Order, order.Id,
                 $"Cost of Goods Sold - Order {order.OrderNumber}",
                 SystemAccountRole.Expense, SystemAccountRole.Inventory,
-                cogsTotal, order.CurrencyCode, order.ExchangeRateToBase);
+                cogsTotal, order.CurrencyCode, order.ExchangeRateToBase, order.ProjectId);
         }
     }
 
@@ -375,7 +375,7 @@ public class OrderAppService :
             invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
             $"Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
-            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
+            total, invoice.CurrencyCode, invoice.ExchangeRateToBase, order.ProjectId);
 
         return invoice;
     }
@@ -384,6 +384,7 @@ public class OrderAppService :
     {
         entity.CustomerId = input.CustomerId;
         entity.QuoteId = input.QuoteId;
+        entity.ProjectId = input.ProjectId;
         entity.Status = input.Status;
         entity.OrderDate = input.OrderDate;
         entity.Notes = input.Notes;
@@ -473,7 +474,7 @@ public class OrderAppService :
             invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
             $"Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
-            total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
+            total, invoice.CurrencyCode, invoice.ExchangeRateToBase, order.ProjectId);
 
         return ObjectMapper.Map<Invoice, InvoiceDto>(invoice);
     }

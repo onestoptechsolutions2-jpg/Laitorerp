@@ -48,7 +48,8 @@ public static class JournalPostingService
         SystemAccountRole creditRole,
         decimal amount,
         string currencyCode,
-        decimal exchangeRateToBase)
+        decimal exchangeRateToBase,
+        Guid? projectId = null)
     {
         if (amount <= 0)
         {
@@ -72,7 +73,8 @@ public static class JournalPostingService
             {
                 Debit = amount,
                 CurrencyCode = currencyCode,
-                ExchangeRateToBase = exchangeRateToBase
+                ExchangeRateToBase = exchangeRateToBase,
+                ProjectId = projectId
             },
             autoSave: true);
 
@@ -81,7 +83,8 @@ public static class JournalPostingService
             {
                 Credit = amount,
                 CurrencyCode = currencyCode,
-                ExchangeRateToBase = exchangeRateToBase
+                ExchangeRateToBase = exchangeRateToBase,
+                ProjectId = projectId
             },
             autoSave: true);
     }

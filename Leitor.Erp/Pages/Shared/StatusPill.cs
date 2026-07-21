@@ -3,6 +3,7 @@ using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -155,6 +156,16 @@ public static class StatusPill
         ProblemStatus.KnownError => Info,
         ProblemStatus.Resolved => Success,
         ProblemStatus.Closed => Neutral,
+        _ => Neutral
+    };
+
+    public static string For(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Planned => Info,
+        ProjectStatus.Active => Warning,
+        ProjectStatus.OnHold => Neutral,
+        ProjectStatus.Completed => Success,
+        ProjectStatus.Cancelled => Neutral,
         _ => Neutral
     };
 }

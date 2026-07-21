@@ -8,6 +8,7 @@ public class OrderDto : FullAuditedEntityDto<Guid>
 {
     public Guid CustomerId { get; set; }
     public Guid? QuoteId { get; set; }
+    public Guid? ProjectId { get; set; }
     public string OrderNumber { get; set; } = string.Empty;
     public OrderStatus Status { get; set; }
     public DateTime OrderDate { get; set; }

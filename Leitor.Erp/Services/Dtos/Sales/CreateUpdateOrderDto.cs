@@ -11,6 +11,8 @@ public class CreateUpdateOrderDto
 
     public Guid? QuoteId { get; set; }
 
+    public Guid? ProjectId { get; set; }
+
     public OrderStatus Status { get; set; } = OrderStatus.Submitted;
 
     [Required]

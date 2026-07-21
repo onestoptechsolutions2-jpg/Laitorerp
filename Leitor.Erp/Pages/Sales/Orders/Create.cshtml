@@ -17,6 +17,10 @@
             <abp-input asp-for="Order.PaymentTerms" />
             <abp-select asp-for="Order.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"]" />
             <abp-select asp-for="Order.WarehouseId" asp-items="Model.WarehouseOptions" label="@L["Warehouse"]" />
+            @if (Model.CanUseProjects)
+            {
+                <abp-select asp-for="Order.ProjectId" asp-items="Model.ProjectOptions" label="@L["Project"]" />
+            }
             <abp-input asp-for="Order.Notes" />
 
             <div class="mt-3">

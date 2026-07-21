@@ -127,6 +127,17 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Gated behind ErpFeatures.ProjectManagement (see Features/ErpFeatures.cs) - these permissions
+    // only matter while the module is switched on.
+    public static class Projects
+    {
+        public const string GroupName = "Erp.Projects";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     // Deletion is permission-based but gated by approval: Decide (Admin/Ops Manager) can delete a
     // scoped entity immediately; everyone else's delete action files a request here instead - see
     // Services/Governance/DeletionGate.cs.

@@ -1,6 +1,9 @@
 ﻿using System.Linq;
+using Leitor.Erp.Features;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Permissions;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Features;
 using Volo.Abp.Identity.Web.Navigation;
 using Volo.Abp.SettingManagement.Web.Navigation;
 using Volo.Abp.TenantManagement.Web.Navigation;
@@ -22,6 +25,7 @@ public class ErpMenuContributor : IMenuContributor
     {
         var administration = context.Menu.GetAdministration();
         var l = context.GetLocalizer<ErpResource>();
+        var featureChecker = context.ServiceProvider.GetRequiredService<IFeatureChecker>();
 
         context.Menu.Items.Insert(
             0,
@@ -219,6 +223,23 @@ public class ErpMenuContributor : IMenuContributor
             );
 
             context.Menu.Items.Add(inventoryMenu);
+        }
+
+        // Toggleable module (see Features/ErpFeatures.cs) - gated on both the permission and the
+        // feature being switched on, so an Admin who holds Projects.Default still doesn't see this
+        // while the module is disabled from Administration > Module Toggles.
+        if (await context.IsGrantedAsync(ErpPermissions.Projects.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.Projects,
+                    l["Menu:Projects"],
+                    "~/Projects",
+                    icon: "fas fa-diagram-project",
+                    order: 11
+                )
+            );
         }
 
         // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of

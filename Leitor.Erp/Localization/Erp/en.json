@@ -262,6 +262,7 @@
     "Menu:PriceLists": "Price Lists",
     "Permission:Accounting": "Accounting & Finance",
     "Permission:Inventory": "Inventory Management",
+    "Permission:Projects": "Project Management",
     "Permission:ModuleToggles": "Module Toggles",
     "Permission:Manage": "Manage",
     "Feature:Erp": "Leitor ERP Modules",
@@ -667,6 +668,23 @@
     "SlaBreachTrend": "SLA Breach Rate (Last 12 Months)",
     "BreachRate": "Breach Rate",
     "CsatTrend": "Customer Satisfaction (Last 12 Months)",
-    "RatedTickets": "Rated Tickets"
+    "RatedTickets": "Rated Tickets",
+    "Menu:Projects": "Projects",
+    "Projects": "Projects",
+    "Project": "Project",
+    "NewProject": "New Project",
+    "EditProject": "Edit Project",
+    "ProjectNumber": "Project #",
+    "ProjectPnL": "Project P&L",
+    "Budget": "Budget",
+    "NetProfit": "Net Profit",
+    "Completed": "Completed",
+    "Open": "Open",
+    "AddTask": "Add Task",
+    "Enum:ProjectStatus:0": "Planned",
+    "Enum:ProjectStatus:1": "Active",
+    "Enum:ProjectStatus:2": "On Hold",
+    "Enum:ProjectStatus:3": "Completed",
+    "Enum:ProjectStatus:4": "Cancelled"
   }
 }

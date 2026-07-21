@@ -11,6 +11,12 @@ public class Order : FullAuditedAggregateRoot<Guid>
 {
     public Guid CustomerId { get; set; }
     public Guid? QuoteId { get; set; }
+
+    // Optional project-based-accounting attribution (see Entities/Projects/Project.cs) - when
+    // set, OrderAppService tags this order's own GL postings (milestone deposit, final invoice,
+    // COGS) with the same ProjectId so ProjectReportAppService can sum them.
+    public Guid? ProjectId { get; set; }
+
     public string OrderNumber { get; set; } = string.Empty;
     public OrderStatus Status { get; set; } = OrderStatus.Submitted;
     public DateTime OrderDate { get; set; }

@@ -11,8 +11,10 @@ public class JournalEntryLineDto : FullAuditedEntityDto<Guid>
     public decimal Credit { get; set; }
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+    public Guid? ProjectId { get; set; }
 
     // Resolved by JournalEntryAppService - not stored columns.
     public string? AccountCode { get; set; }
     public string? AccountName { get; set; }
+    public string? ProjectNumber { get; set; }
 }

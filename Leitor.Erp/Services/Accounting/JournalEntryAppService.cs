@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Accounting;
 using Leitor.Erp.Services.Governance;
@@ -27,6 +28,7 @@ public class JournalEntryAppService : ApplicationService
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IDataFilter _dataFilter;
 
@@ -36,6 +38,7 @@ public class JournalEntryAppService : ApplicationService
         IRepository<Account, Guid> accountRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
+        IRepository<Project, Guid> projectRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IDataFilter dataFilter)
     {
@@ -44,6 +47,7 @@ public class JournalEntryAppService : ApplicationService
         _accountRepository = accountRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
+        _projectRepository = projectRepository;
         _deletionRequestRepository = deletionRequestRepository;
         _dataFilter = dataFilter;
     }
@@ -79,6 +83,7 @@ public class JournalEntryAppService : ApplicationService
         var lines = await _lineRepository.GetListAsync(x => x.JournalEntryId == id);
         var dto = ToDto(entry, lines);
         await ResolveAccountNamesAsync(dto.Lines);
+        await ResolveProjectNumbersAsync(dto.Lines);
 
         if (entry.ReversedEntryId.HasValue)
         {
@@ -140,7 +145,8 @@ public class JournalEntryAppService : ApplicationService
                 Debit = line.Debit,
                 Credit = line.Credit,
                 CurrencyCode = line.CurrencyCode,
-                ExchangeRateToBase = resolvedRates[line]
+                ExchangeRateToBase = resolvedRates[line],
+                ProjectId = line.ProjectId
             };
             await _lineRepository.InsertAsync(entryLine, autoSave: true);
 
@@ -152,11 +158,13 @@ public class JournalEntryAppService : ApplicationService
                 Debit = entryLine.Debit,
                 Credit = entryLine.Credit,
                 CurrencyCode = entryLine.CurrencyCode,
-                ExchangeRateToBase = entryLine.ExchangeRateToBase
+                ExchangeRateToBase = entryLine.ExchangeRateToBase,
+                ProjectId = entryLine.ProjectId
             });
         }
 
         await ResolveAccountNamesAsync(lineDtos);
+        await ResolveProjectNumbersAsync(lineDtos);
 
         return new JournalEntryDto
         {
@@ -206,7 +214,8 @@ public class JournalEntryAppService : ApplicationService
                 Debit = line.Credit,
                 Credit = line.Debit,
                 CurrencyCode = line.CurrencyCode,
-                ExchangeRateToBase = line.ExchangeRateToBase
+                ExchangeRateToBase = line.ExchangeRateToBase,
+                ProjectId = line.ProjectId
             };
             await _lineRepository.InsertAsync(reversedLine, autoSave: true);
 
@@ -218,11 +227,13 @@ public class JournalEntryAppService : ApplicationService
                 Debit = reversedLine.Debit,
                 Credit = reversedLine.Credit,
                 CurrencyCode = reversedLine.CurrencyCode,
-                ExchangeRateToBase = reversedLine.ExchangeRateToBase
+                ExchangeRateToBase = reversedLine.ExchangeRateToBase,
+                ProjectId = reversedLine.ProjectId
             });
         }
 
         await ResolveAccountNamesAsync(lineDtos);
+        await ResolveProjectNumbersAsync(lineDtos);
 
         return new JournalEntryDto
         {
@@ -282,7 +293,8 @@ public class JournalEntryAppService : ApplicationService
                 Debit = line.Debit,
                 Credit = line.Credit,
                 CurrencyCode = line.CurrencyCode,
-                ExchangeRateToBase = line.ExchangeRateToBase
+                ExchangeRateToBase = line.ExchangeRateToBase,
+                ProjectId = line.ProjectId
             }).ToList(),
             TotalDebit = lines.Sum(x => x.Debit * x.ExchangeRateToBase),
             TotalCredit = lines.Sum(x => x.Credit * x.ExchangeRateToBase)
@@ -303,6 +315,22 @@ public class JournalEntryAppService : ApplicationService
             {
                 line.AccountCode = account.Code;
                 line.AccountName = account.Name;
+            }
+        }
+    }
+
+    private async Task ResolveProjectNumbersAsync(List<JournalEntryLineDto> lines)
+    {
+        var projectIds = lines.Where(x => x.ProjectId.HasValue).Select(x => x.ProjectId!.Value).Distinct().ToList();
+        var projectNumbersById = projectIds.Count > 0
+            ? (await _projectRepository.GetListAsync(x => projectIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.ProjectNumber)
+            : new Dictionary<Guid, string>();
+
+        foreach (var line in lines.Where(x => x.ProjectId.HasValue))
+        {
+            if (projectNumbersById.TryGetValue(line.ProjectId!.Value, out var projectNumber))
+            {
+                line.ProjectNumber = projectNumber;
             }
         }
     }

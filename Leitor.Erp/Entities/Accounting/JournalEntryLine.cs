@@ -15,6 +15,11 @@ public class JournalEntryLine : FullAuditedAggregateRoot<Guid>
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
 
+    // Optional project-based-accounting tag (see Entities/Projects/Project.cs) - lets
+    // ProjectReportAppService sum a project's own P&L straight from the GL. Null for the vast
+    // majority of lines that aren't attributable to any single project.
+    public Guid? ProjectId { get; set; }
+
     protected JournalEntryLine()
     {
     }
