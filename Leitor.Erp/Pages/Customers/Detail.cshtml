@@ -8,6 +8,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@Model.Customer.Name</h5>
         <div>
+            <a asp-page="/Accounting/Reports/CustomerStatement/Index" asp-route-CustomerId="@Model.Customer.Id" class="btn btn-outline-secondary">@L["Statement"]</a>
             @if (Model.CanEdit)
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Customer.Id" class="btn btn-outline-primary">@L["Edit"]</a>

@@ -45,6 +45,7 @@
                             <td>@vendor.Phone</td>
                             <td>@vendor.Country</td>
                             <td>
+                                <a asp-page="/Accounting/Reports/VendorStatement/Index" asp-route-VendorId="@vendor.Id" class="btn btn-sm btn-outline-secondary">@L["Statement"]</a>
                                 @if (Model.CanEdit)
                                 {
                                     <a asp-page="./Edit" asp-route-id="@vendor.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>

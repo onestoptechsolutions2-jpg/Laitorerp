@@ -1,0 +1,63 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.VendorStatement.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["StatementOfAccount"] - @Model.Statement.PartyName</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <input type="hidden" name="VendorId" value="@Model.VendorId" />
+            <div class="col-auto">
+                <label class="form-label">@L["FromDate"]</label>
+                <input type="date" name="FromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label">@L["ToDate"]</label>
+                <input type="date" name="ToDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Date"]</th>
+                        <th>@L["Description"]</th>
+                        <th>@L["Charge"]</th>
+                        <th>@L["Credit"]</th>
+                        <th>@L["Balance"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4"><strong>@L["OpeningBalance"]</strong></td>
+                        <td><strong>@Model.Statement.OpeningBalance.ToString("N2")</strong></td>
+                    </tr>
+                    @foreach (var line in Model.Statement.Lines)
+                    {
+                        <tr>
+                            <td>@line.Date.ToString("d")</td>
+                            <td>@line.Description</td>
+                            <td>@(line.Charge != 0 ? line.Charge.ToString("N2") : "")</td>
+                            <td>@(line.Credit != 0 ? line.Credit.ToString("N2") : "")</td>
+                            <td>@line.RunningBalance.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4">@L["ClosingBalance"]</th>
+                        <th>@Model.Statement.ClosingBalance.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

@@ -821,6 +821,21 @@
     "Match": "Match",
     "UnreconciledStatementLines": "Unreconciled Statement Lines",
     "UnreconciledGlLines": "Unreconciled GL Lines",
-    "Date": "Date"
+    "Date": "Date",
+    "Menu:ArAging": "AR Aging",
+    "Menu:ApAging": "AP Aging",
+    "ArAging": "Accounts Receivable Aging",
+    "ApAging": "Accounts Payable Aging",
+    "Current": "Current",
+    "Days1To30": "1-30 Days",
+    "Days31To60": "31-60 Days",
+    "Days61To90": "61-90 Days",
+    "Over90": "90+ Days",
+    "Statement": "Statement",
+    "StatementOfAccount": "Statement of Account",
+    "Charge": "Charge",
+    "Balance": "Balance",
+    "OpeningBalance": "Opening Balance",
+    "ClosingBalance": "Closing Balance"
   }
 }

@@ -400,29 +400,35 @@ public class ErpMenuContributor : IMenuContributor
                 reportsMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ReportsBalanceSheet, l["Menu:BalanceSheet"], "~/Accounting/Reports/BalanceSheet", order: 5)
                 );
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsArAging, l["Menu:ArAging"], "~/Accounting/Reports/ArAging", order: 6)
+                );
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsApAging, l["Menu:ApAging"], "~/Accounting/Reports/ApAging", order: 7)
+                );
             }
 
             if (canViewAuditLogs)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 6)
+                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 8)
                 );
             }
 
             if (canViewInventoryReports)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 7)
+                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 9)
                 );
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 8)
+                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 10)
                 );
             }
 
             if (canViewSupportAnalytics)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 9)
+                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 11)
                 );
             }
 

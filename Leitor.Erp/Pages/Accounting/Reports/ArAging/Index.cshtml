@@ -1,0 +1,67 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.ArAging.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["ArAging"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <label class="form-label">@L["AsOfDate"]</label>
+                <input type="date" name="AsOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Current"]</th>
+                        <th>@L["Days1To30"]</th>
+                        <th>@L["Days31To60"]</th>
+                        <th>@L["Days61To90"]</th>
+                        <th>@L["Over90"]</th>
+                        <th>@L["Total"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Report.Rows.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var row in Model.Report.Rows)
+                    {
+                        <tr>
+                            <td>@row.PartyName</td>
+                            <td>@row.Current.ToString("N2")</td>
+                            <td>@row.Days1To30.ToString("N2")</td>
+                            <td>@row.Days31To60.ToString("N2")</td>
+                            <td>@row.Days61To90.ToString("N2")</td>
+                            <td>@row.Over90.ToString("N2")</td>
+                            <td>@row.Total.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>@L["Total"]</th>
+                        <th>@Model.Report.TotalCurrent.ToString("N2")</th>
+                        <th>@Model.Report.TotalDays1To30.ToString("N2")</th>
+                        <th>@Model.Report.TotalDays31To60.ToString("N2")</th>
+                        <th>@Model.Report.TotalDays61To90.ToString("N2")</th>
+                        <th>@Model.Report.TotalOver90.ToString("N2")</th>
+                        <th>@Model.Report.GrandTotal.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
