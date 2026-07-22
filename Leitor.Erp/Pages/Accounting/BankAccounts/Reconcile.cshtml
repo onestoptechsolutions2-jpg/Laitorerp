@@ -1,0 +1,162 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.BankAccounts.ReconcileModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Reconcile"] - @Model.BankAccount.Name</h5>
+        <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@L["GlBalance"]</dt>
+            <dd class="col-sm-3">@Model.Summary.GlBalance.ToString("N2")</dd>
+            <dt class="col-sm-3">@L["ReconciledStatementBalance"]</dt>
+            <dd class="col-sm-3">@Model.Summary.ReconciledStatementBalance.ToString("N2")</dd>
+
+            <dt class="col-sm-3">@L["Difference"]</dt>
+            <dd class="col-sm-9">
+                <span class="pill @(Model.Summary.Difference == 0 ? "pill-success" : "pill-warning")">@Model.Summary.Difference.ToString("N2")</span>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+
+@if (Model.CanEdit)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["ImportStatementLines"]</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">@L["ImportStatementLinesHint"]</p>
+            <form method="post" asp-page-handler="Import">
+                <textarea asp-for="ImportCsvText" class="form-control" rows="6" placeholder="2026-07-01,Deposit from customer,15000.00"></textarea>
+                <button type="submit" class="btn btn-primary mt-2">@L["Import"]</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["MatchLines"]</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-page-handler="Match">
+                <div class="row">
+                    <div class="col-md-5">
+                        <label class="form-label">@L["StatementLine"]</label>
+                        <select asp-for="MatchStatementLineId" class="form-select">
+                            <option value="">@L["SelectOne"]</option>
+                            @foreach (var line in Model.UnreconciledStatementLines)
+                            {
+                                <option value="@line.Id">@line.TransactionDate.ToString("d") - @line.Description - @line.Amount.ToString("N2")</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">@L["GlLine"]</label>
+                        <select asp-for="MatchJournalEntryLineId" class="form-select">
+                            <option value="">@L["SelectOne"]</option>
+                            @foreach (var line in Model.UnreconciledGlLines)
+                            {
+                                <option value="@line.JournalEntryLineId">@line.EntryDate.ToString("d") - @line.EntryNumber - @line.Description - @((line.Debit - line.Credit).ToString("N2"))</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">@L["Match"]</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">@L["UnreconciledStatementLines"]</h5>
+            </div>
+            <div class="card-body">
+                @if (!Model.UnreconciledStatementLines.Any())
+                {
+                    <p class="text-muted mb-0">@L["NoneYet"]</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@L["Date"]</th>
+                                    <th>@L["Description"]</th>
+                                    <th>@L["Amount"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var line in Model.UnreconciledStatementLines)
+                                {
+                                    <tr>
+                                        <td>@line.TransactionDate.ToString("d")</td>
+                                        <td>@line.Description</td>
+                                        <td>@line.Amount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">@L["UnreconciledGlLines"]</h5>
+            </div>
+            <div class="card-body">
+                @if (!Model.UnreconciledGlLines.Any())
+                {
+                    <p class="text-muted mb-0">@L["NoneYet"]</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@L["Date"]</th>
+                                    <th>@L["EntryNumber"]</th>
+                                    <th>@L["Amount"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var line in Model.UnreconciledGlLines)
+                                {
+                                    <tr>
+                                        <td>@line.EntryDate.ToString("d")</td>
+                                        <td>@line.EntryNumber</td>
+                                        <td>@((line.Debit - line.Credit).ToString("N2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

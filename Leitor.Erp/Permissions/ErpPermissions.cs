@@ -132,6 +132,18 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Reconciling (matching a statement line against a GL line) is gated by Edit, same as every
+    // other module's "meaningfully change something" action - there's no separate Reconcile
+    // permission since it's really just editing BankStatementLine.IsReconciled.
+    public static class Banking
+    {
+        public const string GroupName = "Erp.Banking";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     // Covers Warehouses, Stock Movements, and the Stock on Hand/Low Stock reports - its own group
     // rather than folded into Catalog, since inventory is its own nav section with its own
     // read/write shape (most stock movements are system-generated, not user-authored CRUD).

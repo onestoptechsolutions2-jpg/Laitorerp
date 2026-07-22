@@ -1,0 +1,68 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.BankAccounts.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["BankAccounts"]</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewBankAccount"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["BankName"]</th>
+                        <th>@L["LinkedGlAccount"]</th>
+                        <th>@L["GlBalance"]</th>
+                        <th>@L["Unreconciled"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.BankAccounts.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var bankAccount in Model.BankAccounts)
+                    {
+                        <tr>
+                            <td>@bankAccount.Name</td>
+                            <td>@bankAccount.BankName</td>
+                            <td>@bankAccount.LinkedGlAccountName</td>
+                            <td>@bankAccount.GlBalance.ToString("N2")</td>
+                            <td>
+                                @if (bankAccount.UnreconciledStatementLineCount > 0)
+                                {
+                                    <span class="pill pill-warning">@bankAccount.UnreconciledStatementLineCount</span>
+                                }
+                                else
+                                {
+                                    <span class="pill pill-success">0</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-page="./Reconcile" asp-route-id="@bankAccount.Id" class="btn btn-sm btn-outline-primary">@L["Reconcile"]</a>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@bankAccount.Id" class="btn btn-sm btn-outline-secondary">@L["Edit"]</a>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@bankAccount.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

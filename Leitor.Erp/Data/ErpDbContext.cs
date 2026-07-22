@@ -37,6 +37,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<JournalEntryLine> JournalEntryLines { get; set; } = null!;
     public DbSet<FixedAsset> FixedAssets { get; set; } = null!;
     public DbSet<DepreciationEntry> DepreciationEntries { get; set; } = null!;
+    public DbSet<BankAccount> BankAccounts { get; set; } = null!;
+    public DbSet<BankStatementLine> BankStatementLines { get; set; } = null!;
 
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<StockMovement> StockMovements { get; set; } = null!;
@@ -342,6 +344,28 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
             b.HasIndex(x => x.FixedAssetId);
+        });
+
+        builder.Entity<BankAccount>(b =>
+        {
+            b.ToTable("BankAccounts");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.AccountNumber).HasMaxLength(64);
+            b.Property(x => x.BankName).HasMaxLength(128);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8);
+            b.Property(x => x.OpeningBalance).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<BankStatementLine>(b =>
+        {
+            b.ToTable("BankStatementLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(512);
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.ReferenceNumber).HasMaxLength(64);
+            b.HasIndex(x => x.BankAccountId);
+            b.HasIndex(x => x.MatchedJournalEntryLineId);
         });
 
         builder.Entity<Product>(b =>
