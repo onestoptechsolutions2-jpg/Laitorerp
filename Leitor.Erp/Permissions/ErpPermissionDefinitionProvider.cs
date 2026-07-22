@@ -93,6 +93,10 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         budgetsPermission.AddChild(ErpPermissions.Budgets.Edit, L("Permission:Edit"));
         budgetsPermission.AddChild(ErpPermissions.Budgets.Delete, L("Permission:Delete"));
 
+        var fiscalPeriodsGroup = context.AddGroup(ErpPermissions.FiscalPeriods.GroupName, L("Permission:FiscalPeriods"));
+        var fiscalPeriodsPermission = fiscalPeriodsGroup.AddPermission(ErpPermissions.FiscalPeriods.Default, L("Permission:FiscalPeriods"));
+        fiscalPeriodsPermission.AddChild(ErpPermissions.FiscalPeriods.Manage, L("Permission:Manage"));
+
         var inventoryGroup = context.AddGroup(ErpPermissions.Inventory.GroupName, L("Permission:Inventory"));
         var inventoryPermission = inventoryGroup.AddPermission(ErpPermissions.Inventory.Default, L("Permission:Inventory"));
         inventoryPermission.AddChild(ErpPermissions.Inventory.Create, L("Permission:Create"));

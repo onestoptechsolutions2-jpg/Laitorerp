@@ -153,6 +153,15 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Locking/unlocking periods is a senior/finance-admin action, not routine posting - a single
+    // Manage permission, same shape as ModuleToggles.Manage.
+    public static class FiscalPeriods
+    {
+        public const string GroupName = "Erp.FiscalPeriods";
+        public const string Default = GroupName;
+        public const string Manage = Default + ".Manage";
+    }
+
     // Covers Warehouses, Stock Movements, and the Stock on Hand/Low Stock reports - its own group
     // rather than folded into Catalog, since inventory is its own nav section with its own
     // read/write shape (most stock movements are system-generated, not user-authored CRUD).

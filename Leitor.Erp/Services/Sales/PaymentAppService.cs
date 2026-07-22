@@ -22,6 +22,7 @@ public class PaymentAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IDataFilter _dataFilter;
 
     public PaymentAppService(
@@ -32,6 +33,7 @@ public class PaymentAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
@@ -41,6 +43,7 @@ public class PaymentAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _dataFilter = dataFilter;
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -76,7 +79,7 @@ public class PaymentAppService :
         // whose lines are added afterward) - so it always auto-posts Dr Cash / Cr Accounts
         // Receivable immediately, no separate "Post to Ledger" step needed.
         await JournalPostingService.PostAsync(
-            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
             entity.PaymentDate, JournalPostingService.SourceDocumentTypes.Payment, entity.Id,
             $"Payment received - Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.Cash, SystemAccountRole.AccountsReceivable,

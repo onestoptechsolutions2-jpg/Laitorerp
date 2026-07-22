@@ -24,6 +24,7 @@ public class VendorPaymentAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IDataFilter _dataFilter;
 
     public VendorPaymentAppService(
@@ -36,6 +37,7 @@ public class VendorPaymentAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
@@ -47,6 +49,7 @@ public class VendorPaymentAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _dataFilter = dataFilter;
         GetPolicyName = ErpPermissions.Procurement.Default;
         GetListPolicyName = ErpPermissions.Procurement.Default;
@@ -99,7 +102,7 @@ public class VendorPaymentAppService :
         var cashAmount = entity.Amount - entity.WithholdingTaxAmount;
 
         await JournalPostingService.PostAsync(
-            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
             entity.PaymentDate, JournalPostingService.SourceDocumentTypes.VendorPayment, entity.Id,
             $"Payment sent - Supplier Invoice {supplierInvoice.SupplierInvoiceNumber}",
             SystemAccountRole.AccountsPayable, SystemAccountRole.Cash,
@@ -108,7 +111,7 @@ public class VendorPaymentAppService :
         if (entity.WithholdingTaxAmount > 0)
         {
             await JournalPostingService.PostAsync(
-                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
                 entity.PaymentDate, JournalPostingService.SourceDocumentTypes.VendorPayment, entity.Id,
                 $"Withholding tax - Supplier Invoice {supplierInvoice.SupplierInvoiceNumber}",
                 SystemAccountRole.AccountsPayable, SystemAccountRole.WithholdingTaxPayable,

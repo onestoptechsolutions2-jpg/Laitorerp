@@ -32,6 +32,7 @@ public class SupplierInvoiceAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IRepository<Product, Guid> _productRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -47,6 +48,7 @@ public class SupplierInvoiceAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IRepository<Product, Guid> productRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -61,6 +63,7 @@ public class SupplierInvoiceAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _productRepository = productRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
@@ -203,7 +206,7 @@ public class SupplierInvoiceAppService :
         if (inventoryTotal > 0)
         {
             await JournalPostingService.PostAsync(
-                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
                 invoice.IssueDate, JournalPostingService.SourceDocumentTypes.SupplierInvoice, invoice.Id,
                 $"Supplier Invoice {invoice.SupplierInvoiceNumber} (Inventory)",
                 SystemAccountRole.Inventory, SystemAccountRole.AccountsPayable,
@@ -213,7 +216,7 @@ public class SupplierInvoiceAppService :
         if (expenseTotal > 0)
         {
             await JournalPostingService.PostAsync(
-                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
                 invoice.IssueDate, JournalPostingService.SourceDocumentTypes.SupplierInvoice, invoice.Id,
                 $"Supplier Invoice {invoice.SupplierInvoiceNumber}",
                 SystemAccountRole.Expense, SystemAccountRole.AccountsPayable,

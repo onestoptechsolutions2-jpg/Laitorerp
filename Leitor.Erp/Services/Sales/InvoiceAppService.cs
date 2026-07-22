@@ -30,6 +30,7 @@ public class InvoiceAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -43,6 +44,7 @@ public class InvoiceAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -55,6 +57,7 @@ public class InvoiceAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -169,7 +172,7 @@ public class InvoiceAppService :
         }
 
         await JournalPostingService.PostAsync(
-            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
             invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
             $"Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,

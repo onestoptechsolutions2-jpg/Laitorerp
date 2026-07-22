@@ -212,8 +212,9 @@ public class ErpMenuContributor : IMenuContributor
         var canViewFixedAssets = await context.IsGrantedAsync(ErpPermissions.FixedAssets.Default);
         var canViewBanking = await context.IsGrantedAsync(ErpPermissions.Banking.Default);
         var canViewBudgets = await context.IsGrantedAsync(ErpPermissions.Budgets.Default);
+        var canViewFiscalPeriods = await context.IsGrantedAsync(ErpPermissions.FiscalPeriods.Default);
 
-        if (canViewAccounting || canViewFixedAssets || canViewBanking || canViewBudgets)
+        if (canViewAccounting || canViewFixedAssets || canViewBanking || canViewBudgets || canViewFiscalPeriods)
         {
             var accountingMenu = new ApplicationMenuItem(
                 ErpMenus.Accounting,
@@ -247,6 +248,13 @@ public class ErpMenuContributor : IMenuContributor
             {
                 accountingMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.Budgets, l["Menu:Budgets"], "~/Accounting/Budgets", order: 4)
+                );
+            }
+
+            if (canViewFiscalPeriods)
+            {
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.FiscalPeriods, l["Menu:FiscalPeriods"], "~/Accounting/FiscalPeriods", order: 5)
                 );
             }
 

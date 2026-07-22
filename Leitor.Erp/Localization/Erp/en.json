@@ -269,6 +269,7 @@
     "Permission:FixedAssets": "Fixed Assets",
     "Permission:Banking": "Banking",
     "Permission:Budgets": "Budgets",
+    "Permission:FiscalPeriods": "Fiscal Periods",
     "Permission:Inventory": "Inventory Management",
     "Permission:Projects": "Project Management",
     "Permission:TaxCompliance": "Tax Compliance",
@@ -846,6 +847,11 @@
     "WholeYear": "Whole Year",
     "Actual": "Actual",
     "Variance": "Variance",
-    "VariancePercent": "Variance %"
+    "VariancePercent": "Variance %",
+    "Menu:FiscalPeriods": "Fiscal Periods",
+    "FiscalPeriods": "Fiscal Periods",
+    "CloseYear": "Close Year",
+    "ConfirmCloseYear": "This locks all 12 months of the selected year against new or edited journal entries. You can unlock individual months again later if needed. Continue?",
+    "Lock": "Lock"
   }
 }

@@ -39,6 +39,7 @@ public class OrderAppService :
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IRepository<Product, Guid> _productRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
     private readonly IRepository<StockMovement, Guid> _stockMovementRepository;
@@ -61,6 +62,7 @@ public class OrderAppService :
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IRepository<Product, Guid> productRepository,
         IRepository<Warehouse, Guid> warehouseRepository,
         IRepository<StockMovement, Guid> stockMovementRepository,
@@ -82,6 +84,7 @@ public class OrderAppService :
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _productRepository = productRepository;
         _warehouseRepository = warehouseRepository;
         _stockMovementRepository = stockMovementRepository;
@@ -322,7 +325,7 @@ public class OrderAppService :
         if (cogsTotal > 0)
         {
             await JournalPostingService.PostAsync(
-                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+                _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
                 Clock.Now, JournalPostingService.SourceDocumentTypes.Order, order.Id,
                 $"Cost of Goods Sold - Order {order.OrderNumber}",
                 SystemAccountRole.Expense, SystemAccountRole.Inventory,
@@ -372,7 +375,7 @@ public class OrderAppService :
         // immediately - no separate "Post to Ledger" step needed.
         var total = invoiceLine.UnitPrice * (1 + invoiceLine.TaxRatePercent / 100m);
         await JournalPostingService.PostAsync(
-            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
             invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
             $"Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
@@ -471,7 +474,7 @@ public class OrderAppService :
         // auto-post immediately.
         var total = createdInvoiceLines.Sum(x => x.Total());
         await JournalPostingService.PostAsync(
-            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            _accountRepository, _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
             invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,
             $"Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,

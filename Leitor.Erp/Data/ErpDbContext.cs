@@ -40,6 +40,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<BankAccount> BankAccounts { get; set; } = null!;
     public DbSet<BankStatementLine> BankStatementLines { get; set; } = null!;
     public DbSet<Budget> Budgets { get; set; } = null!;
+    public DbSet<FiscalPeriod> FiscalPeriods { get; set; } = null!;
 
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<StockMovement> StockMovements { get; set; } = null!;
@@ -375,6 +376,13 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
             b.HasIndex(x => new { x.AccountId, x.FiscalYear, x.Month }).IsUnique();
+        });
+
+        builder.Entity<FiscalPeriod>(b =>
+        {
+            b.ToTable("FiscalPeriods");
+            b.ConfigureByConvention();
+            b.HasIndex(x => new { x.Year, x.Month }).IsUnique();
         });
 
         builder.Entity<Product>(b =>

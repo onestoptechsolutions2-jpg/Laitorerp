@@ -38,6 +38,7 @@ public static class JournalPostingService
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IGuidGenerator guidGenerator,
         IDataFilter dataFilter,
         DateTime entryDate,
@@ -60,7 +61,7 @@ public static class JournalPostingService
         var creditAccount = await ResolveSystemAccountAsync(accountRepository, creditRole);
 
         await PostByAccountIdAsync(
-            journalEntryRepository, journalEntryLineRepository, guidGenerator, dataFilter,
+            journalEntryRepository, journalEntryLineRepository, fiscalPeriodRepository, guidGenerator, dataFilter,
             entryDate, sourceDocumentType, sourceDocumentId, description,
             debitAccount.Id, creditAccount.Id, amount, currencyCode, exchangeRateToBase, projectId);
     }
@@ -71,6 +72,7 @@ public static class JournalPostingService
     public static async Task PostByAccountIdAsync(
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IGuidGenerator guidGenerator,
         IDataFilter dataFilter,
         DateTime entryDate,
@@ -88,6 +90,8 @@ public static class JournalPostingService
         {
             return;
         }
+
+        await FiscalPeriodGuard.EnsureNotLockedAsync(fiscalPeriodRepository, entryDate);
 
         var entryNumber = await DocumentNumbering.NextAsync(journalEntryRepository, dataFilter, "JE-");
         var entry = new JournalEntry(guidGenerator.Create(), entryNumber, entryDate, description)

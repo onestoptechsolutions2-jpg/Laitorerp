@@ -20,6 +20,7 @@ public class DepreciationAppService : ApplicationService
     private readonly IRepository<DepreciationEntry, Guid> _depreciationEntryRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IDataFilter _dataFilter;
 
@@ -28,6 +29,7 @@ public class DepreciationAppService : ApplicationService
         IRepository<DepreciationEntry, Guid> depreciationEntryRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IRepository<Currency, Guid> currencyRepository,
         IDataFilter dataFilter)
     {
@@ -35,6 +37,7 @@ public class DepreciationAppService : ApplicationService
         _depreciationEntryRepository = depreciationEntryRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _currencyRepository = currencyRepository;
         _dataFilter = dataFilter;
     }
@@ -70,7 +73,7 @@ public class DepreciationAppService : ApplicationService
             ?? throw new UserFriendlyException("No base currency is configured yet - set one on the Currencies page first.");
 
         await JournalPostingService.PostByAccountIdAsync(
-            _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
+            _journalEntryRepository, _journalEntryLineRepository, _fiscalPeriodRepository, GuidGenerator, _dataFilter,
             periodDate, "FixedAsset", asset.Id,
             $"Depreciation - {asset.AssetNumber} ({periodDate:MMMM yyyy})",
             asset.DepreciationExpenseAccountId, asset.AccumulatedDepreciationAccountId,

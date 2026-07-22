@@ -30,6 +30,7 @@ public class JournalEntryAppService : ApplicationService
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IDataFilter _dataFilter;
 
     public JournalEntryAppService(
@@ -40,6 +41,7 @@ public class JournalEntryAppService : ApplicationService
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IRepository<Project, Guid> projectRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IDataFilter dataFilter)
     {
         _repository = repository;
@@ -49,6 +51,7 @@ public class JournalEntryAppService : ApplicationService
         _exchangeRateRepository = exchangeRateRepository;
         _projectRepository = projectRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _fiscalPeriodRepository = fiscalPeriodRepository;
         _dataFilter = dataFilter;
     }
 
@@ -129,6 +132,8 @@ public class JournalEntryAppService : ApplicationService
                 $"This journal entry does not balance: debits total {totalDebitBase:N2} but credits total {totalCreditBase:N2} (in base currency).");
         }
 
+        await FiscalPeriodGuard.EnsureNotLockedAsync(_fiscalPeriodRepository, input.EntryDate);
+
         var entryNumber = await DocumentNumbering.NextAsync(_repository, _dataFilter, "JE-");
 
         var entry = new JournalEntry(GuidGenerator.Create(), entryNumber, input.EntryDate, input.Description)
@@ -195,6 +200,8 @@ public class JournalEntryAppService : ApplicationService
 
         var original = await _repository.GetAsync(id);
         var originalLines = await _lineRepository.GetListAsync(x => x.JournalEntryId == id);
+
+        await FiscalPeriodGuard.EnsureNotLockedAsync(_fiscalPeriodRepository, Clock.Now);
 
         var entryNumber = await DocumentNumbering.NextAsync(_repository, _dataFilter, "JE-");
         var reversal = new JournalEntry(GuidGenerator.Create(), entryNumber, Clock.Now, $"Reversal of {original.EntryNumber}")
