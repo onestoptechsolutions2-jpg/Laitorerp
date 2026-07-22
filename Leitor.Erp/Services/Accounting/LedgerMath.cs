@@ -11,7 +11,22 @@ namespace Leitor.Erp.Services.Accounting;
 // only in which lines were passed in (a date range vs. a ProjectId filter).
 public static class LedgerMath
 {
+    // Skips accounts with no activity in the given lines - the right behavior for Income
+    // Statement/Project P&L, which shouldn't list every unused account in the Chart of Accounts.
     public static (List<AccountNet> RevenueLines, List<AccountNet> ExpenseLines) ComputeAccountNets(
+        IEnumerable<JournalEntryLine> lines, IEnumerable<Account> accounts)
+    {
+        var (revenueLines, expenseLines) = ComputeAllAccountNets(lines, accounts);
+        return (
+            revenueLines.Where(x => x.Amount != 0).ToList(),
+            expenseLines.Where(x => x.Amount != 0).ToList()
+        );
+    }
+
+    // Unfiltered variant for callers that need every Revenue/Expense account represented even at
+    // zero (e.g. BudgetVarianceReportAppService, where an account with a budget but no actual
+    // spend yet still needs to show up as a variance).
+    public static (List<AccountNet> RevenueLines, List<AccountNet> ExpenseLines) ComputeAllAccountNets(
         IEnumerable<JournalEntryLine> lines, IEnumerable<Account> accounts)
     {
         var linesByAccountId = lines.ToLookup(x => x.AccountId);
@@ -27,29 +42,16 @@ public static class LedgerMath
             }
 
             var accountLines = linesByAccountId[account.Id].ToList();
-            if (accountLines.Count == 0)
-            {
-                continue;
-            }
-
             var debitTotal = accountLines.Sum(x => x.Debit * x.ExchangeRateToBase);
             var creditTotal = accountLines.Sum(x => x.Credit * x.ExchangeRateToBase);
 
             if (account.Type == AccountType.Revenue)
             {
-                var amount = creditTotal - debitTotal;
-                if (amount != 0)
-                {
-                    revenueLines.Add(new AccountNet(account, amount));
-                }
+                revenueLines.Add(new AccountNet(account, creditTotal - debitTotal));
             }
             else
             {
-                var amount = debitTotal - creditTotal;
-                if (amount != 0)
-                {
-                    expenseLines.Add(new AccountNet(account, amount));
-                }
+                expenseLines.Add(new AccountNet(account, debitTotal - creditTotal));
             }
         }
 

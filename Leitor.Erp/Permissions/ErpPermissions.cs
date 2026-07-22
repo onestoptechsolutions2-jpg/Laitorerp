@@ -144,6 +144,15 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    public static class Budgets
+    {
+        public const string GroupName = "Erp.Budgets";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     // Covers Warehouses, Stock Movements, and the Stock on Hand/Low Stock reports - its own group
     // rather than folded into Catalog, since inventory is its own nav section with its own
     // read/write shape (most stock movements are system-generated, not user-authored CRUD).

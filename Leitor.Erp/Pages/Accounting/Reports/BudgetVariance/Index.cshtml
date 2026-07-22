@@ -1,0 +1,106 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.BudgetVariance.IndexModel
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["BudgetVariance"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-auto">
+                <label class="form-label">@L["FiscalYear"]</label>
+                <input type="number" name="FiscalYear" class="form-control" value="@Model.FiscalYear" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label">@L["Month"]</label>
+                <select name="Month" class="form-select">
+                    <option value="">@L["WholeYear"]</option>
+                    @for (var m = 1; m <= 12; m++)
+                    {
+                        <option value="@m" selected="@(Model.Month == m)">@System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Revenue"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Account"]</th>
+                        <th>@L["Actual"]</th>
+                        <th>@L["Budget"]</th>
+                        <th>@L["Variance"]</th>
+                        <th>@L["VariancePercent"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Report.RevenueLines.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var line in Model.Report.RevenueLines)
+                    {
+                        <tr>
+                            <td>@line.AccountCode - @line.AccountName</td>
+                            <td>@line.Actual.ToString("N2")</td>
+                            <td>@line.Budget.ToString("N2")</td>
+                            <td class="@(line.Variance < 0 ? "text-danger" : "text-success")">@line.Variance.ToString("N2")</td>
+                            <td>@(line.VariancePercent.HasValue ? line.VariancePercent.Value.ToString("N1") + "%" : "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Expenses"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Account"]</th>
+                        <th>@L["Actual"]</th>
+                        <th>@L["Budget"]</th>
+                        <th>@L["Variance"]</th>
+                        <th>@L["VariancePercent"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Report.ExpenseLines.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var line in Model.Report.ExpenseLines)
+                    {
+                        <tr>
+                            <td>@line.AccountCode - @line.AccountName</td>
+                            <td>@line.Actual.ToString("N2")</td>
+                            <td>@line.Budget.ToString("N2")</td>
+                            <td class="@(line.Variance > 0 ? "text-danger" : "text-success")">@line.Variance.ToString("N2")</td>
+                            <td>@(line.VariancePercent.HasValue ? line.VariancePercent.Value.ToString("N1") + "%" : "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

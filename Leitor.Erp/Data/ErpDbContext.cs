@@ -39,6 +39,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<DepreciationEntry> DepreciationEntries { get; set; } = null!;
     public DbSet<BankAccount> BankAccounts { get; set; } = null!;
     public DbSet<BankStatementLine> BankStatementLines { get; set; } = null!;
+    public DbSet<Budget> Budgets { get; set; } = null!;
 
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<StockMovement> StockMovements { get; set; } = null!;
@@ -366,6 +367,14 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.ReferenceNumber).HasMaxLength(64);
             b.HasIndex(x => x.BankAccountId);
             b.HasIndex(x => x.MatchedJournalEntryLineId);
+        });
+
+        builder.Entity<Budget>(b =>
+        {
+            b.ToTable("Budgets");
+            b.ConfigureByConvention();
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => new { x.AccountId, x.FiscalYear, x.Month }).IsUnique();
         });
 
         builder.Entity<Product>(b =>

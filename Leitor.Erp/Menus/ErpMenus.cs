@@ -26,6 +26,7 @@ public class ErpMenus
     public const string AccountingJournalEntries = Accounting + ".JournalEntries";
     public const string FixedAssets = Accounting + ".FixedAssets";
     public const string BankAccounts = Accounting + ".BankAccounts";
+    public const string Budgets = Accounting + ".Budgets";
     public const string Inventory = Prefix + ".Inventory";
     public const string InventoryWarehouses = Inventory + ".Warehouses";
     public const string InventoryStockMovements = Inventory + ".StockMovements";
@@ -50,6 +51,7 @@ public class ErpMenus
     public const string ReportsBalanceSheet = Reports + ".BalanceSheet";
     public const string ReportsArAging = Reports + ".ArAging";
     public const string ReportsApAging = Reports + ".ApAging";
+    public const string ReportsBudgetVariance = Reports + ".BudgetVariance";
     public const string ReportsAuditLogs = Reports + ".AuditLogs";
     public const string ReportsStockOnHand = Reports + ".StockOnHand";
     public const string ReportsLowStock = Reports + ".LowStock";

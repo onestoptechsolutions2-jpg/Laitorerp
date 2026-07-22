@@ -268,6 +268,7 @@
     "Permission:Accounting": "Accounting & Finance",
     "Permission:FixedAssets": "Fixed Assets",
     "Permission:Banking": "Banking",
+    "Permission:Budgets": "Budgets",
     "Permission:Inventory": "Inventory Management",
     "Permission:Projects": "Project Management",
     "Permission:TaxCompliance": "Tax Compliance",
@@ -836,6 +837,15 @@
     "Charge": "Charge",
     "Balance": "Balance",
     "OpeningBalance": "Opening Balance",
-    "ClosingBalance": "Closing Balance"
+    "ClosingBalance": "Closing Balance",
+    "Menu:Budgets": "Budgets",
+    "Menu:BudgetVariance": "Budget Variance",
+    "Budgets": "Budgets",
+    "BudgetVariance": "Budget Variance",
+    "FiscalYear": "Fiscal Year",
+    "WholeYear": "Whole Year",
+    "Actual": "Actual",
+    "Variance": "Variance",
+    "VariancePercent": "Variance %"
   }
 }

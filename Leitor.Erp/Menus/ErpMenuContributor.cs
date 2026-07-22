@@ -211,8 +211,9 @@ public class ErpMenuContributor : IMenuContributor
         var canViewAccounting = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
         var canViewFixedAssets = await context.IsGrantedAsync(ErpPermissions.FixedAssets.Default);
         var canViewBanking = await context.IsGrantedAsync(ErpPermissions.Banking.Default);
+        var canViewBudgets = await context.IsGrantedAsync(ErpPermissions.Budgets.Default);
 
-        if (canViewAccounting || canViewFixedAssets || canViewBanking)
+        if (canViewAccounting || canViewFixedAssets || canViewBanking || canViewBudgets)
         {
             var accountingMenu = new ApplicationMenuItem(
                 ErpMenus.Accounting,
@@ -239,6 +240,13 @@ public class ErpMenuContributor : IMenuContributor
             {
                 accountingMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.BankAccounts, l["Menu:BankAccounts"], "~/Accounting/BankAccounts", order: 3)
+                );
+            }
+
+            if (canViewBudgets)
+            {
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.Budgets, l["Menu:Budgets"], "~/Accounting/Budgets", order: 4)
                 );
             }
 
@@ -408,27 +416,34 @@ public class ErpMenuContributor : IMenuContributor
                 );
             }
 
+            if (canViewBudgets)
+            {
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsBudgetVariance, l["Menu:BudgetVariance"], "~/Accounting/Reports/BudgetVariance", order: 8)
+                );
+            }
+
             if (canViewAuditLogs)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 8)
+                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 9)
                 );
             }
 
             if (canViewInventoryReports)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 9)
+                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 10)
                 );
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 10)
+                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 11)
                 );
             }
 
             if (canViewSupportAnalytics)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 11)
+                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 12)
                 );
             }
 
