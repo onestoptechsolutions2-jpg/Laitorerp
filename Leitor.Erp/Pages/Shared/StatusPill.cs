@@ -1,3 +1,4 @@
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
@@ -196,6 +197,13 @@ public static class StatusPill
         KnowledgeArticleStatus.Draft => Neutral,
         KnowledgeArticleStatus.Published => Success,
         KnowledgeArticleStatus.Archived => Info,
+        _ => Neutral
+    };
+
+    public static string For(FixedAssetStatus status) => status switch
+    {
+        FixedAssetStatus.InUse => Success,
+        FixedAssetStatus.Disposed => Neutral,
         _ => Neutral
     };
 }

@@ -35,6 +35,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Account> Accounts { get; set; } = null!;
     public DbSet<JournalEntry> JournalEntries { get; set; } = null!;
     public DbSet<JournalEntryLine> JournalEntryLines { get; set; } = null!;
+    public DbSet<FixedAsset> FixedAssets { get; set; } = null!;
+    public DbSet<DepreciationEntry> DepreciationEntries { get; set; } = null!;
 
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<StockMovement> StockMovements { get; set; } = null!;
@@ -321,6 +323,25 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.JournalEntryId);
             b.HasIndex(x => x.AccountId);
             b.HasIndex(x => x.ProjectId);
+        });
+
+        builder.Entity<FixedAsset>(b =>
+        {
+            b.ToTable("FixedAssets");
+            b.ConfigureByConvention();
+            b.Property(x => x.AssetNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.PurchaseCost).HasColumnType("decimal(18,2)");
+            b.Property(x => x.SalvageValue).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.AssetNumber).IsUnique();
+        });
+
+        builder.Entity<DepreciationEntry>(b =>
+        {
+            b.ToTable("DepreciationEntries");
+            b.ConfigureByConvention();
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.FixedAssetId);
         });
 
         builder.Entity<Product>(b =>

@@ -1,0 +1,62 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.FixedAssets.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["FixedAssets"]</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewFixedAsset"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["AssetNumber"]</th>
+                        <th>@L["Name"]</th>
+                        <th>@L["Category"]</th>
+                        <th>@L["PurchaseCost"]</th>
+                        <th>@L["AccumulatedDepreciation"]</th>
+                        <th>@L["BookValue"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Assets.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var asset in Model.Assets)
+                    {
+                        <tr>
+                            <td><a asp-page="./Detail" asp-route-id="@asset.Id">@asset.AssetNumber</a></td>
+                            <td>@asset.Name</td>
+                            <td>@L[$"Enum:FixedAssetCategory:{(int)asset.Category}"]</td>
+                            <td>@asset.PurchaseCost.ToString("N2")</td>
+                            <td>@asset.AccumulatedDepreciation.ToString("N2")</td>
+                            <td>@asset.BookValue.ToString("N2")</td>
+                            <td><span class="pill @StatusPill.For(asset.Status)">@L[$"Enum:FixedAssetStatus:{(int)asset.Status}"]</span></td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@asset.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@asset.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

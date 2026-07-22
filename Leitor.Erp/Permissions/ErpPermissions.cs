@@ -110,10 +110,22 @@ public static class ErpPermissions
     }
 
     // Covers Currencies/Exchange Rates, Chart of Accounts, Journal Entries, and the financial
-    // reports together - same "one group per nav section" convention as Procurement.
+    // reports together - same "one group per nav section" convention as Procurement. Also gates
+    // the newer report-only pages that don't warrant their own group (AR/AP Aging, Statements,
+    // Budget Variance, Currency Revaluation, Cash Flow) and the always-CRUD-adjacent Recurring
+    // Journal templates - see the full-accounting-module plan.
     public static class Accounting
     {
         public const string GroupName = "Erp.Accounting";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class FixedAssets
+    {
+        public const string GroupName = "Erp.FixedAssets";
         public const string Default = GroupName;
         public const string Create = Default + ".Create";
         public const string Edit = Default + ".Edit";

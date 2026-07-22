@@ -59,6 +59,36 @@ public static class JournalPostingService
         var debitAccount = await ResolveSystemAccountAsync(accountRepository, debitRole);
         var creditAccount = await ResolveSystemAccountAsync(accountRepository, creditRole);
 
+        await PostByAccountIdAsync(
+            journalEntryRepository, journalEntryLineRepository, guidGenerator, dataFilter,
+            entryDate, sourceDocumentType, sourceDocumentId, description,
+            debitAccount.Id, creditAccount.Id, amount, currencyCode, exchangeRateToBase, projectId);
+    }
+
+    // Same two-line posting shape as PostAsync, but for callers that already know exactly which
+    // Accounts to use (e.g. DepreciationAppService, where the debit/credit accounts are picked
+    // per-FixedAsset, not a single global SystemAccountRole) rather than resolving a role.
+    public static async Task PostByAccountIdAsync(
+        IRepository<JournalEntry, Guid> journalEntryRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IGuidGenerator guidGenerator,
+        IDataFilter dataFilter,
+        DateTime entryDate,
+        string sourceDocumentType,
+        Guid sourceDocumentId,
+        string description,
+        Guid debitAccountId,
+        Guid creditAccountId,
+        decimal amount,
+        string currencyCode,
+        decimal exchangeRateToBase,
+        Guid? projectId = null)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
         var entryNumber = await DocumentNumbering.NextAsync(journalEntryRepository, dataFilter, "JE-");
         var entry = new JournalEntry(guidGenerator.Create(), entryNumber, entryDate, description)
         {
@@ -69,7 +99,7 @@ public static class JournalPostingService
         await journalEntryRepository.InsertAsync(entry, autoSave: true);
 
         await journalEntryLineRepository.InsertAsync(
-            new JournalEntryLine(guidGenerator.Create(), entry.Id, debitAccount.Id)
+            new JournalEntryLine(guidGenerator.Create(), entry.Id, debitAccountId)
             {
                 Debit = amount,
                 CurrencyCode = currencyCode,
@@ -79,7 +109,7 @@ public static class JournalPostingService
             autoSave: true);
 
         await journalEntryLineRepository.InsertAsync(
-            new JournalEntryLine(guidGenerator.Create(), entry.Id, creditAccount.Id)
+            new JournalEntryLine(guidGenerator.Create(), entry.Id, creditAccountId)
             {
                 Credit = amount,
                 CurrencyCode = currencyCode,

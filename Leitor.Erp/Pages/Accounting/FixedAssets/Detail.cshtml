@@ -1,0 +1,106 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.FixedAssets.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Asset.AssetNumber - @Model.Asset.Name</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Asset.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@L["Category"]</dt>
+            <dd class="col-sm-3">@L[$"Enum:FixedAssetCategory:{(int)Model.Asset.Category}"]</dd>
+            <dt class="col-sm-3">@L["Status"]</dt>
+            <dd class="col-sm-3"><span class="pill @StatusPill.For(Model.Asset.Status)">@L[$"Enum:FixedAssetStatus:{(int)Model.Asset.Status}"]</span></dd>
+
+            <dt class="col-sm-3">@L["PurchaseDate"]</dt>
+            <dd class="col-sm-3">@Model.Asset.PurchaseDate.ToString("d")</dd>
+            <dt class="col-sm-3">@L["UsefulLifeMonths"]</dt>
+            <dd class="col-sm-3">@Model.Asset.UsefulLifeMonths</dd>
+
+            <dt class="col-sm-3">@L["PurchaseCost"]</dt>
+            <dd class="col-sm-3">@Model.Asset.PurchaseCost.ToString("N2")</dd>
+            <dt class="col-sm-3">@L["SalvageValue"]</dt>
+            <dd class="col-sm-3">@Model.Asset.SalvageValue.ToString("N2")</dd>
+
+            <dt class="col-sm-3">@L["AccumulatedDepreciation"]</dt>
+            <dd class="col-sm-3">@Model.Asset.AccumulatedDepreciation.ToString("N2")</dd>
+            <dt class="col-sm-3">@L["BookValue"]</dt>
+            <dd class="col-sm-3">@Model.Asset.BookValue.ToString("N2")</dd>
+
+            <dt class="col-sm-3">@L["AssetAccount"]</dt>
+            <dd class="col-sm-3">@Model.Asset.AssetAccountName</dd>
+            <dt class="col-sm-3">@L["DepreciationExpenseAccount"]</dt>
+            <dd class="col-sm-3">@Model.Asset.DepreciationExpenseAccountName</dd>
+
+            <dt class="col-sm-3">@L["AccumulatedDepreciationAccount"]</dt>
+            <dd class="col-sm-9">@Model.Asset.AccumulatedDepreciationAccountName</dd>
+        </dl>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (Model.CanEdit && !Model.Asset.IsFullyDepreciated && Model.Asset.Status == Leitor.Erp.Entities.Accounting.FixedAssetStatus.InUse)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["RunDepreciation"]</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">@L["RunDepreciationHint"]</p>
+            <form method="post" asp-page-handler="RunDepreciation" class="d-flex align-items-end gap-2">
+                <div>
+                    <abp-input asp-for="PeriodMonth" label="@L["Period"].Value" />
+                </div>
+                <button type="submit" class="btn btn-primary mb-3">@L["RunDepreciation"]</button>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["DepreciationSchedule"]</h5>
+    </div>
+    <div class="card-body">
+        @if (!Model.Schedule.Any())
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["Period"]</th>
+                            <th>@L["Amount"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in Model.Schedule)
+                        {
+                            <tr>
+                                <td>@entry.PeriodDate.ToString("MMMM yyyy")</td>
+                                <td>@entry.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

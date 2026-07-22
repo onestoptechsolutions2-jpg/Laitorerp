@@ -24,6 +24,7 @@ public class ErpMenus
     public const string ProcurementSupplierInvoices = Procurement + ".SupplierInvoices";
     public const string Accounting = Prefix + ".Accounting";
     public const string AccountingJournalEntries = Accounting + ".JournalEntries";
+    public const string FixedAssets = Accounting + ".FixedAssets";
     public const string Inventory = Prefix + ".Inventory";
     public const string InventoryWarehouses = Inventory + ".Warehouses";
     public const string InventoryStockMovements = Inventory + ".StockMovements";

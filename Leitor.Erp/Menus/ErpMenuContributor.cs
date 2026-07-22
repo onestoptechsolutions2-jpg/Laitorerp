@@ -208,17 +208,33 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(procurementMenu);
         }
 
-        if (await context.IsGrantedAsync(ErpPermissions.Accounting.Default))
+        var canViewAccounting = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
+        var canViewFixedAssets = await context.IsGrantedAsync(ErpPermissions.FixedAssets.Default);
+
+        if (canViewAccounting || canViewFixedAssets)
         {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.AccountingJournalEntries,
-                    l["Menu:Accounting"],
-                    "~/Accounting/JournalEntries",
-                    icon: "fas fa-scale-balanced",
-                    order: 9
-                )
+            var accountingMenu = new ApplicationMenuItem(
+                ErpMenus.Accounting,
+                l["Menu:Accounting"],
+                icon: "fas fa-scale-balanced",
+                order: 9
             );
+
+            if (canViewAccounting)
+            {
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.AccountingJournalEntries, l["Menu:JournalEntries"], "~/Accounting/JournalEntries", order: 1)
+                );
+            }
+
+            if (canViewFixedAssets)
+            {
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.FixedAssets, l["Menu:FixedAssets"], "~/Accounting/FixedAssets", order: 2)
+                );
+            }
+
+            context.Menu.Items.Add(accountingMenu);
         }
 
         if (await context.IsGrantedAsync(ErpPermissions.Inventory.Default))
