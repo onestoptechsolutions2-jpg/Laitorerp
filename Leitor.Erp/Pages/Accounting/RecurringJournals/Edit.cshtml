@@ -1,0 +1,56 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.RecurringJournals.EditModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["EditRecurringJournal"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="Template.Description" />
+            <abp-input asp-for="Template.Frequency" />
+            <abp-input asp-for="Template.NextRunDate" />
+            <abp-input asp-for="Template.IsActive" />
+
+            <div class="table-responsive mt-3">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>@L["Account"]</th>
+                            <th>@L["Debit"]</th>
+                            <th>@L["Credit"]</th>
+                            <th>@L["Currency"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Template.Lines.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    <select asp-for="Template.Lines[i].AccountId" asp-items="Model.AccountOptions" class="form-select form-select-sm">
+                                        <option value="">@L["None"]</option>
+                                    </select>
+                                </td>
+                                <td><input asp-for="Template.Lines[i].Debit" class="form-control form-control-sm" /></td>
+                                <td><input asp-for="Template.Lines[i].Credit" class="form-control form-control-sm" /></td>
+                                <td>
+                                    <select asp-for="Template.Lines[i].CurrencyCode" asp-items="Model.CurrencyOptions" class="form-select form-select-sm"></select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small">@L["JournalEntryLinesHint"]</p>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

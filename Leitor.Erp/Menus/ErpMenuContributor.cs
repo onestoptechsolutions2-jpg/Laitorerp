@@ -258,6 +258,13 @@ public class ErpMenuContributor : IMenuContributor
                 );
             }
 
+            if (canViewAccounting)
+            {
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.RecurringJournals, l["Menu:RecurringJournals"], "~/Accounting/RecurringJournals", order: 6)
+                );
+            }
+
             context.Menu.Items.Add(accountingMenu);
         }
 

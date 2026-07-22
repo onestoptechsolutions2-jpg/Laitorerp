@@ -1,0 +1,56 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.RecurringJournals.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["RecurringJournals"]</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewRecurringJournal"]</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Description"]</th>
+                        <th>@L["Frequency"]</th>
+                        <th>@L["NextRunDate"]</th>
+                        <th>@L["Active"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Templates.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var template in Model.Templates)
+                    {
+                        <tr>
+                            <td>@template.Description</td>
+                            <td>@L[$"Enum:RecurringJournalFrequency:{(int)template.Frequency}"]</td>
+                            <td>@template.NextRunDate.ToString("d")</td>
+                            <td>@(template.IsActive ? "✓" : "")</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@template.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@template.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

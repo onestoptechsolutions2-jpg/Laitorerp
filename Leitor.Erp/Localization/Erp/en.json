@@ -852,6 +852,15 @@
     "FiscalPeriods": "Fiscal Periods",
     "CloseYear": "Close Year",
     "ConfirmCloseYear": "This locks all 12 months of the selected year against new or edited journal entries. You can unlock individual months again later if needed. Continue?",
-    "Lock": "Lock"
+    "Lock": "Lock",
+    "Menu:RecurringJournals": "Recurring Journals",
+    "RecurringJournals": "Recurring Journals",
+    "NewRecurringJournal": "New Recurring Journal",
+    "EditRecurringJournal": "Edit Recurring Journal",
+    "Frequency": "Frequency",
+    "NextRunDate": "Next Run Date",
+    "Enum:RecurringJournalFrequency:0": "Monthly",
+    "Enum:RecurringJournalFrequency:1": "Quarterly",
+    "Enum:RecurringJournalFrequency:2": "Annually"
   }
 }

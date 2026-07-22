@@ -28,6 +28,7 @@ public class ErpMenus
     public const string BankAccounts = Accounting + ".BankAccounts";
     public const string Budgets = Accounting + ".Budgets";
     public const string FiscalPeriods = Accounting + ".FiscalPeriods";
+    public const string RecurringJournals = Accounting + ".RecurringJournals";
     public const string Inventory = Prefix + ".Inventory";
     public const string InventoryWarehouses = Inventory + ".Warehouses";
     public const string InventoryStockMovements = Inventory + ".StockMovements";

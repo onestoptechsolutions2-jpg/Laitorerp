@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
@@ -121,6 +122,78 @@ public static class JournalPostingService
                 ProjectId = projectId
             },
             autoSave: true);
+    }
+
+    // For callers with more than 2 lines (RecurringJournalWorker, CurrencyRevaluationAppService)
+    // that also can't go through JournalEntryAppService.CreateAsync - a background worker has no
+    // authenticated CurrentUser, so CheckPolicyAsync there would always throw. Validates the
+    // entry balances in base-currency terms first, same check CreateAsync itself makes.
+    public static async Task PostMultiLineAsync(
+        IRepository<JournalEntry, Guid> journalEntryRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
+        IGuidGenerator guidGenerator,
+        IDataFilter dataFilter,
+        DateTime entryDate,
+        string sourceDocumentType,
+        Guid sourceDocumentId,
+        string description,
+        IReadOnlyList<MultiLineEntry> lines)
+    {
+        if (lines.Count < 2)
+        {
+            throw new UserFriendlyException("A journal entry needs at least two lines.");
+        }
+
+        var totalDebitBase = lines.Sum(x => x.Debit * x.ExchangeRateToBase);
+        var totalCreditBase = lines.Sum(x => x.Credit * x.ExchangeRateToBase);
+        if (Math.Round(totalDebitBase - totalCreditBase, 2) != 0)
+        {
+            throw new UserFriendlyException(
+                $"This entry does not balance: debits total {totalDebitBase:N2} but credits total {totalCreditBase:N2} (in base currency).");
+        }
+
+        await FiscalPeriodGuard.EnsureNotLockedAsync(fiscalPeriodRepository, entryDate);
+
+        var entryNumber = await DocumentNumbering.NextAsync(journalEntryRepository, dataFilter, "JE-");
+        var entry = new JournalEntry(guidGenerator.Create(), entryNumber, entryDate, description)
+        {
+            SourceDocumentType = sourceDocumentType,
+            SourceDocumentId = sourceDocumentId,
+            IsSystemGenerated = true
+        };
+        await journalEntryRepository.InsertAsync(entry, autoSave: true);
+
+        foreach (var line in lines)
+        {
+            await journalEntryLineRepository.InsertAsync(
+                new JournalEntryLine(guidGenerator.Create(), entry.Id, line.AccountId)
+                {
+                    Debit = line.Debit,
+                    Credit = line.Credit,
+                    CurrencyCode = line.CurrencyCode,
+                    ExchangeRateToBase = line.ExchangeRateToBase
+                },
+                autoSave: true);
+        }
+    }
+
+    public readonly struct MultiLineEntry
+    {
+        public MultiLineEntry(Guid accountId, decimal debit, decimal credit, string currencyCode, decimal exchangeRateToBase)
+        {
+            AccountId = accountId;
+            Debit = debit;
+            Credit = credit;
+            CurrencyCode = currencyCode;
+            ExchangeRateToBase = exchangeRateToBase;
+        }
+
+        public Guid AccountId { get; }
+        public decimal Debit { get; }
+        public decimal Credit { get; }
+        public string CurrencyCode { get; }
+        public decimal ExchangeRateToBase { get; }
     }
 
     private static async Task<Account> ResolveSystemAccountAsync(IRepository<Account, Guid> accountRepository, SystemAccountRole role)

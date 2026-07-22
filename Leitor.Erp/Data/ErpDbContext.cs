@@ -41,6 +41,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<BankStatementLine> BankStatementLines { get; set; } = null!;
     public DbSet<Budget> Budgets { get; set; } = null!;
     public DbSet<FiscalPeriod> FiscalPeriods { get; set; } = null!;
+    public DbSet<RecurringJournalTemplate> RecurringJournalTemplates { get; set; } = null!;
+    public DbSet<RecurringJournalTemplateLine> RecurringJournalTemplateLines { get; set; } = null!;
 
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<StockMovement> StockMovements { get; set; } = null!;
@@ -383,6 +385,23 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ToTable("FiscalPeriods");
             b.ConfigureByConvention();
             b.HasIndex(x => new { x.Year, x.Month }).IsUnique();
+        });
+
+        builder.Entity<RecurringJournalTemplate>(b =>
+        {
+            b.ToTable("RecurringJournalTemplates");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(256);
+        });
+
+        builder.Entity<RecurringJournalTemplateLine>(b =>
+        {
+            b.ToTable("RecurringJournalTemplateLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Debit).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Credit).HasColumnType("decimal(18,2)");
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8);
+            b.HasIndex(x => x.RecurringJournalTemplateId);
         });
 
         builder.Entity<Product>(b =>
