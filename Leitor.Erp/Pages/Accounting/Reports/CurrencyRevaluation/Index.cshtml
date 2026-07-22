@@ -1,0 +1,87 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.CurrencyRevaluation.IndexModel
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["CurrencyRevaluation"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <label class="form-label">@L["AsOfDate"]</label>
+                <input type="date" name="AsOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success">@Model.SuccessMessage</div>
+        }
+
+        <dl class="row mb-3">
+            <dt class="col-sm-3">@L["NetArChange"]</dt>
+            <dd class="col-sm-3">@Model.Preview.NetArChangeBase.ToString("N2")</dd>
+            <dt class="col-sm-3">@L["NetApChange"]</dt>
+            <dd class="col-sm-3">@Model.Preview.NetApChangeBase.ToString("N2")</dd>
+
+            <dt class="col-sm-3">@L["NetGainLoss"]</dt>
+            <dd class="col-sm-9">
+                <span class="pill @(Model.Preview.NetGainLoss >= 0 ? "pill-success" : "pill-danger")">@Model.Preview.NetGainLoss.ToString("N2")</span>
+            </dd>
+        </dl>
+
+        @if (Model.CanPost && Model.Preview.Lines.Any())
+        {
+            <form method="post" onsubmit="return confirm('@L["ConfirmPostRevaluation"]');">
+                <input type="hidden" name="AsOfDate" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+                <button type="submit" class="btn btn-primary mb-3">@L["PostRevaluationEntry"]</button>
+            </form>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["DocumentType"]</th>
+                        <th>@L["DocumentNumber"]</th>
+                        <th>@L["Party"]</th>
+                        <th>@L["Currency"]</th>
+                        <th>@L["AmountDue"]</th>
+                        <th>@L["OriginalRate"]</th>
+                        <th>@L["CurrentRate"]</th>
+                        <th>@L["GainLoss"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Preview.Lines.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var line in Model.Preview.Lines)
+                    {
+                        <tr>
+                            <td>@line.DocumentType</td>
+                            <td>@line.DocumentNumber</td>
+                            <td>@line.PartyName</td>
+                            <td>@line.CurrencyCode</td>
+                            <td>@line.AmountDueForeign.ToString("N2")</td>
+                            <td>@line.OriginalRate.ToString("N4")</td>
+                            <td>@line.CurrentRate.ToString("N4")</td>
+                            <td class="@(line.GainLossBase >= 0 ? "text-success" : "text-danger")">@line.GainLossBase.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

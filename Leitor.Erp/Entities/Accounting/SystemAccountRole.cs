@@ -13,5 +13,6 @@ public enum SystemAccountRole
     Revenue = 4,
     Expense = 5,
     Inventory = 6,
-    WithholdingTaxPayable = 7
+    WithholdingTaxPayable = 7,
+    UnrealizedFxGainLoss = 8
 }

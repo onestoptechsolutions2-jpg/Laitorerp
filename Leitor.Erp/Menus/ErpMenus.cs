@@ -53,6 +53,7 @@ public class ErpMenus
     public const string ReportsBalanceSheet = Reports + ".BalanceSheet";
     public const string ReportsArAging = Reports + ".ArAging";
     public const string ReportsApAging = Reports + ".ApAging";
+    public const string ReportsCurrencyRevaluation = Reports + ".CurrencyRevaluation";
     public const string ReportsBudgetVariance = Reports + ".BudgetVariance";
     public const string ReportsAuditLogs = Reports + ".AuditLogs";
     public const string ReportsStockOnHand = Reports + ".StockOnHand";

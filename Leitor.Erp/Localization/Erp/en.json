@@ -379,6 +379,9 @@
     "Enum:SystemAccountRole:3": "Cash",
     "Enum:SystemAccountRole:4": "Revenue",
     "Enum:SystemAccountRole:5": "Expense",
+    "Enum:SystemAccountRole:6": "Inventory",
+    "Enum:SystemAccountRole:7": "Withholding Tax Payable",
+    "Enum:SystemAccountRole:8": "Unrealized FX Gain/Loss",
     "JournalEntries": "Journal Entries",
     "NewJournalEntry": "New Journal Entry",
     "EntryNumber": "Entry Number",
@@ -861,6 +864,20 @@
     "NextRunDate": "Next Run Date",
     "Enum:RecurringJournalFrequency:0": "Monthly",
     "Enum:RecurringJournalFrequency:1": "Quarterly",
-    "Enum:RecurringJournalFrequency:2": "Annually"
+    "Enum:RecurringJournalFrequency:2": "Annually",
+    "Menu:CurrencyRevaluation": "Currency Revaluation",
+    "CurrencyRevaluation": "Currency Revaluation",
+    "NetArChange": "Net AR Change",
+    "NetApChange": "Net AP Change",
+    "NetGainLoss": "Net Gain/Loss",
+    "PostRevaluationEntry": "Post Revaluation Entry",
+    "ConfirmPostRevaluation": "This posts one journal entry adjusting Accounts Receivable/Payable and Unrealized FX Gain/Loss for the net effect shown below. Continue?",
+    "DocumentType": "Type",
+    "DocumentNumber": "Document #",
+    "Party": "Party",
+    "AmountDue": "Amount Due",
+    "OriginalRate": "Original Rate",
+    "CurrentRate": "Current Rate",
+    "GainLoss": "Gain/Loss"
   }
 }
