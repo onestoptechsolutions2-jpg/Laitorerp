@@ -10,6 +10,7 @@ using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -130,8 +131,8 @@ public class InvoiceAppService :
             }
 
             var lines = linesByInvoiceId[invoice.Id].ToList();
-            invoice.Subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
-            invoice.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
+            invoice.Subtotal = lines.Sum(x => x.Subtotal());
+            invoice.TaxAmount = lines.Sum(x => x.TaxAmount());
             invoice.Total = invoice.Subtotal + invoice.TaxAmount;
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
             invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
@@ -161,7 +162,7 @@ public class InvoiceAppService :
         }
 
         var lines = await _lineRepository.GetListAsync(x => x.InvoiceId == id);
-        var total = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * (1 + x.TaxRatePercent / 100m));
+        var total = lines.Sum(x => x.Total());
         if (total <= 0)
         {
             throw new UserFriendlyException("Add at least one line before posting this invoice to the ledger.");

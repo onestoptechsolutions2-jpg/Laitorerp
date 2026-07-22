@@ -11,6 +11,7 @@ using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -124,8 +125,8 @@ public class QuoteAppService :
             }
 
             var lines = linesByQuoteId[quote.Id].ToList();
-            quote.Subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
-            quote.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
+            quote.Subtotal = lines.Sum(x => x.Subtotal());
+            quote.TaxAmount = lines.Sum(x => x.TaxAmount());
             quote.Total = quote.Subtotal + quote.TaxAmount;
 
             if (quote.ProposalId.HasValue && proposalNumbersById.TryGetValue(quote.ProposalId.Value, out var proposalNumber))

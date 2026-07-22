@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Tax;
+using Leitor.Erp.Services;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -80,8 +81,7 @@ public class VatReturnAppService : ApplicationService
         return lines.Sum(line =>
         {
             var invoice = invoicesById[line.InvoiceId];
-            var taxableBase = line.UnitPrice * line.Quantity * (1 - line.DiscountPercent / 100m);
-            return taxableBase * line.TaxRatePercent / 100m * invoice.ExchangeRateToBase;
+            return line.TaxAmount() * invoice.ExchangeRateToBase;
         });
     }
 
@@ -107,8 +107,7 @@ public class VatReturnAppService : ApplicationService
         return lines.Sum(line =>
         {
             var supplierInvoice = invoicesById[line.SupplierInvoiceId];
-            var taxableBase = line.UnitPrice * line.Quantity * (1 - line.DiscountPercent / 100m);
-            return taxableBase * defaultVatRate.Percent / 100m * supplierInvoice.ExchangeRateToBase;
+            return line.Subtotal() * defaultVatRate.Percent / 100m * supplierInvoice.ExchangeRateToBase;
         });
     }
 }

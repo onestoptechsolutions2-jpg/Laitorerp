@@ -1,13 +1,14 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Sales;
 
 // Description/UnitPrice are snapshotted at the time the line is added (ProductId is nullable to
 // allow one-off line items not tied to the catalog), so later Product edits/deletes never affect
-// an existing quote. LineTotal is intentionally not stored - always computed as
-// UnitPrice * Quantity * (1 - DiscountPercent/100) by the app service, to avoid drift.
-public class QuoteLine : FullAuditedAggregateRoot<Guid>
+// an existing quote. LineTotal is intentionally not stored - always computed via
+// Services/LineMath.cs (ITaxableLineItem.Total()) by the app service, to avoid drift.
+public class QuoteLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem
 {
     public Guid QuoteId { get; set; }
     public Guid? ProductId { get; set; }

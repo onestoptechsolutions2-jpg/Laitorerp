@@ -1,9 +1,10 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Procurement;
 
-public class PurchaseOrderLine : FullAuditedAggregateRoot<Guid>
+public class PurchaseOrderLine : FullAuditedAggregateRoot<Guid>, ILineItem
 {
     public Guid PurchaseOrderId { get; set; }
     public Guid? ProductId { get; set; }

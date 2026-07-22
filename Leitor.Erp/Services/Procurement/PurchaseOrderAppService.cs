@@ -10,6 +10,7 @@ using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -164,7 +165,7 @@ public class PurchaseOrderAppService :
             }
 
             var lines = linesByPurchaseOrderId[purchaseOrder.Id].ToList();
-            purchaseOrder.Total = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            purchaseOrder.Total = lines.Sum(x => x.Subtotal());
 
             var orderedQuantity = lines.Sum(x => x.Quantity);
             var receivedQuantity = lines.Sum(x => Math.Min(receivedByPoLineId.GetValueOrDefault(x.Id), x.Quantity));

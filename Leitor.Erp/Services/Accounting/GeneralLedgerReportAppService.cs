@@ -136,42 +136,12 @@ public class GeneralLedgerReportAppService : ApplicationService
             : new List<JournalEntryLine>();
 
         var accounts = await _accountRepository.GetListAsync();
-        var accountsById = accounts.ToDictionary(x => x.Id);
-        var linesByAccountId = lines.ToLookup(x => x.AccountId);
+        var (revenueNets, expenseNets) = LedgerMath.ComputeAccountNets(lines, accounts);
 
-        var revenueLines = new List<IncomeStatementLineDto>();
-        var expenseLines = new List<IncomeStatementLineDto>();
-
-        foreach (var account in accounts)
-        {
-            if (account.Type is not (AccountType.Revenue or AccountType.Expense))
-            {
-                continue;
-            }
-
-            var accountLines = linesByAccountId[account.Id].ToList();
-            var debitTotal = accountLines.Sum(x => x.Debit * x.ExchangeRateToBase);
-            var creditTotal = accountLines.Sum(x => x.Credit * x.ExchangeRateToBase);
-
-            if (account.Type == AccountType.Revenue)
-            {
-                var amount = creditTotal - debitTotal;
-                if (amount != 0)
-                {
-                    revenueLines.Add(new IncomeStatementLineDto { AccountCode = account.Code, AccountName = account.Name, Amount = amount });
-                }
-            }
-            else
-            {
-                var amount = debitTotal - creditTotal;
-                if (amount != 0)
-                {
-                    expenseLines.Add(new IncomeStatementLineDto { AccountCode = account.Code, AccountName = account.Name, Amount = amount });
-                }
-            }
-        }
-
-        return (revenueLines.OrderBy(x => x.AccountCode).ToList(), expenseLines.OrderBy(x => x.AccountCode).ToList());
+        return (
+            revenueNets.Select(x => new IncomeStatementLineDto { AccountCode = x.Account.Code, AccountName = x.Account.Name, Amount = x.Amount }).ToList(),
+            expenseNets.Select(x => new IncomeStatementLineDto { AccountCode = x.Account.Code, AccountName = x.Account.Name, Amount = x.Amount }).ToList()
+        );
     }
 
     private async Task<(ILookup<Guid, JournalEntryLine> linesByAccountId, Dictionary<Guid, Account> accountsById)> LoadLinesUpToAsync(DateTime asOfDate)

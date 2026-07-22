@@ -1,9 +1,10 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Sales;
 
-public class InvoiceLine : FullAuditedAggregateRoot<Guid>
+public class InvoiceLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem
 {
     public Guid InvoiceId { get; set; }
     public Guid? ProductId { get; set; }

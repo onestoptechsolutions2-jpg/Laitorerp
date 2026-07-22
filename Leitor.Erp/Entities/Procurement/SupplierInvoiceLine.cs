@@ -1,11 +1,12 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Procurement;
 
 // Mirrors PurchaseOrderLine's fields exactly (no tax modeling) since these lines are typically
 // seeded from the PO's own lines - see SupplierInvoices/Create.cshtml.cs.
-public class SupplierInvoiceLine : FullAuditedAggregateRoot<Guid>
+public class SupplierInvoiceLine : FullAuditedAggregateRoot<Guid>, ILineItem
 {
     public Guid SupplierInvoiceId { get; set; }
     public Guid? ProductId { get; set; }

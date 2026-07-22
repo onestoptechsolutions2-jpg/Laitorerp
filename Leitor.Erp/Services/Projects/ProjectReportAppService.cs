@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Projects;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -37,47 +38,11 @@ public class ProjectReportAppService : ApplicationService
 
         var lines = await _journalEntryLineRepository.GetListAsync(x => x.ProjectId == projectId);
         var accounts = await _accountRepository.GetListAsync();
-        var accountsById = accounts.ToDictionary(x => x.Id);
-        var linesByAccountId = lines.ToLookup(x => x.AccountId);
+        var (revenueNets, expenseNets) = LedgerMath.ComputeAccountNets(lines, accounts);
 
         var result = new ProjectPnLDto { ProjectId = projectId };
-
-        foreach (var account in accounts)
-        {
-            if (account.Type is not (AccountType.Revenue or AccountType.Expense))
-            {
-                continue;
-            }
-
-            var accountLines = linesByAccountId[account.Id].ToList();
-            if (accountLines.Count == 0)
-            {
-                continue;
-            }
-
-            var debitTotal = accountLines.Sum(x => x.Debit * x.ExchangeRateToBase);
-            var creditTotal = accountLines.Sum(x => x.Credit * x.ExchangeRateToBase);
-
-            if (account.Type == AccountType.Revenue)
-            {
-                var amount = creditTotal - debitTotal;
-                if (amount != 0)
-                {
-                    result.RevenueLines.Add(new ProjectPnLLineDto { AccountCode = account.Code, AccountName = account.Name, Amount = amount });
-                }
-            }
-            else
-            {
-                var amount = debitTotal - creditTotal;
-                if (amount != 0)
-                {
-                    result.ExpenseLines.Add(new ProjectPnLLineDto { AccountCode = account.Code, AccountName = account.Name, Amount = amount });
-                }
-            }
-        }
-
-        result.RevenueLines = result.RevenueLines.OrderBy(x => x.AccountCode).ToList();
-        result.ExpenseLines = result.ExpenseLines.OrderBy(x => x.AccountCode).ToList();
+        result.RevenueLines = revenueNets.Select(x => new ProjectPnLLineDto { AccountCode = x.Account.Code, AccountName = x.Account.Name, Amount = x.Amount }).ToList();
+        result.ExpenseLines = expenseNets.Select(x => new ProjectPnLLineDto { AccountCode = x.Account.Code, AccountName = x.Account.Name, Amount = x.Amount }).ToList();
         result.TotalRevenue = result.RevenueLines.Sum(x => x.Amount);
         result.TotalExpense = result.ExpenseLines.Sum(x => x.Amount);
         result.NetProfit = result.TotalRevenue - result.TotalExpense;

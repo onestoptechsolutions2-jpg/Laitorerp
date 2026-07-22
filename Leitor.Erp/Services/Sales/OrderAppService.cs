@@ -13,6 +13,7 @@ using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Inventory;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -159,8 +160,8 @@ public class OrderAppService :
             }
 
             var lines = linesByOrderId[order.Id].ToList();
-            order.Subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
-            order.TaxAmount = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * x.TaxRatePercent / 100m);
+            order.Subtotal = lines.Sum(x => x.Subtotal());
+            order.TaxAmount = lines.Sum(x => x.TaxAmount());
             order.Total = order.Subtotal + order.TaxAmount;
         }
     }
@@ -266,7 +267,7 @@ public class OrderAppService :
         }
 
         var lines = await _lineRepository.GetListAsync(x => x.OrderId == order.Id);
-        var subtotal = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+        var subtotal = lines.Sum(x => x.Subtotal());
 
         var deposit = new OrderPaymentMilestone(GuidGenerator.Create(), order.Id, "Deposit", 50)
         {
@@ -468,7 +469,7 @@ public class OrderAppService :
         // Every line is created here, atomically, with the Order's own already-known totals - so
         // (unlike a standalone Invoice built one line at a time via InvoiceAppService) this can
         // auto-post immediately.
-        var total = createdInvoiceLines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m) * (1 + x.TaxRatePercent / 100m));
+        var total = createdInvoiceLines.Sum(x => x.Total());
         await JournalPostingService.PostAsync(
             _accountRepository, _journalEntryRepository, _journalEntryLineRepository, GuidGenerator, _dataFilter,
             invoice.IssueDate, JournalPostingService.SourceDocumentTypes.Invoice, invoice.Id,

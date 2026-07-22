@@ -11,6 +11,7 @@ using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -147,7 +148,7 @@ public class SupplierInvoiceAppService :
             }
 
             invoice.Total = linesByInvoiceId[invoice.Id]
-                .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+                .Sum(x => x.Subtotal());
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
             invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
@@ -177,7 +178,7 @@ public class SupplierInvoiceAppService :
         }
 
         var lines = await _lineRepository.GetListAsync(x => x.SupplierInvoiceId == id);
-        var total = lines.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+        var total = lines.Sum(x => x.Subtotal());
         if (total <= 0)
         {
             throw new UserFriendlyException("Add at least one line before posting this supplier invoice to the ledger.");
@@ -196,7 +197,7 @@ public class SupplierInvoiceAppService :
 
         var inventoryTotal = lines
             .Where(x => x.ProductId.HasValue && trackedProductIds.Contains(x.ProductId.Value))
-            .Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m));
+            .Sum(x => x.Subtotal());
         var expenseTotal = total - inventoryTotal;
 
         if (inventoryTotal > 0)
