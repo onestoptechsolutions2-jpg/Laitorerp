@@ -1,0 +1,49 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Accounting.Reports.CashFlow.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["CashFlowStatement"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <label class="form-label">@L["FromDate"]</label>
+                <input type="date" name="FromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label">@L["ToDate"]</label>
+                <input type="date" name="ToDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+
+        <table class="table table-sm w-auto">
+            <tbody>
+                <tr><th colspan="2">@L["OperatingActivities"]</th></tr>
+                <tr><td>@L["NetIncome"]</td><td class="text-end">@Model.Report.NetIncome.ToString("N2")</td></tr>
+                <tr><td>@L["DepreciationAddBack"]</td><td class="text-end">@Model.Report.DepreciationAddBack.ToString("N2")</td></tr>
+                <tr><td>@L["AccountsReceivableChange"]</td><td class="text-end">@Model.Report.AccountsReceivableChange.ToString("N2")</td></tr>
+                <tr><td>@L["AccountsPayableChange"]</td><td class="text-end">@Model.Report.AccountsPayableChange.ToString("N2")</td></tr>
+                <tr><td>@L["InventoryChange"]</td><td class="text-end">@Model.Report.InventoryChange.ToString("N2")</td></tr>
+                <tr class="fw-bold border-top"><td>@L["NetCashFromOperating"]</td><td class="text-end">@Model.Report.NetCashFromOperating.ToString("N2")</td></tr>
+
+                <tr><th colspan="2" class="pt-3">@L["InvestingActivities"]</th></tr>
+                <tr class="fw-bold border-top"><td>@L["NetCashFromInvesting"]</td><td class="text-end">@Model.Report.NetCashFromInvesting.ToString("N2")</td></tr>
+                <tr><td class="text-muted small" colspan="2">@L["InvestingActivitiesHint"]</td></tr>
+
+                <tr><th colspan="2" class="pt-3">@L["FinancingActivities"]</th></tr>
+                <tr class="fw-bold border-top"><td>@L["NetCashFromFinancing"]</td><td class="text-end">@Model.Report.NetCashFromFinancing.ToString("N2")</td></tr>
+                <tr><td class="text-muted small" colspan="2">@L["FinancingActivitiesHint"]</td></tr>
+
+                <tr class="fw-bold border-top pt-2"><td>@L["NetChangeInCash"]</td><td class="text-end">@Model.Report.NetChangeInCash.ToString("N2")</td></tr>
+                <tr><td>@L["ActualCashChange"]</td><td class="text-end">@Model.Report.ActualCashChange.ToString("N2")</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>

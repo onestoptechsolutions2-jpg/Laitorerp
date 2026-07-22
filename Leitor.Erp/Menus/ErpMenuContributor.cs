@@ -432,36 +432,39 @@ public class ErpMenuContributor : IMenuContributor
                 reportsMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ReportsCurrencyRevaluation, l["Menu:CurrencyRevaluation"], "~/Accounting/Reports/CurrencyRevaluation", order: 8)
                 );
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsCashFlow, l["Menu:CashFlow"], "~/Accounting/Reports/CashFlow", order: 9)
+                );
             }
 
             if (canViewBudgets)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsBudgetVariance, l["Menu:BudgetVariance"], "~/Accounting/Reports/BudgetVariance", order: 9)
+                    new ApplicationMenuItem(ErpMenus.ReportsBudgetVariance, l["Menu:BudgetVariance"], "~/Accounting/Reports/BudgetVariance", order: 10)
                 );
             }
 
             if (canViewAuditLogs)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 10)
+                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 11)
                 );
             }
 
             if (canViewInventoryReports)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 11)
+                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 12)
                 );
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 12)
+                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 13)
                 );
             }
 
             if (canViewSupportAnalytics)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 13)
+                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 14)
                 );
             }
 

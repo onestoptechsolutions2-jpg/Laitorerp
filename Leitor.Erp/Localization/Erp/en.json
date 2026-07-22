@@ -878,6 +878,23 @@
     "AmountDue": "Amount Due",
     "OriginalRate": "Original Rate",
     "CurrentRate": "Current Rate",
-    "GainLoss": "Gain/Loss"
+    "GainLoss": "Gain/Loss",
+    "Menu:CashFlow": "Cash Flow",
+    "CashFlowStatement": "Cash Flow Statement",
+    "OperatingActivities": "Operating Activities",
+    "NetIncome": "Net Income",
+    "DepreciationAddBack": "Depreciation (add back)",
+    "AccountsReceivableChange": "Change in Accounts Receivable",
+    "AccountsPayableChange": "Change in Accounts Payable",
+    "InventoryChange": "Change in Inventory",
+    "NetCashFromOperating": "Net Cash from Operating Activities",
+    "InvestingActivities": "Investing Activities",
+    "NetCashFromInvesting": "Net Cash from Investing Activities",
+    "InvestingActivitiesHint": "Fixed asset purchases only - asset disposals/sales aren't modeled yet.",
+    "FinancingActivities": "Financing Activities",
+    "NetCashFromFinancing": "Net Cash from Financing Activities",
+    "FinancingActivitiesHint": "Always zero - this app has no loan or equity-contribution records to compute it from.",
+    "NetChangeInCash": "Net Change in Cash",
+    "ActualCashChange": "Actual Change in Cash Account Balance"
   }
 }
