@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Identity;
+using Volo.Abp.Uow;
 
 namespace Leitor.Erp.Tests;
 
@@ -32,6 +34,12 @@ public abstract class ErpTestBase : AbpWebApplicationFactoryIntegratedTest<Progr
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
+
+        // Without this, each ABP unit-of-work opens a real SQLite transaction; Sqlite only allows
+        // one writer at a time, and nested/sibling unit-of-work scopes (e.g. IdentityDataSeeder
+        // touching several repositories within its own UoW during EnsureDatabaseCreatedAsync)
+        // deadlock against each other with "database table is locked".
+        services.AddAlwaysDisableUnitOfWorkTransaction();
 
         // AbpWebApplicationFactoryIntegratedTest's constructor resolves ITestServerAccessor to
         // wire up the TestServer it just built. That registration normally comes from
@@ -68,11 +76,19 @@ public abstract class ErpTestBase : AbpWebApplicationFactoryIntegratedTest<Progr
 
     // Each test class instance gets its own fresh in-memory Sqlite connection, so the schema
     // needs (re-)creating per test. EnsureCreatedAsync builds straight from the current EF Core
-    // model rather than replaying the Npgsql-only migrations.
+    // model rather than replaying the Npgsql-only migrations. Data seeding (base currency, tax
+    // rates, chart of accounts, etc.) normally only runs via the --migrate-database CLI path (see
+    // ErpDbMigrationService) - AppServices like InvoiceAppService that resolve the seeded base
+    // currency/tax rates need it run here too, same properties ErpDbMigrationService passes.
     protected async Task EnsureDatabaseCreatedAsync()
     {
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
         await dbContext.Database.EnsureCreatedAsync();
+
+        var dataSeeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+        await dataSeeder.SeedAsync(new DataSeedContext(null)
+            .WithProperty(IdentityDataSeedContributor.AdminEmailPropertyName, IdentityDataSeedContributor.AdminEmailDefaultValue)
+            .WithProperty(IdentityDataSeedContributor.AdminPasswordPropertyName, IdentityDataSeedContributor.AdminPasswordDefaultValue));
     }
 }

@@ -25,7 +25,8 @@ public class InvoiceAppServiceTests : ErpTestBase
             CustomerId = customer.Id,
             Status = InvoiceStatus.Issued,
             IssueDate = DateTime.UtcNow.AddDays(-10),
-            DueDate = dueDate
+            DueDate = dueDate,
+            CurrencyCode = "KES"
         });
 
         await invoiceLineAppService.CreateAsync(new CreateUpdateInvoiceLineDto
@@ -88,10 +89,15 @@ public class InvoiceAppServiceTests : ErpTestBase
         var paymentAppService = GetRequiredService<PaymentAppService>();
         var invoiceId = await CreateInvoiceWithLineAsync(1000m, DateTime.UtcNow.AddDays(30));
 
+        // Pay the actual computed Total, not the raw line UnitPrice - Total includes whatever tax
+        // rate the seeded default TaxRate applies (see TaxRateResolver.ResolveAsync), so it isn't
+        // necessarily equal to the 1000m line price itself.
+        var billedInvoice = await invoiceAppService.GetAsync(invoiceId);
+
         await paymentAppService.CreateAsync(new CreateUpdatePaymentDto
         {
             InvoiceId = invoiceId,
-            Amount = 1000m,
+            Amount = billedInvoice.Total,
             PaymentDate = DateTime.UtcNow
         });
 
