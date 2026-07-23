@@ -1,0 +1,45 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Pos.Sales.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["SalesHistory"]</h5>
+        <a asp-page="/Pos/Register/Index" class="btn btn-outline-secondary">@L["PosRegister"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["SaleNumber"]</th>
+                        <th>@L["Date"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Total"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Sales.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var sale in Model.Sales)
+                    {
+                        <tr>
+                            <td>@sale.SaleNumber</td>
+                            <td>@sale.SaleDate.ToString("g")</td>
+                            <td>@(sale.CustomerName ?? L["WalkInCustomer"].Value)</td>
+                            <td>@sale.Total.ToString("N2")</td>
+                            <td><span class="pill @(sale.Status == Leitor.Erp.Entities.Pos.PosSaleStatus.Voided ? "pill-danger" : "pill-success")">@L[$"Enum:PosSaleStatus:{(int)sale.Status}"]</span></td>
+                            <td><a asp-page="./Detail" asp-route-id="@sale.Id" class="btn btn-sm btn-outline-primary">@L["View"]</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

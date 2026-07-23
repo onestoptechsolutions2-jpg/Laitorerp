@@ -1,0 +1,106 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Pos.Sales.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["SaleNumber"] @Model.Sale.SaleNumber</h5>
+        <div>
+            <a asp-page-handler="Pdf" class="btn btn-outline-secondary">@L["PrintReceipt"]</a>
+            @if (Model.CanVoid && Model.Sale.Status == Leitor.Erp.Entities.Pos.PosSaleStatus.Completed)
+            {
+                <form method="post" asp-page-handler="Void" class="d-inline" onsubmit="return confirm('@L["ConfirmVoidSale"]');">
+                    <button type="submit" class="btn btn-outline-danger">@L["Void"]</button>
+                </form>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Date"]</dt>
+            <dd class="col-sm-4">@Model.Sale.SaleDate.ToString("g")</dd>
+            <dt class="col-sm-2">@L["Customer"]</dt>
+            <dd class="col-sm-4">@(Model.Sale.CustomerName ?? L["WalkInCustomer"].Value)</dd>
+
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4"><span class="pill @(Model.Sale.Status == Leitor.Erp.Entities.Pos.PosSaleStatus.Voided ? "pill-danger" : "pill-success")">@L[$"Enum:PosSaleStatus:{(int)Model.Sale.Status}"]</span></dd>
+            <dt class="col-sm-2">@L["Salesperson"]</dt>
+            <dd class="col-sm-4">@Model.Sale.SalespersonUserName</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header"><h5 class="card-title mb-0">@L["SaleLines"]</h5></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>@L["Description"]</th>
+                        <th>@L["Price"]</th>
+                        <th>@L["Quantity"]</th>
+                        <th>@L["DiscountPercent"]</th>
+                        <th>@L["LineTotal"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in Model.Sale.Lines)
+                    {
+                        <tr>
+                            <td>@line.Description</td>
+                            <td>@line.UnitPrice.ToString("N2")</td>
+                            <td>@line.Quantity.ToString("N2")</td>
+                            <td>@line.DiscountPercent.ToString("N0")</td>
+                            <td>@line.LineTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4">@L["Subtotal"]</th>
+                        <th>@Model.Sale.Subtotal.ToString("N2")</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4">@L["Tax"]</th>
+                        <th>@Model.Sale.TaxAmount.ToString("N2")</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4">@L["Total"]</th>
+                        <th>@Model.Sale.Total.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h5 class="card-title mb-0">@L["Payment"]</h5></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Method"]</th>
+                        <th>@L["Amount"]</th>
+                        <th>@L["Reference"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in Model.Sale.Payments)
+                    {
+                        <tr>
+                            <td>@L[$"Enum:PaymentMethod:{(int)payment.Method}"]</td>
+                            <td>@payment.Amount.ToString("N2")</td>
+                            <td>@payment.Reference</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

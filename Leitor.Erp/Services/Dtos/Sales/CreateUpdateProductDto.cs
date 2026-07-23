@@ -13,6 +13,9 @@ public class CreateUpdateProductDto
     [StringLength(64)]
     public string? Sku { get; set; }
 
+    [StringLength(64)]
+    public string? Barcode { get; set; }
+
     [StringLength(2000)]
     public string? Description { get; set; }
 

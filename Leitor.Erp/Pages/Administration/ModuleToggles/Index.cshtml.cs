@@ -57,7 +57,8 @@ public class IndexModel : AbpPageModel
             await ToRowAsync(ErpFeatures.ServiceCatalog, _l["Feature:ServiceCatalog"]),
             await ToRowAsync(ErpFeatures.ServiceRequestManagement, _l["Feature:ServiceRequestManagement"]),
             await ToRowAsync(ErpFeatures.AssetManagement, _l["Feature:AssetManagement"]),
-            await ToRowAsync(ErpFeatures.KnowledgeManagement, _l["Feature:KnowledgeManagement"])
+            await ToRowAsync(ErpFeatures.KnowledgeManagement, _l["Feature:KnowledgeManagement"]),
+            await ToRowAsync(ErpFeatures.PointOfSale, _l["Feature:PointOfSale"])
         };
     }
 

@@ -138,6 +138,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         knowledgeBasePermission.AddChild(ErpPermissions.KnowledgeBase.Edit, L("Permission:Edit"));
         knowledgeBasePermission.AddChild(ErpPermissions.KnowledgeBase.Delete, L("Permission:Delete"));
 
+        var posGroup = context.AddGroup(ErpPermissions.Pos.GroupName, L("Permission:Pos"));
+        var posPermission = posGroup.AddPermission(ErpPermissions.Pos.Default, L("Permission:Pos"));
+        posPermission.AddChild(ErpPermissions.Pos.Create, L("Permission:Create"));
+        posPermission.AddChild(ErpPermissions.Pos.ManageSessions, L("Permission:ManageSessions"));
+        posPermission.AddChild(ErpPermissions.Pos.Void, L("Permission:Void"));
+
         var moduleTogglesGroup = context.AddGroup(ErpPermissions.ModuleToggles.GroupName, L("Permission:ModuleToggles"));
         var moduleTogglesPermission = moduleTogglesGroup.AddPermission(ErpPermissions.ModuleToggles.Default, L("Permission:ModuleToggles"));
         moduleTogglesPermission.AddChild(ErpPermissions.ModuleToggles.Manage, L("Permission:Manage"));

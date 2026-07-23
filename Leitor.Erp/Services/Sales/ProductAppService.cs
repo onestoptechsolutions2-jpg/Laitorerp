@@ -106,6 +106,7 @@ public class ProductAppService :
     {
         entity.Name = input.Name;
         entity.Sku = input.Sku;
+        entity.Barcode = input.Barcode;
         entity.Description = input.Description;
         entity.Type = input.Type;
         entity.UnitPrice = input.UnitPrice;

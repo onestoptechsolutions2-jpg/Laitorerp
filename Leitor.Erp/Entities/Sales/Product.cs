@@ -10,6 +10,12 @@ public class Product : FullAuditedAggregateRoot<Guid>
 {
     public string Name { get; set; } = string.Empty;
     public string? Sku { get; set; }
+
+    // Scanned/typed at a POS till to find this product fast (see
+    // Services/Pos/PosSaleAppService.SearchProductsAsync) - optional, since not every product
+    // sold at a till necessarily has a physical barcode.
+    public string? Barcode { get; set; }
+
     public string? Description { get; set; }
     public ProductType Type { get; set; } = ProductType.Product;
     public decimal UnitPrice { get; set; }

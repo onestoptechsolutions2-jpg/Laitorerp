@@ -232,6 +232,18 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Gated behind ErpFeatures.PointOfSale (see Features/ErpFeatures.cs). ManageSessions is
+    // separate from Create - opening/closing a till and counting cash is a distinct, rarer
+    // responsibility from ringing up sales.
+    public static class Pos
+    {
+        public const string GroupName = "Erp.Pos";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string ManageSessions = Default + ".ManageSessions";
+        public const string Void = Default + ".Void";
+    }
+
     // Deletion is permission-based but gated by approval: Decide (Admin/Ops Manager) can delete a
     // scoped entity immediately; everyone else's delete action files a request here instead - see
     // Services/Governance/DeletionGate.cs.

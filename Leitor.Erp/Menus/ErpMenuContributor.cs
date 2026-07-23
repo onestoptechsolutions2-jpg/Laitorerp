@@ -379,6 +379,21 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        // Toggleable module (see Features/ErpFeatures.cs).
+        if (await context.IsGrantedAsync(ErpPermissions.Pos.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.PointOfSale))
+        {
+            var posMenu = new ApplicationMenuItem(
+                ErpMenus.Pos,
+                l["Menu:Pos"],
+                icon: "fas fa-cash-register",
+                order: 17
+            );
+            posMenu.AddItem(new ApplicationMenuItem(ErpMenus.PosRegister, l["Menu:PosRegister"], "~/Pos/Register", order: 1));
+            posMenu.AddItem(new ApplicationMenuItem(ErpMenus.PosSales, l["Menu:SalesHistory"], "~/Pos/Sales", order: 2));
+            context.Menu.Items.Add(posMenu);
+        }
+
         // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of
         // which business module it reports on - lives under Administration (not the main module
         // area) since it's a cross-module utility area, same reasoning AuditLogs/DeletionApprovals

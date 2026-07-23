@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Pos;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.ServiceCatalog;
@@ -43,6 +44,10 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<FiscalPeriod> FiscalPeriods { get; set; } = null!;
     public DbSet<RecurringJournalTemplate> RecurringJournalTemplates { get; set; } = null!;
     public DbSet<RecurringJournalTemplateLine> RecurringJournalTemplateLines { get; set; } = null!;
+    public DbSet<PosSession> PosSessions { get; set; } = null!;
+    public DbSet<PosSale> PosSales { get; set; } = null!;
+    public DbSet<PosSaleLine> PosSaleLines { get; set; } = null!;
+    public DbSet<PosPayment> PosPayments { get; set; } = null!;
 
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<StockMovement> StockMovements { get; set; } = null!;
@@ -404,12 +409,51 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.RecurringJournalTemplateId);
         });
 
+        builder.Entity<PosSession>(b =>
+        {
+            b.ToTable("PosSessions");
+            b.ConfigureByConvention();
+            b.Property(x => x.OpeningCashAmount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.ClosingCashAmount).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.WarehouseId);
+        });
+
+        builder.Entity<PosSale>(b =>
+        {
+            b.ToTable("PosSales");
+            b.ConfigureByConvention();
+            b.Property(x => x.SaleNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(8);
+            b.HasIndex(x => x.PosSessionId);
+            b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<PosSaleLine>(b =>
+        {
+            b.ToTable("PosSaleLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.Description).IsRequired().HasMaxLength(256);
+            b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Cost).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.PosSaleId);
+        });
+
+        builder.Entity<PosPayment>(b =>
+        {
+            b.ToTable("PosPayments");
+            b.ConfigureByConvention();
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Reference).HasMaxLength(128);
+            b.HasIndex(x => x.PosSaleId);
+        });
+
         builder.Entity<Product>(b =>
         {
             b.ToTable("Products");
             b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(256);
             b.Property(x => x.Sku).HasMaxLength(64);
+            b.Property(x => x.Barcode).HasMaxLength(64);
             b.Property(x => x.Description).HasMaxLength(2000);
             b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.Cost).HasColumnType("decimal(18,2)");

@@ -18,6 +18,7 @@ public static class InventoryPostingService
     {
         public const string GoodsReceipt = "GoodsReceipt";
         public const string Order = "Order";
+        public const string PosSale = "PosSale";
     }
 
     public static async Task PostAsync(

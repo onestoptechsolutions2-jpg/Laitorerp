@@ -1,0 +1,334 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Pos.Register.IndexModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["PosRegister"]</h5>
+        <a asp-page="/Pos/Sales/Index" class="btn btn-outline-secondary">@L["SalesHistory"]</a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-auto">
+                <label class="form-label">@L["Warehouse"]</label>
+                <select name="WarehouseId" class="form-select" onchange="this.form.submit()">
+                    @foreach (var option in Model.WarehouseOptions)
+                    {
+                        <option value="@option.Value" selected="@(option.Value == Model.WarehouseId.ToString())">@option.Text</option>
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.WarehouseId == null)
+{
+    <div class="alert alert-warning">@L["NoWarehousesConfigured"]</div>
+    return;
+}
+
+@if (Model.OpenSession == null)
+{
+    @if (Model.CanManageSessions)
+    {
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0">@L["OpenTill"]</h5></div>
+            <div class="card-body">
+                <form method="post" asp-page-handler="OpenSession">
+                    <input type="hidden" asp-for="OpenInput.WarehouseId" value="@Model.WarehouseId" />
+                    <abp-input asp-for="OpenInput.OpeningCashAmount" />
+                    <button type="submit" class="btn btn-primary mt-2">@L["OpenTill"]</button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">@L["NoOpenSessionAskManager"]</div>
+    }
+    return;
+}
+
+<div class="card mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <strong>@L["SessionOpenedBy"]:</strong> @Model.OpenSession.OpenedByUserName
+            (@Model.OpenSession.OpenedAt.ToString("g")) -
+            <strong>@L["ExpectedCash"]:</strong> @Model.OpenSession.ExpectedCashAmount.ToString("N2")
+        </div>
+        @if (Model.CanManageSessions)
+        {
+            <form method="post" asp-page-handler="CloseSession" class="d-flex gap-2 align-items-end" onsubmit="return confirm('@L["ConfirmCloseTill"]');">
+                <input type="hidden" name="sessionId" value="@Model.OpenSession.Id" />
+                <input type="hidden" name="warehouseId" value="@Model.WarehouseId" />
+                <div>
+                    <label class="form-label small mb-0">@L["ClosingCashAmount"]</label>
+                    <input type="number" step="0.01" asp-for="CloseInput.ClosingCashAmount" class="form-control form-control-sm" />
+                </div>
+                <button type="submit" class="btn btn-outline-danger btn-sm">@L["CloseTill"]</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="card-title mb-0">@L["FindProduct"]</h5></div>
+            <div class="card-body">
+                <input type="text" id="productSearchBox" class="form-control" placeholder="@L["SearchByNameSkuBarcode"]" autocomplete="off" />
+                <div id="productSearchResults" class="list-group mt-2"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0">@L["Cart"]</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>@L["Description"]</th>
+                                <th>@L["Price"]</th>
+                                <th>@L["Quantity"]</th>
+                                <th>@L["DiscountPercent"]</th>
+                                <th>@L["LineTotal"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartBody"></tbody>
+                    </table>
+                </div>
+                <p id="cartEmptyHint" class="text-muted">@L["CartEmpty"]</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="card-title mb-0">@L["SaleDetails"]</h5></div>
+            <div class="card-body">
+                <label class="form-label">@L["Customer"]</label>
+                <select id="customerSelect" class="form-select mb-2">
+                    <option value="">@L["WalkInCustomer"]</option>
+                    @foreach (var option in Model.CustomerOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
+                </select>
+                <label class="form-label">@L["Notes"]</label>
+                <textarea id="saleNotes" class="form-control" rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="card-title mb-0">@L["Totals"]</h5></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><span>@L["Subtotal"]</span><span id="totalSubtotal">0.00</span></div>
+                <div class="d-flex justify-content-between"><span>@L["EstimatedTax"]</span><span id="totalTax">0.00</span></div>
+                <div class="d-flex justify-content-between fw-bold border-top pt-1"><span>@L["EstimatedTotal"]</span><span id="totalDue">0.00</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0">@L["Payment"]</h5></div>
+            <div class="card-body">
+                <div id="paymentRows"></div>
+                <div class="d-flex gap-2 mt-2">
+                    <select id="paymentMethodSelect" class="form-select form-select-sm">
+                        @for (var i = 0; i <= 3; i++)
+                        {
+                            <option value="@i">@L[$"Enum:PaymentMethod:{i}"]</option>
+                        }
+                    </select>
+                    <input type="number" step="0.01" id="paymentAmountInput" class="form-control form-control-sm" placeholder="@L["Amount"]" />
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addPayment()">@L["Add"]</button>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span>@L["AmountTendered"]</span><span id="totalTendered">0.00</span>
+                </div>
+                <div id="saleError" class="alert alert-danger mt-2 d-none"></div>
+                <button type="button" id="completeSaleBtn" class="btn btn-primary w-100 mt-2" onclick="completeSale()">@L["CompleteSale"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script>
+        const warehouseId = '@Model.WarehouseId';
+        const posSessionId = '@Model.OpenSession.Id';
+        const currencyCode = '@Model.BaseCurrencyCode';
+        const defaultTaxRatePercent = @Model.DefaultTaxRatePercent.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        let cart = [];
+        let payments = [];
+        let searchTimeout = null;
+
+        document.getElementById('productSearchBox').addEventListener('input', function (e) {
+            clearTimeout(searchTimeout);
+            const term = e.target.value;
+            searchTimeout = setTimeout(function () {
+                if (term.length < 2) {
+                    document.getElementById('productSearchResults').innerHTML = '';
+                    return;
+                }
+                abp.services.app.posSale.searchProducts({ term: term, warehouseId: warehouseId }).then(function (results) {
+                    renderSearchResults(results);
+                });
+            }, 300);
+        });
+
+        function renderSearchResults(results) {
+            const container = document.getElementById('productSearchResults');
+            container.innerHTML = '';
+            results.forEach(function (product) {
+                const stockLabel = product.trackInventory ? (' - Stock: ' + product.stockOnHand) : '';
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                item.textContent = product.name + (product.sku ? (' (' + product.sku + ')') : '') + stockLabel;
+                item.onclick = function () { addToCart(product); };
+                container.appendChild(item);
+            });
+        }
+
+        function addToCart(product) {
+            const existing = cart.find(function (x) { return x.productId === product.id; });
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({
+                    productId: product.id,
+                    description: product.name,
+                    unitPrice: product.unitPrice,
+                    quantity: 1,
+                    discountPercent: 0
+                });
+            }
+            document.getElementById('productSearchBox').value = '';
+            document.getElementById('productSearchResults').innerHTML = '';
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function lineTotal(line) {
+            return line.unitPrice * line.quantity * (1 - line.discountPercent / 100);
+        }
+
+        function renderCart() {
+            const body = document.getElementById('cartBody');
+            body.innerHTML = '';
+            document.getElementById('cartEmptyHint').classList.toggle('d-none', cart.length > 0);
+
+            cart.forEach(function (line, index) {
+                const row = document.createElement('tr');
+
+                const qtyInput = '<input type="number" step="0.01" min="0.0001" value="' + line.quantity + '" class="form-control form-control-sm" style="width:5rem" onchange="updateLine(' + index + ', \'quantity\', this.value)" />';
+                const discInput = '<input type="number" step="0.01" min="0" max="100" value="' + line.discountPercent + '" class="form-control form-control-sm" style="width:5rem" onchange="updateLine(' + index + ', \'discountPercent\', this.value)" />';
+
+                row.innerHTML = '<td>' + line.description + '</td>' +
+                    '<td>' + line.unitPrice.toFixed(2) + '</td>' +
+                    '<td>' + qtyInput + '</td>' +
+                    '<td>' + discInput + '</td>' +
+                    '<td>' + lineTotal(line).toFixed(2) + '</td>' +
+                    '<td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFromCart(' + index + ')">&times;</button></td>';
+                body.appendChild(row);
+            });
+
+            updateTotals();
+        }
+
+        function updateLine(index, field, value) {
+            cart[index][field] = parseFloat(value) || 0;
+            renderCart();
+        }
+
+        function updateTotals() {
+            const subtotal = cart.reduce(function (sum, line) { return sum + lineTotal(line); }, 0);
+            const tax = subtotal * defaultTaxRatePercent / 100;
+            document.getElementById('totalSubtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('totalTax').textContent = tax.toFixed(2);
+            document.getElementById('totalDue').textContent = (subtotal + tax).toFixed(2);
+        }
+
+        function addPayment() {
+            const method = parseInt(document.getElementById('paymentMethodSelect').value, 10);
+            const amount = parseFloat(document.getElementById('paymentAmountInput').value);
+            if (!amount || amount <= 0) {
+                return;
+            }
+            payments.push({ method: method, amount: amount });
+            document.getElementById('paymentAmountInput').value = '';
+            renderPayments();
+        }
+
+        function removePayment(index) {
+            payments.splice(index, 1);
+            renderPayments();
+        }
+
+        function renderPayments() {
+            const container = document.getElementById('paymentRows');
+            container.innerHTML = '';
+            let tendered = 0;
+            payments.forEach(function (payment, index) {
+                tendered += payment.amount;
+                const row = document.createElement('div');
+                row.className = 'd-flex justify-content-between align-items-center';
+                row.innerHTML = '<span>' + payment.amount.toFixed(2) + '</span>' +
+                    '<button type="button" class="btn btn-sm btn-link text-danger" onclick="removePayment(' + index + ')">&times;</button>';
+                container.appendChild(row);
+            });
+            document.getElementById('totalTendered').textContent = tendered.toFixed(2);
+        }
+
+        function completeSale() {
+            const errorBox = document.getElementById('saleError');
+            errorBox.classList.add('d-none');
+
+            if (cart.length === 0) {
+                errorBox.textContent = '@L["CartEmpty"].Value';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+
+            const customerSelect = document.getElementById('customerSelect');
+            const dto = {
+                posSessionId: posSessionId,
+                customerId: customerSelect.value || null,
+                currencyCode: currencyCode,
+                notes: document.getElementById('saleNotes').value,
+                lines: cart.map(function (line) {
+                    return {
+                        productId: line.productId,
+                        description: line.description,
+                        unitPrice: line.unitPrice,
+                        quantity: line.quantity,
+                        discountPercent: line.discountPercent
+                    };
+                }),
+                payments: payments.map(function (payment) {
+                    return { amount: payment.amount, method: payment.method };
+                })
+            };
+
+            document.getElementById('completeSaleBtn').disabled = true;
+            abp.services.app.posSale.completeSale(dto).then(function (result) {
+                window.location.href = '/Pos/Sales/Detail?id=' + result.id;
+            }).catch(function (err) {
+                document.getElementById('completeSaleBtn').disabled = false;
+                errorBox.textContent = (err && err.message) ? err.message : 'Could not complete the sale.';
+                errorBox.classList.remove('d-none');
+            });
+        }
+    </script>
+}

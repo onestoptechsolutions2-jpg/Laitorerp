@@ -53,6 +53,12 @@ public class ErpFeatureDefinitionProvider : FeatureDefinitionProvider
             defaultValue: "false",
             displayName: L("Feature:KnowledgeManagement"),
             valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.PointOfSale,
+            defaultValue: "false",
+            displayName: L("Feature:PointOfSale"),
+            valueType: new ToggleStringValueType());
     }
 
     private static LocalizableString L(string name)
