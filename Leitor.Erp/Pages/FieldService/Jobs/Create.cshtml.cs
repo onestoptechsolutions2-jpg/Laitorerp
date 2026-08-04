@@ -61,6 +61,10 @@ public class CreateModel : AbpPageModel
     public List<SelectListItem> UserOptions { get; set; } = new();
     public List<SelectListItem> VendorOptions { get; set; } = new();
 
+    // Display helpful message and link when order needs confirmation
+    public string? OrderConfirmationMessage { get; set; }
+    public Guid? OrderNeedsConfirmationId { get; set; }
+
     public async Task OnGetAsync()
     {
         await LoadOptionsAsync();
@@ -81,8 +85,24 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var job = await _fieldServiceJobAppService.CreateAsync(Job);
-        return RedirectToPage("./Detail", new { id = job.Id });
+        try
+        {
+            var job = await _fieldServiceJobAppService.CreateAsync(Job);
+            return RedirectToPage("./Detail", new { id = job.Id });
+        }
+        catch (Volo.Abp.UserFriendlyException ex)
+        {
+            // If the error is about order confirmation, provide a helpful message with a link
+            if (ex.Message.Contains("Confirm the order"))
+            {
+                OrderConfirmationMessage = ex.Message;
+                OrderNeedsConfirmationId = Job.OrderId;
+                await LoadOptionsAsync();
+                return Page();
+            }
+            // For other UserFriendlyExceptions, re-throw to be handled by default error handling
+            throw;
+        }
     }
 
     private async Task LoadOptionsAsync()

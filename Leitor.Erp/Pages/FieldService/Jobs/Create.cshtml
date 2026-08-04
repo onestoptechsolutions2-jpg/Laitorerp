@@ -9,6 +9,18 @@
         <h5 class="card-title mb-0">@L["NewJob"]</h5>
     </div>
     <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.OrderConfirmationMessage) && Model.OrderNeedsConfirmationId.HasValue)
+        {
+            <div class="alert alert-warning" role="alert">
+                <h6 class="alert-heading">Order Confirmation Required</h6>
+                <p class="mb-2">@Model.OrderConfirmationMessage</p>
+                <a asp-page="/Sales/Orders/Detail" asp-route-id="@Model.OrderNeedsConfirmationId" class="btn btn-sm btn-warning" target="_blank">
+                    Confirm Order <i class="fa fa-arrow-right"></i>
+                </a>
+                <p class="small text-muted mt-2 mb-0">After confirming the order, come back to schedule the installation.</p>
+            </div>
+        }
+
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
             <abp-select asp-for="Job.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />

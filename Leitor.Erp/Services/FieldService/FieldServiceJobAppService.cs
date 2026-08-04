@@ -213,12 +213,12 @@ public class FieldServiceJobAppService :
 
             if (!depositInvoiced)
             {
-                throw new UserFriendlyException("This order's deposit invoice hasn't been issued yet - installation can't be scheduled until it has.");
+                throw new UserFriendlyException($"Order {order.OrderNumber}: Deposit invoice hasn't been issued yet. Please issue the deposit invoice before scheduling installation.");
             }
         }
         else if (order.Status == OrderStatus.Submitted)
         {
-            throw new UserFriendlyException("This order hasn't been confirmed yet - installation can't be scheduled until it has.");
+            throw new UserFriendlyException($"Order {order.OrderNumber}: Confirm the order before scheduling installation. Visit the order details page to confirm it.");
         }
     }
 
