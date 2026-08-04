@@ -650,7 +650,9 @@ public class OrderAppService :
 
         if (errors.Any())
         {
-            throw new UserFriendlyException(string.Join("\n• ", new[] { "Cannot confirm order:" }.Concat(errors)));
+            var errorList = new List<string> { "Cannot confirm order:" };
+            errorList.AddRange(errors);
+            throw new UserFriendlyException(string.Join("\n• ", errorList));
         }
 
         order.Status = OrderStatus.Confirmed;
