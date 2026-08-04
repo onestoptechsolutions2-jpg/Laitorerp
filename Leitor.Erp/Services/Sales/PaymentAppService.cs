@@ -73,7 +73,7 @@ public class PaymentAppService :
         }
 
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
-            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.PaymentDate);
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.PaymentDate, throwIfNotFound: false);
 
         // Every Payment is a single atomic, known-amount transaction (unlike Invoice/SupplierInvoice,
         // whose lines are added afterward) - so it always auto-posts Dr Cash / Cr Accounts
@@ -99,7 +99,7 @@ public class PaymentAppService :
         }
 
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
-            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.PaymentDate);
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.PaymentDate, throwIfNotFound: false);
     }
 
     private static void CopyToEntity(CreateUpdatePaymentDto input, Payment entity)
