@@ -25,6 +25,9 @@ public class CreateUpdateQuoteDto
 
     public Guid? ProposalId { get; set; }
 
+    // Price list for line item pricing. Optional - null means use base product prices.
+    public Guid? PriceListId { get; set; }
+
     [Required]
     [StringLength(8)]
     public string CurrencyCode { get; set; } = string.Empty;

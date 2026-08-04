@@ -35,6 +35,11 @@ public class Proposal : FullAuditedAggregateRoot<Guid>
     public string? WarrantyAndSupport { get; set; }
     public string? Terms { get; set; }
 
+    // Price list used when this proposal's products are priced. Auto-populated from
+    // Customer.DefaultPriceListId via opportunity, but can be overridden. Null means use base
+    // product prices. Carried forward to Quote.PriceListId when converted.
+    public Guid? PriceListId { get; set; }
+
     protected Proposal()
     {
     }

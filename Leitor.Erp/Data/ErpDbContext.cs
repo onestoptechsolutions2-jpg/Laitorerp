@@ -61,6 +61,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<CustomerNote> CustomerNotes { get; set; } = null!;
     public DbSet<CustomerTask> CustomerTasks { get; set; } = null!;
     public DbSet<CustomerAttachment> CustomerAttachments { get; set; } = null!;
+    public DbSet<CustomerPriceList> CustomerPriceLists { get; set; } = null!;
 
     public DbSet<Opportunity> Opportunities { get; set; } = null!;
     public DbSet<NeedsAssessment> NeedsAssessments { get; set; } = null!;

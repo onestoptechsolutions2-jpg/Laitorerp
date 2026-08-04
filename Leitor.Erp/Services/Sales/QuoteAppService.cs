@@ -154,6 +154,14 @@ public class QuoteAppService :
 
         var entity = new Quote(GuidGenerator.Create(), createInput.CustomerId, quoteNumber, createInput.Title);
         CopyToEntity(createInput, entity);
+
+        // Auto-populate PriceListId from customer's default if not explicitly provided
+        if (!entity.PriceListId.HasValue)
+        {
+            var customer = await _customerRepository.GetAsync(createInput.CustomerId);
+            entity.PriceListId = customer.DefaultPriceListId;
+        }
+
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
             _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
         return entity;
@@ -211,6 +219,7 @@ public class QuoteAppService :
         entity.ExpiryDate = input.ExpiryDate;
         entity.Notes = input.Notes;
         entity.ProposalId = input.ProposalId;
+        entity.PriceListId = input.PriceListId;
         entity.CurrencyCode = input.CurrencyCode;
     }
 

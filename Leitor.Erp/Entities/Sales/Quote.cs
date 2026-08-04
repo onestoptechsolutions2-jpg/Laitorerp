@@ -33,6 +33,10 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     // Order.QuoteId/PurchaseOrder.SourceOrderId.
     public Guid? ProposalId { get; set; }
 
+    // Price list used for line item pricing. Auto-populated from Customer.DefaultPriceListId
+    // when quote is created, but can be overridden. Null means use base product prices.
+    public Guid? PriceListId { get; set; }
+
     protected Quote()
     {
     }

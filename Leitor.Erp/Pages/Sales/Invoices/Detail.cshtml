@@ -6,6 +6,48 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Sales.Invoices.DetailModel
 
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('NewLine_ProductId');
+    if (!productSelect) return;
+
+    productSelect.addEventListener('change', async function() {
+        const productId = this.value;
+        if (!productId) {
+            clearLineFields();
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/app/product/${productId}`);
+            if (!response.ok) throw new Error('Product not found');
+
+            const product = await response.json();
+
+            // Auto-populate fields from product
+            document.getElementById('NewLine_Description').value = product.name || '';
+            document.getElementById('NewLine_UnitPrice').value = product.unitPrice || 0;
+
+            // Set tax rate if product has one assigned
+            if (product.taxRateId) {
+                document.getElementById('NewLine_TaxRateId').value = product.taxRateId;
+            }
+        } catch (error) {
+            console.error('Error fetching product details:', error);
+        }
+    });
+
+    function clearLineFields() {
+        document.getElementById('NewLine_Description').value = '';
+        document.getElementById('NewLine_UnitPrice').value = '';
+        document.getElementById('NewLine_TaxRateId').value = '';
+    }
+});
+</script>
+}
+
+
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">

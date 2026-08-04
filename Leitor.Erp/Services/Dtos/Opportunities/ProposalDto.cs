@@ -15,6 +15,7 @@ public class ProposalDto : FullAuditedEntityDto<Guid>
     public Guid? UnlockedByUserId { get; set; }
     public DateTime? UnlockedAt { get; set; }
     public string? UnlockReason { get; set; }
+    public Guid? PriceListId { get; set; }
 
     public string? Summary { get; set; }
     public string? ProposedSolution { get; set; }

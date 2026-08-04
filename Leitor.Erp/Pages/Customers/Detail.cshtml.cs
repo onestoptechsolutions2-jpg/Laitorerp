@@ -19,6 +19,7 @@ using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.Support;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -33,6 +34,8 @@ public class DetailModel : AbpPageModel
     private readonly CustomerNoteAppService _customerNoteAppService;
     private readonly CustomerTaskAppService _customerTaskAppService;
     private readonly CustomerAttachmentAppService _customerAttachmentAppService;
+    private readonly CustomerPriceListAppService _customerPriceListAppService;
+    private readonly PriceListAppService _priceListAppService;
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly TicketAppService _ticketAppService;
     private readonly OpportunityAppService _opportunityAppService;
@@ -50,6 +53,8 @@ public class DetailModel : AbpPageModel
         CustomerNoteAppService customerNoteAppService,
         CustomerTaskAppService customerTaskAppService,
         CustomerAttachmentAppService customerAttachmentAppService,
+        CustomerPriceListAppService customerPriceListAppService,
+        PriceListAppService priceListAppService,
         FieldServiceJobAppService fieldServiceJobAppService,
         TicketAppService ticketAppService,
         OpportunityAppService opportunityAppService,
@@ -66,6 +71,8 @@ public class DetailModel : AbpPageModel
         _customerNoteAppService = customerNoteAppService;
         _customerTaskAppService = customerTaskAppService;
         _customerAttachmentAppService = customerAttachmentAppService;
+        _customerPriceListAppService = customerPriceListAppService;
+        _priceListAppService = priceListAppService;
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _ticketAppService = ticketAppService;
         _opportunityAppService = opportunityAppService;
@@ -107,6 +114,9 @@ public class DetailModel : AbpPageModel
 
     [BindProperty]
     public CreateCustomerNoteDto NewNote { get; set; } = new();
+
+    public List<CustomerPriceListDto> CustomerPriceLists { get; set; } = new();
+    public List<PriceListDto> AvailablePriceLists { get; set; } = new();
 
     public bool CanEdit { get; set; }
     public bool CanErase { get; set; }
@@ -221,6 +231,13 @@ public class DetailModel : AbpPageModel
                 MaxResultCount = 1000
             });
             Invoices = invoices.Items;
+
+            // Load customer price lists for price list management section
+            CustomerPriceLists = await _customerPriceListAppService.GetListAsync(Id);
+
+            // Get all available price lists (for dropdown)
+            var allPriceLists = await _priceListAppService.GetListAsync(new GetPriceListListInput { MaxResultCount = 1000 });
+            AvailablePriceLists = allPriceLists.Items.ToList();
         }
 
         LifetimeRevenue = Invoices.Sum(x => x.Total);
@@ -294,6 +311,46 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostEraseDataAsync()
     {
         await _customerAppService.EraseDataAsync(Id);
+        return RedirectToPage(new { id = Id });
+    }
+
+    [BindProperty]
+    public Guid PriceListId { get; set; }
+
+    public async Task<IActionResult> OnPostAddPriceListAsync()
+    {
+        if (PriceListId == Guid.Empty)
+        {
+            return RedirectToPage(new { id = Id });
+        }
+
+        var input = new CreateUpdateCustomerPriceListDto
+        {
+            PriceListId = PriceListId,
+            IsPrimary = false
+        };
+
+        try
+        {
+            await _customerPriceListAppService.AddAsync(Id, input);
+        }
+        catch (UserFriendlyException)
+        {
+            // Price list already assigned, silently ignore redirect
+        }
+
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostRemovePriceListAsync(Guid priceListId)
+    {
+        await _customerPriceListAppService.RemoveAsync(priceListId);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostSetPrimaryAsync(Guid priceListId)
+    {
+        await _customerPriceListAppService.SetPrimaryAsync(priceListId);
         return RedirectToPage(new { id = Id });
     }
 }

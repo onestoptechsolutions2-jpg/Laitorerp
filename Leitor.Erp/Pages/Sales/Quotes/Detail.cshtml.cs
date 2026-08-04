@@ -8,6 +8,7 @@ using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
+using Leitor.Erp.Services.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -26,6 +27,7 @@ public class DetailModel : AbpPageModel
     private readonly QuoteLineAppService _quoteLineAppService;
     private readonly ProductAppService _productAppService;
     private readonly TaxRateAppService _taxRateAppService;
+    private readonly PriceListAppService _priceListAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
@@ -37,6 +39,7 @@ public class DetailModel : AbpPageModel
         QuoteLineAppService quoteLineAppService,
         ProductAppService productAppService,
         TaxRateAppService taxRateAppService,
+        PriceListAppService priceListAppService,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<PriceListItem, Guid> priceListItemRepository,
@@ -47,6 +50,7 @@ public class DetailModel : AbpPageModel
         _quoteLineAppService = quoteLineAppService;
         _productAppService = productAppService;
         _taxRateAppService = taxRateAppService;
+        _priceListAppService = priceListAppService;
         _customerRepository = customerRepository;
         _orderRepository = orderRepository;
         _priceListItemRepository = priceListItemRepository;
@@ -61,6 +65,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<QuoteLineDto> Lines { get; set; } = Array.Empty<QuoteLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
     public List<SelectListItem> TaxRateOptions { get; set; } = new();
+    public List<SelectListItem> PriceListOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
 
     [BindProperty]
@@ -68,6 +73,9 @@ public class DetailModel : AbpPageModel
     {
         Quantity = 1
     };
+
+    [BindProperty]
+    public Guid? SelectedPriceListId { get; set; }
 
     public bool CanEdit { get; set; }
 
@@ -87,6 +95,7 @@ public class DetailModel : AbpPageModel
     {
         Quote = await _quoteAppService.GetAsync(Id);
         Customer = await _customerRepository.GetAsync(Quote.CustomerId);
+        SelectedPriceListId = Quote.PriceListId;
 
         var existingOrder = (await _orderRepository.GetListAsync(x => x.QuoteId == Id)).FirstOrDefault();
         ExistingOrderId = existingOrder?.Id;
@@ -104,11 +113,11 @@ public class DetailModel : AbpPageModel
             MaxResultCount = 1000
         });
 
-        // Suggests the customer's price-list price where one exists, rather than the product's
-        // standard price - purely a label/starting-point change, UnitPrice stays a plain editable
-        // field on the Add Line form either way.
-        var priceOverridesByProductId = Customer.DefaultPriceListId.HasValue
-            ? (await _priceListItemRepository.GetListAsync(x => x.PriceListId == Customer.DefaultPriceListId.Value))
+        // Use the quote's current price list (if set) to show prices in the product dropdown,
+        // otherwise fall back to the customer's default price list
+        var activePriceListId = Quote.PriceListId ?? Customer.DefaultPriceListId;
+        var priceOverridesByProductId = activePriceListId.HasValue
+            ? (await _priceListItemRepository.GetListAsync(x => x.PriceListId == activePriceListId.Value))
                 .ToDictionary(x => x.ProductId, x => x.UnitPrice)
             : new Dictionary<Guid, decimal>();
 
@@ -124,6 +133,22 @@ public class DetailModel : AbpPageModel
         TaxRateOptions.AddRange(
             taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
         );
+
+        // Load price list options
+        var priceLists = await _priceListAppService.GetListAsync(new GetPriceListListInput { MaxResultCount = 1000 });
+        PriceListOptions = new List<SelectListItem> { new(L["NoPriceList"], "") };
+        PriceListOptions.AddRange(
+            priceLists.Items.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+        );
+    }
+
+    public async Task<IActionResult> OnPostChangePriceListAsync()
+    {
+        var quote = await _quoteAppService.GetAsync(Id);
+        var updateDto = ObjectMapper.Map<QuoteDto, CreateUpdateQuoteDto>(quote);
+        updateDto.PriceListId = SelectedPriceListId;
+        await _quoteAppService.UpdateAsync(Id, updateDto);
+        return RedirectToPage(new { id = Id });
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()
