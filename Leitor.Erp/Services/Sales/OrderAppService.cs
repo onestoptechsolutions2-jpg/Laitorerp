@@ -267,10 +267,7 @@ public class OrderAppService :
         // Validation checklist
         var validationErrors = new List<string>();
 
-        // Check required fields
-        if (string.IsNullOrWhiteSpace(order.CurrencyCode))
-            validationErrors.Add("Currency code is required");
-
+        // Check required fields (currency code optional, defaults to USD if missing)
         if (order.OrderDate == default)
             validationErrors.Add("Order date is required");
 
