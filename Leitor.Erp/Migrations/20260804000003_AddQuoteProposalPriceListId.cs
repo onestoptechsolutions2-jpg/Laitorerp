@@ -1,18 +1,18 @@
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Leitor.Erp.Migrations
 {
+    /// <inheritdoc />
     public partial class AddQuoteProposalPriceListId : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Migration disabled temporarily
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Migration disabled temporarily
         }
     }
 }
