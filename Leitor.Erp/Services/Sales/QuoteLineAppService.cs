@@ -79,11 +79,16 @@ public class QuoteLineAppService :
             var component = await _productRepository.GetAsync(bundleItem.ComponentProductId);
             var (taxRateId, taxRatePercent) = await TaxRateResolver.ResolveAsync(_taxRateRepository, _productRepository, null, component.Id);
 
-            // Fetch price from price list if quote has one, otherwise use product base price
             var unitPrice = component.UnitPrice;
+
+            // Fetch price from price list if quote has one
             if (quote.PriceListId.HasValue)
             {
-                unitPrice = await GetPriceListPriceAsync(quote.PriceListId.Value, component.Id) ?? component.UnitPrice;
+                var priceListPrice = await GetPriceListPriceAsync(quote.PriceListId.Value, component.Id);
+                if (priceListPrice.HasValue)
+                {
+                    unitPrice = priceListPrice.Value;
+                }
             }
 
             var line = new QuoteLine(GuidGenerator.Create(), input.QuoteId, component.Name, unitPrice)
@@ -154,17 +159,16 @@ public class QuoteLineAppService :
         entity.DiscountPercent = input.DiscountPercent;
         entity.Cost = input.Cost;
 
-        // If quote has a price list, fetch product price from it; otherwise use input price or product base price
         var unitPrice = input.UnitPrice;
+
+        // If no explicit price provided, fetch from product or price list
         if (unitPrice == 0 && input.ProductId.HasValue)
         {
             var product = await _productRepository.FindAsync(input.ProductId.Value);
-            if (product != null)
-            {
-                unitPrice = product.UnitPrice;
-            }
+            unitPrice = product?.UnitPrice ?? 0;
         }
 
+        // Override with price list price if available
         var quote = await _quoteRepository.GetAsync(input.QuoteId);
         if (quote.PriceListId.HasValue && input.ProductId.HasValue)
         {
@@ -176,15 +180,13 @@ public class QuoteLineAppService :
         }
 
         entity.UnitPrice = unitPrice;
-
-        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
-            _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
+        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(_taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
     }
 
     private async Task<decimal?> GetPriceListPriceAsync(Guid priceListId, Guid productId)
     {
-        var priceListItem = await _priceListItemRepository.FindAsync(
+        var items = await _priceListItemRepository.GetListAsync(
             x => x.PriceListId == priceListId && x.ProductId == productId);
-        return priceListItem?.UnitPrice;
+        return items.FirstOrDefault()?.UnitPrice;
     }
 }
