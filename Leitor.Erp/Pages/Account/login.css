@@ -1,96 +1,121 @@
 /* ========================================
-   Leitor ERP - Minimalist Login Page
-   Override LeptonX Theme
+   Leitor ERP - Modern Login Page Styles
    ======================================== */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Override theme body */
-body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-/* Hide theme elements */
-.navbar,
-.sidebar,
-.container-fluid > .row > .col-*,
-.leptonx-wrapper,
-.account-layout,
-.theme-dark .navbar,
-.theme-light .navbar {
-    display: none !important;
-}
-
-/* Main container */
+/* Root container styling */
 .leitor-auth-container {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 100vh !important;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-    padding: 20px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 20px;
 }
 
 .leitor-auth-wrapper {
     width: 100%;
-    max-width: 360px;
+    max-width: 420px;
 }
 
+/* Card styling */
 .leitor-login-card {
-    background: #ffffff !important;
-    border-radius: 8px !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25) !important;
-    padding: 32px !important;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 48px 40px;
 }
 
-/* Form */
+/* Logo section */
+.leitor-logo-section {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.leitor-logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-radius: 8px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.leitor-logo-text h1 {
+    font-size: 24px;
+    color: #1e293b;
+    margin-bottom: 8px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.leitor-logo-text p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Form styling */
 .leitor-login-form {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .leitor-form-group {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.leitor-form-label-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.leitor-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+    margin: 0;
 }
 
 .leitor-form-control {
-    width: 100% !important;
-    padding: 11px 12px !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 6px !important;
-    font-size: 14px !important;
-    font-family: inherit !important;
-    background-color: #ffffff !important;
-    color: #1e293b !important;
-    transition: border-color 0.15s ease !important;
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
 }
 
 .leitor-form-control:hover {
-    border-color: #cbd5e1 !important;
+    border-color: #cbd5e1;
 }
 
 .leitor-form-control:focus {
-    outline: none !important;
-    border-color: #0ea5e9 !important;
-    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.08) !important;
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
 .leitor-form-control::placeholder {
-    color: #94a3b8 !important;
+    color: #94a3b8;
 }
 
 .leitor-form-error {
     display: block;
     font-size: 12px;
     color: #dc2626;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
-/* Password Wrapper */
+/* Password wrapper with toggle button */
 .leitor-password-wrapper {
     position: relative;
     display: flex;
@@ -98,22 +123,24 @@ body {
 }
 
 .leitor-password-wrapper .leitor-form-control {
-    padding-right: 36px !important;
+    padding-right: 40px;
 }
 
 .leitor-password-toggle {
     position: absolute;
-    right: 10px;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
     color: #94a3b8;
     cursor: pointer;
-    font-size: 14px;
-    padding: 6px;
+    font-size: 16px;
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.15s ease;
+    transition: color 0.2s ease;
 }
 
 .leitor-password-toggle:hover {
@@ -125,83 +152,185 @@ body {
     color: #0ea5e9;
 }
 
+/* Remember me checkbox */
+.leitor-remember-me {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.leitor-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    cursor: pointer;
+    accent-color: #0ea5e9;
+    border-radius: 4px;
+}
+
+.leitor-checkbox-label {
+    font-size: 14px;
+    color: #475569;
+    cursor: pointer;
+    margin: 0;
+    user-select: none;
+}
+
 /* Buttons */
 .leitor-btn {
     width: 100%;
-    padding: 10px 12px;
+    padding: 12px 16px;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s ease;
     font-family: inherit;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background-color 0.15s ease;
 }
 
+/* Primary button (Sign In) */
 .leitor-btn-primary {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
-    color: #ffffff !important;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #ffffff;
+    margin-bottom: 16px;
 }
 
 .leitor-btn-primary:hover {
-    background: linear-gradient(135deg, #06a3e8 0%, #01769f 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
 }
 
 .leitor-btn-primary:active {
-    opacity: 0.95;
+    transform: translateY(0);
 }
 
 .leitor-btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
 }
 
-/* Links */
-.leitor-link {
-    color: #0ea5e9;
-    text-decoration: none;
+/* Secondary button (Cancel) */
+.leitor-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.leitor-btn-secondary:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+.leitor-btn-secondary:active {
+    background: #cbd5e1;
+}
+
+/* Social login section */
+.leitor-divider {
+    display: flex;
+    align-items: center;
+    margin: 28px 0;
+    color: #94a3b8;
+}
+
+.leitor-divider::before,
+.leitor-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.leitor-divider span {
+    margin: 0 12px;
     font-size: 13px;
     font-weight: 500;
-    transition: color 0.15s ease;
 }
 
-.leitor-link:hover {
+.leitor-social-login {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.leitor-btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    gap: 6px;
+}
+
+.leitor-btn-social i {
+    font-size: 16px;
+}
+
+.leitor-btn-social:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.leitor-btn-social:active {
+    background: #e2e8f0;
+}
+
+/* Sign up section */
+.leitor-signup-section {
+    text-align: center;
+    padding-top: 28px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.leitor-signup-section p {
+    font-size: 14px;
+    color: #475569;
+    margin: 0;
+}
+
+.leitor-signup-section a {
+    color: #0ea5e9;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.leitor-signup-section a:hover {
     color: #0284c7;
 }
 
-/* Footer Links */
-.leitor-footer-links {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-/* Sign Up Section */
-.leitor-signup-section {
-    text-align: center;
-    padding-top: 16px;
-    border-top: 1px solid #e2e8f0;
+/* Forgot password link */
+.leitor-forgot-password {
     font-size: 13px;
-    color: #64748b;
+    color: #0ea5e9;
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-.leitor-signup-section span {
-    display: block;
-    margin-bottom: 4px;
+.leitor-forgot-password:hover {
+    color: #0284c7;
 }
 
-.leitor-signup-section .leitor-link {
-    display: inline;
-}
-
-/* Alerts */
+/* Alert styling */
 .leitor-auth-alert {
-    margin-bottom: 20px;
-    padding: 12px 14px;
+    margin-bottom: 24px;
+    padding: 12px 16px;
     border-radius: 6px;
     background-color: #fee2e2;
     border: 1px solid #fca5a5;
@@ -209,85 +338,160 @@ body {
 }
 
 .leitor-auth-alert h4 {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    margin: 0 0 4px 0;
+    margin: 0 0 8px 0;
 }
 
 .leitor-auth-alert p {
-    font-size: 12px;
+    font-size: 13px;
     margin: 0;
+}
+
+/* Validation errors */
+.alert-danger {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #7f1d1d;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #fca5a5;
 }
 
 .alert-warning {
     background-color: #fef3c7;
     border-color: #fcd34d;
     color: #78350f;
-    padding: 12px 14px;
+    padding: 12px 16px;
     border-radius: 6px;
     border: 1px solid #fcd34d;
-    font-size: 12px;
 }
 
-/* Responsive */
+/* Responsive design */
 @media (max-width: 480px) {
     .leitor-auth-container {
-        padding: 16px !important;
+        padding: 16px;
     }
 
     .leitor-login-card {
-        padding: 24px !important;
+        padding: 32px 24px;
+    }
+
+    .leitor-logo-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .leitor-logo-text h1 {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+
+    .leitor-logo-text p {
+        font-size: 12px;
+    }
+
+    .leitor-social-login {
+        grid-template-columns: 1fr;
     }
 
     .leitor-form-control {
-        font-size: 16px !important;
-        padding: 10px 12px !important;
+        font-size: 16px;
+        padding: 12px 14px;
     }
 }
 
-/* Dark Mode */
+/* Dark mode support (optional) */
 @media (prefers-color-scheme: dark) {
     .leitor-login-card {
-        background: #1e293b !important;
+        background: #1e293b;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .leitor-logo-text h1 {
+        color: #f1f5f9;
+    }
+
+    .leitor-logo-text p {
+        color: #94a3b8;
+    }
+
+    .leitor-form-label {
+        color: #f1f5f9;
     }
 
     .leitor-form-control {
-        background-color: #0f172a !important;
-        border-color: #334155 !important;
-        color: #f1f5f9 !important;
-    }
-
-    .leitor-form-control:hover {
-        border-color: #475569 !important;
+        background-color: #0f172a;
+        border-color: #334155;
+        color: #f1f5f9;
     }
 
     .leitor-form-control:focus {
-        border-color: #0ea5e9 !important;
-        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.12) !important;
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
     }
 
     .leitor-form-control::placeholder {
-        color: #64748b !important;
-    }
-
-    .leitor-password-toggle {
         color: #64748b;
     }
 
-    .leitor-password-toggle:hover {
-        color: #94a3b8;
+    .leitor-btn-secondary {
+        background: #334155;
+        color: #e2e8f0;
+        border-color: #475569;
+    }
+
+    .leitor-btn-secondary:hover {
+        background: #475569;
+        border-color: #64748b;
+    }
+
+    .leitor-btn-social {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+    .leitor-btn-social:hover {
+        background: #1e293b;
+        border-color: #475569;
+    }
+
+    .leitor-divider {
+        color: #64748b;
+    }
+
+    .leitor-divider::before,
+    .leitor-divider::after {
+        background: #334155;
+    }
+
+    .leitor-checkbox-label {
+        color: #cbd5e1;
     }
 
     .leitor-signup-section {
         border-top-color: #334155;
+    }
+
+    .leitor-signup-section p {
         color: #cbd5e1;
     }
 }
 
-/* Focus Visible */
+/* Focus visible for accessibility */
 .leitor-btn:focus-visible,
-.leitor-link:focus-visible,
+.leitor-btn-social:focus-visible,
 .leitor-form-control:focus-visible {
     outline: 2px solid #0ea5e9;
     outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .leitor-auth-container {
+        display: none;
+    }
 }

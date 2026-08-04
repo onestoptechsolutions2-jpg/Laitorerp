@@ -42,6 +42,17 @@
 
         <div class="leitor-login-card">
 
+            <!-- Logo & Branding Section -->
+            <div class="leitor-logo-section">
+                <div class="leitor-logo-icon">
+                    <span>L</span>
+                </div>
+                <div class="leitor-logo-text">
+                    <h1>@EL["App:Title"]</h1>
+                    <p>@EL["Auth:SignInSubtitle"]</p>
+                </div>
+            </div>
+
             <!-- Main Login Form -->
             @if (Model.EnableLocalLogin)
             {
@@ -49,17 +60,28 @@
 
                     <!-- Email/Username Field -->
                     <div class="leitor-form-group">
+                        <label asp-for="LoginInput.UserNameOrEmailAddress" class="leitor-form-label">
+                            @L["EmailOrUsername"]
+                        </label>
                         <input
                             asp-for="LoginInput.UserNameOrEmailAddress"
                             class="leitor-form-control"
-                            placeholder="@L["EmailOrUsername"]"
+                            placeholder="name@company.com"
                             autofocus="autofocus"
                         />
                         <span asp-validation-for="LoginInput.UserNameOrEmailAddress" class="leitor-form-error"></span>
                     </div>
 
-                    <!-- Password Field -->
+                    <!-- Password Field with Toggle -->
                     <div class="leitor-form-group">
+                        <div class="leitor-form-label-wrapper">
+                            <label asp-for="LoginInput.Password" class="leitor-form-label">
+                                @L["Password"]
+                            </label>
+                            <a href="@Url.Page("./ForgotPassword", new { returnUrl = Model.ReturnUrl, returnUrlHash = Model.ReturnUrlHash })" class="leitor-forgot-password">
+                                @L["ForgotPassword"]
+                            </a>
+                        </div>
                         <div class="leitor-password-wrapper">
                             <input
                                 type="password"
@@ -67,12 +89,13 @@
                                 autocomplete="new-password"
                                 maxlength="@IdentityUserConsts.MaxPasswordLength"
                                 asp-for="LoginInput.Password"
-                                placeholder="@L["Password"]"
+                                placeholder="@L["EnterPassword"]"
                             />
                             <button
                                 type="button"
                                 class="leitor-password-toggle"
                                 id="PasswordVisibilityButton"
+                                title="@L["TogglePasswordVisibility"]"
                                 aria-label="@L["TogglePasswordVisibility"]"
                             >
                                 <i class="fa fa-eye-slash"></i>
@@ -81,18 +104,62 @@
                         <span asp-validation-for="LoginInput.Password" class="leitor-form-error"></span>
                     </div>
 
+                    <!-- Remember Me Checkbox -->
+                    <div class="leitor-remember-me">
+                        <input type="checkbox" asp-for="LoginInput.RememberMe" id="RememberMe" class="leitor-checkbox" />
+                        <label for="RememberMe" class="leitor-checkbox-label">
+                            @L["RememberMe"]
+                        </label>
+                    </div>
+
                     <!-- Sign In Button -->
                     <button type="submit" class="leitor-btn leitor-btn-primary">
                         @L["Login"]
                     </button>
-                </form>
 
-                <!-- Forgot Password Link -->
-                <div class="leitor-footer-links">
-                    <a href="@Url.Page("./ForgotPassword", new { returnUrl = Model.ReturnUrl, returnUrlHash = Model.ReturnUrlHash })" class="leitor-link">
-                        @L["ForgotPassword"]
-                    </a>
+                    <!-- Cancel Button (if needed) -->
+                    @if (Model.ShowCancelButton)
+                    {
+                        <button type="submit" class="leitor-btn leitor-btn-secondary" formnovalidate="formnovalidate" name="Action" value="Cancel">
+                            @L["Cancel"]
+                        </button>
+                    }
+                </form>
+            }
+
+            <!-- External Login Providers -->
+            @if (Model.VisibleExternalProviders.Any())
+            {
+                <div class="leitor-divider">
+                    <span>@L["OrLoginWith"]</span>
                 </div>
+
+                <form asp-page="./Login" asp-page-handler="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" asp-route-returnUrlHash="@Model.ReturnUrlHash" method="post" class="leitor-social-login">
+                    @foreach (var provider in Model.VisibleExternalProviders)
+                    {
+                        <button
+                            type="submit"
+                            class="leitor-btn-social"
+                            name="provider"
+                            value="@provider.AuthenticationScheme"
+                            title="@L["LogInUsingYourProviderAccount", provider.DisplayName]"
+                        >
+                            @if (provider.AuthenticationScheme.Equals("Google", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                <i class="fab fa-google"></i>
+                            }
+                            else if (provider.AuthenticationScheme.Equals("Microsoft", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                <i class="fab fa-microsoft"></i>
+                            }
+                            else if (provider.AuthenticationScheme.Equals("GitHub", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                <i class="fab fa-github"></i>
+                            }
+                            <span>@provider.DisplayName</span>
+                        </button>
+                    }
+                </form>
             }
 
             <!-- Error Message (no schemes configured) -->
@@ -108,10 +175,12 @@
             @if (await SettingProvider.IsTrueAsync(AccountSettingNames.IsSelfRegistrationEnabled))
             {
                 <div class="leitor-signup-section">
-                    <span>@L["AreYouANewUser"]</span>
-                    <a href="@Url.Page("./Register", new { returnUrl = Model.ReturnUrl, returnUrlHash = Model.ReturnUrlHash })" class="leitor-link">
-                        @L["Register"]
-                    </a>
+                    <p>
+                        @L["AreYouANewUser"]
+                        <a href="@Url.Page("./Register", new { returnUrl = Model.ReturnUrl, returnUrlHash = Model.ReturnUrlHash })">
+                            @L["Register"]
+                        </a>
+                    </p>
                 </div>
             }
         </div>
