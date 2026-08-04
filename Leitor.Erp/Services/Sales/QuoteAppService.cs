@@ -212,6 +212,7 @@ public class QuoteAppService :
         entity.Notes = input.Notes;
         entity.ProposalId = input.ProposalId;
         entity.CurrencyCode = input.CurrencyCode;
+        entity.PriceListId = input.PriceListId;
     }
 
     // The concrete mechanism behind "quote becomes an order" - carries line items and pricing

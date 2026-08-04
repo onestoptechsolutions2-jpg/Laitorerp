@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -18,16 +19,20 @@ public class QuoteLineAppService :
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<Product, Guid> _productRepository;
     private readonly IRepository<ProductBundleItem, Guid> _bundleItemRepository;
+    private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
+
     public QuoteLineAppService(
         IRepository<QuoteLine, Guid> repository,
         IRepository<TaxRate, Guid> taxRateRepository,
         IRepository<Product, Guid> productRepository,
-        IRepository<ProductBundleItem, Guid> bundleItemRepository)
+        IRepository<ProductBundleItem, Guid> bundleItemRepository,
+        IRepository<PriceListItem, Guid> priceListItemRepository)
         : base(repository)
     {
         _taxRateRepository = taxRateRepository;
         _productRepository = productRepository;
         _bundleItemRepository = bundleItemRepository;
+        _priceListItemRepository = priceListItemRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -142,5 +147,47 @@ public class QuoteLineAppService :
 
         (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
             _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
+    }
+
+    // Fetch product details for auto-population in line item form. If priceListId is provided,
+    // use the price list item's price; otherwise use the product's standard price. Always returns
+    // product cost and tax rate for the line.
+    public async Task<ProductDetailDto> GetProductDetailsAsync(Guid productId, Guid? priceListId = null)
+    {
+        await CheckGetPolicyAsync();
+
+        var product = await _productRepository.FindAsync(productId);
+        if (product == null)
+        {
+            throw new UserFriendlyException("Product not found.");
+        }
+
+        decimal unitPrice = product.UnitPrice;
+
+        // If a price list is specified, look up the price from the price list
+        if (priceListId.HasValue)
+        {
+            var priceListItem = (await _priceListItemRepository.GetListAsync(x =>
+                x.PriceListId == priceListId.Value && x.ProductId == productId)).FirstOrDefault();
+
+            if (priceListItem != null)
+            {
+                unitPrice = priceListItem.UnitPrice;
+            }
+        }
+
+        var (taxRateId, taxRatePercent) = await TaxRateResolver.ResolveAsync(
+            _taxRateRepository, _productRepository, null, productId);
+
+        return new ProductDetailDto
+        {
+            ProductId = product.Id,
+            Name = product.Name,
+            Description = product.Name,  // Use product name as description
+            UnitPrice = unitPrice,
+            Cost = product.Cost,
+            TaxRateId = taxRateId,
+            TaxRatePercent = taxRatePercent
+        };
     }
 }

@@ -28,4 +28,10 @@ public class CreateUpdateQuoteDto
     [Required]
     [StringLength(8)]
     public string CurrencyCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional price list to use for product pricing in this quote.
+    /// If not set, standard product prices are used.
+    /// </summary>
+    public Guid? PriceListId { get; set; }
 }

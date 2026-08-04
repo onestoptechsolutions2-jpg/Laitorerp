@@ -6,11 +6,15 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Customers;
+using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
@@ -26,6 +30,8 @@ public class DetailModel : AbpPageModel
     private readonly QuoteLineAppService _quoteLineAppService;
     private readonly ProductAppService _productAppService;
     private readonly TaxRateAppService _taxRateAppService;
+    private readonly CustomerPriceListAppService _customerPriceListAppService;
+    private readonly PriceListAppService _priceListAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
@@ -37,6 +43,8 @@ public class DetailModel : AbpPageModel
         QuoteLineAppService quoteLineAppService,
         ProductAppService productAppService,
         TaxRateAppService taxRateAppService,
+        CustomerPriceListAppService customerPriceListAppService,
+        PriceListAppService priceListAppService,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<PriceListItem, Guid> priceListItemRepository,
@@ -47,6 +55,8 @@ public class DetailModel : AbpPageModel
         _quoteLineAppService = quoteLineAppService;
         _productAppService = productAppService;
         _taxRateAppService = taxRateAppService;
+        _customerPriceListAppService = customerPriceListAppService;
+        _priceListAppService = priceListAppService;
         _customerRepository = customerRepository;
         _orderRepository = orderRepository;
         _priceListItemRepository = priceListItemRepository;
@@ -61,13 +71,18 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<QuoteLineDto> Lines { get; set; } = Array.Empty<QuoteLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
     public List<SelectListItem> TaxRateOptions { get; set; } = new();
+    public List<SelectListItem> PriceListOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
+    public List<CustomerPriceListDto> CustomerPriceLists { get; set; } = new();
 
     [BindProperty]
     public CreateUpdateQuoteLineDto NewLine { get; set; } = new()
     {
         Quantity = 1
     };
+
+    [BindProperty]
+    public Guid? SelectedPriceListId { get; set; }
 
     public bool CanEdit { get; set; }
 
@@ -123,6 +138,15 @@ public class DetailModel : AbpPageModel
         TaxRateOptions = new List<SelectListItem> { new(L["UseDefaultTaxRate"], "") };
         TaxRateOptions.AddRange(
             taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
+        );
+
+        // Load customer's assigned price lists for selection
+        CustomerPriceLists = await _customerPriceListAppService.GetListAsync(Customer.Id);
+        PriceListOptions = new List<SelectListItem> { new(L["None"], "") };
+        PriceListOptions.AddRange(
+            CustomerPriceLists.OrderBy(x => x.IsPrimary ? 0 : 1).Select(x => new SelectListItem(
+                $"{x.PriceListName}{(x.IsPrimary ? " (Primary)" : "")}",
+                x.PriceListId.ToString()))
         );
     }
 
@@ -184,5 +208,78 @@ public class DetailModel : AbpPageModel
         }
 
         return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnPostUpdatePriceListAsync()
+    {
+        // Update the quote with the selected price list ID
+        var updateDto = new CreateUpdateQuoteDto
+        {
+            CustomerId = Quote.CustomerId,
+            Title = Quote.Title,
+            Status = Quote.Status,
+            IssueDate = Quote.IssueDate,
+            ExpiryDate = Quote.ExpiryDate,
+            Notes = Quote.Notes,
+            ProposalId = Quote.ProposalId,
+            CurrencyCode = Quote.CurrencyCode,
+            PriceListId = SelectedPriceListId  // Store the selected price list
+        };
+
+        await _quoteAppService.UpdateAsync(Id, updateDto);
+        return RedirectToPage(new { id = Id });
+    }
+
+    public async Task<IActionResult> OnGetProductDetailsAsync(Guid productId, Guid? priceListId = null)
+    {
+        // AJAX handler for auto-populating product details when product is selected
+        try
+        {
+            var details = await _quoteLineAppService.GetProductDetailsAsync(productId, priceListId);
+            return new JsonResult(details);
+        }
+        catch
+        {
+            return new JsonResult(new { error = "Product not found" }) { StatusCode = 400 };
+        }
+    }
+
+    public async Task<IActionResult> OnPostCreateProductAsync([FromBody] CreateProductRequest request)
+    {
+        // AJAX handler for creating a new product from the quote form
+        try
+        {
+            var createDto = new CreateUpdateProductDto
+            {
+                Name = request.Name,
+                Description = request.Description,
+                UnitPrice = request.UnitPrice,
+                Cost = request.Cost,
+                TaxRateId = string.IsNullOrEmpty(request.TaxRateId) ? null : Guid.Parse(request.TaxRateId),
+                IsActive = true
+            };
+
+            var product = await _productAppService.CreateAsync(createDto);
+
+            return new JsonResult(new
+            {
+                id = product.Id,
+                name = product.Name,
+                unitPrice = product.UnitPrice
+            });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { error = ex.Message }) { StatusCode = 400 };
+        }
+    }
+
+    public class CreateProductRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
+        public decimal Cost { get; set; }
+        public string? TaxRateId { get; set; }
     }
 }

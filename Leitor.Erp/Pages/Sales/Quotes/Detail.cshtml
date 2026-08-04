@@ -67,6 +67,42 @@
     </div>
 </div>
 
+@if (Model.CustomerPriceLists.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["PriceList"]</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-page-handler="UpdatePriceList" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">@L["SelectPriceList"]</label>
+                    <select asp-for="SelectedPriceListId" asp-items="Model.PriceListOptions" class="form-select">
+                        <option value="">@L["None"]</option>
+                    </select>
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">@L["Apply"]</button>
+                </div>
+            </form>
+            <small class="text-muted">
+                @if (Model.Quote.PriceListId.HasValue)
+                {
+                    var selectedPriceList = Model.CustomerPriceLists.FirstOrDefault(x => x.PriceListId == Model.Quote.PriceListId);
+                    if (selectedPriceList != null)
+                    {
+                        @Html.Raw($"Currently using: <strong>{selectedPriceList.PriceListName}</strong>")
+                    }
+                }
+                else
+                {
+                    @Html.Raw("No price list selected - using standard product prices")
+                }
+            </small>
+        </div>
+    </div>
+}
+
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">@L["Lines"]</h5>
@@ -77,7 +113,12 @@
             <form method="post" asp-page-handler="AddLine" class="row g-2 mb-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">@L["Product"]</label>
-                    <select asp-for="NewLine.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
+                    <div class="input-group">
+                        <select asp-for="NewLine.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newProductModal" title="Create new product">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">@L["Description"]</label>
@@ -148,3 +189,181 @@
         </div>
     </div>
 </div>
+
+<!-- New Product Modal -->
+<div class="modal fade" id="newProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@L["CreateNewProduct"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newProductForm" method="post" asp-page-handler="CreateProduct">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@L["Name"]</label>
+                        <input type="text" class="form-control" id="productName" name="name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Description"]</label>
+                        <textarea class="form-control" id="productDescription" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@L["UnitPrice"]</label>
+                                <input type="number" step="0.01" class="form-control" id="productUnitPrice" name="unitPrice" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@L["Cost"]</label>
+                                <input type="number" step="0.01" class="form-control" id="productCost" name="cost" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["TaxRate"]</label>
+                        <select class="form-select" id="productTaxRateId" name="taxRateId">
+                            <option value="">@L["UseDefaultTaxRate"]</option>
+                            @foreach (var taxRate in Model.TaxRateOptions.Skip(1))
+                            {
+                                <option value="@taxRate.Value">@taxRate.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary">@L["CreateProduct"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const productSelect = document.querySelector('select[asp-for="NewLine.ProductId"]');
+            if (!productSelect) return;
+
+            // Auto-populate product details when product is selected
+            productSelect.addEventListener('change', async function () {
+                const productId = this.value;
+                if (!productId) {
+                    // Clear fields if no product selected
+                    clearProductDetails();
+                    return;
+                }
+
+                try {
+                    // Get the Quote ID from the URL
+                    const quoteId = '@Model.Id';
+                    const priceListId = '@Model.Quote.PriceListId';
+
+                    // Call the server to get product details
+                    const response = await fetch(`?handler=GetProductDetails&productId=${productId}&priceListId=${priceListId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const details = await response.json();
+                        populateProductDetails(details);
+                    }
+                } catch (error) {
+                    console.error('Error fetching product details:', error);
+                }
+            });
+
+            function populateProductDetails(details) {
+                // Populate Description
+                const descriptionInput = document.querySelector('input[asp-for="NewLine.Description"]');
+                if (descriptionInput && !descriptionInput.value) {
+                    descriptionInput.value = details.description || details.name;
+                }
+
+                // Populate UnitPrice
+                const unitPriceInput = document.querySelector('input[asp-for="NewLine.UnitPrice"]');
+                if (unitPriceInput && !unitPriceInput.value) {
+                    unitPriceInput.value = details.unitPrice;
+                }
+
+                // Populate Cost
+                const costInput = document.querySelector('input[asp-for="NewLine.Cost"]');
+                if (costInput && !costInput.value) {
+                    costInput.value = details.cost;
+                }
+
+                // Populate TaxRateId if available
+                if (details.taxRateId) {
+                    const taxRateSelect = document.querySelector('select[asp-for="NewLine.TaxRateId"]');
+                    if (taxRateSelect && !taxRateSelect.value) {
+                        taxRateSelect.value = details.taxRateId;
+                    }
+                }
+            }
+
+            function clearProductDetails() {
+                document.querySelector('input[asp-for="NewLine.Description"]').value = '';
+                document.querySelector('input[asp-for="NewLine.UnitPrice"]').value = '';
+                document.querySelector('input[asp-for="NewLine.Cost"]').value = '';
+            }
+
+            // Handle new product form submission
+            const newProductForm = document.getElementById('newProductForm');
+            if (newProductForm) {
+                newProductForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const data = {
+                        name: formData.get('name'),
+                        description: formData.get('description'),
+                        unitPrice: parseFloat(formData.get('unitPrice')),
+                        cost: parseFloat(formData.get('cost')),
+                        taxRateId: formData.get('taxRateId') || null
+                    };
+
+                    try {
+                        const response = await fetch(`?handler=CreateProduct`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            // Close the modal
+                            bootstrap.Modal.getInstance(document.getElementById('newProductModal')).hide();
+
+                            // Add the new product to the select options
+                            const option = document.createElement('option');
+                            option.value = result.id;
+                            option.textContent = result.name + ` (${result.unitPrice})`;
+                            productSelect.appendChild(option);
+
+                            // Select the new product
+                            productSelect.value = result.id;
+                            productSelect.dispatchEvent(new Event('change'));
+
+                            // Clear form
+                            newProductForm.reset();
+                        } else {
+                            alert('Error creating product');
+                        }
+                    } catch (error) {
+                        console.error('Error creating product:', error);
+                        alert('Error creating product');
+                    }
+                });
+            }
+        });
+    </script>
+}

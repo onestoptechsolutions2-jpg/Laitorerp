@@ -33,6 +33,11 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     // Order.QuoteId/PurchaseOrder.SourceOrderId.
     public Guid? ProposalId { get; set; }
 
+    // Optional price list to use for product pricing in this quote.
+    // If set, line items fetch prices from this price list; otherwise use standard product prices.
+    // Can be null (use standard prices) or set to one of the customer's assigned price lists.
+    public Guid? PriceListId { get; set; }
+
     protected Quote()
     {
     }

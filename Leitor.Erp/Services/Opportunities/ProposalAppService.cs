@@ -206,6 +206,7 @@ public class ProposalAppService :
         {
             ProposalId = proposal.Id,
             IssueDate = Clock.Now
+            // PriceListId will be selected by user on Quote Detail page if needed
         };
         await _quoteRepository.InsertAsync(quote, autoSave: true);
 
