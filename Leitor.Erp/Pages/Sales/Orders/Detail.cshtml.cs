@@ -174,11 +174,30 @@ public class DetailModel : AbpPageModel
         return RedirectToPage(new { id = Id });
     }
 
+<<<<<<< HEAD
     public async Task<IActionResult> OnPostConfirmAsync()
     {
         await _orderAppService.ConfirmAsync(Id);
         return RedirectToPage(new { id = Id });
     }
+=======
+    // TODO: Confirm order handler - ConfirmAsync method needs to be added to OrderAppService
+    // public async Task<IActionResult> OnPostConfirmAsync()
+    // {
+    //     try
+    //     {
+    //         await _orderAppService.ConfirmAsync(Id);
+    //         return RedirectToPage(new { id = Id });
+    //     }
+    //     catch (Volo.Abp.UserFriendlyException ex)
+    //     {
+    //         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Edit);
+    //         await LoadAsync();
+    //         ModelState.AddModelError(string.Empty, ex.Message);
+    //         return Page();
+    //     }
+    // }
+>>>>>>> dd9bfa6b7134a1a180016be69f4ab1d030940548
 
     public async Task<IActionResult> OnPostIssueFinalInvoiceAsync()
     {
