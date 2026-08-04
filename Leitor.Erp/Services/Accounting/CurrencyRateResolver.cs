@@ -18,7 +18,8 @@ public static class CurrencyRateResolver
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
         string currencyCode,
-        DateTime asOfDate)
+        DateTime asOfDate,
+        bool throwIfNotFound = true)
     {
         var currency = (await currencyRepository.GetListAsync(x => x.Code == currencyCode)).FirstOrDefault();
         if (currency is { IsBaseCurrency: true })
@@ -32,8 +33,13 @@ public static class CurrencyRateResolver
 
         if (rate == null)
         {
-            throw new UserFriendlyException(
-                $"No exchange rate is available for {currencyCode} on or before {asOfDate:yyyy-MM-dd}. Add a manual rate first.");
+            if (throwIfNotFound)
+            {
+                throw new UserFriendlyException(
+                    $"No exchange rate is available for {currencyCode} on or before {asOfDate:yyyy-MM-dd}. Add a manual rate first.");
+            }
+            // Return 1:1 conversion (no conversion) if rate not found and throwIfNotFound is false
+            return 1m;
         }
 
         return rate.RateToBaseCurrency;

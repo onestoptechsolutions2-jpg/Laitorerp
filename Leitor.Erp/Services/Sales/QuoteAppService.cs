@@ -249,8 +249,8 @@ public class QuoteAppService :
             CurrencyCode = quote.CurrencyCode,
             // Re-resolved at the Order's own creation date rather than copying the Quote's
             // snapshot - a Quote issued in January converting to an Order in March should reflect
-            // March's rate, not January's.
-            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, quote.CurrencyCode, orderDate)
+            // March's rate, not January's. If no rate is available, defaults to 1:1 (no conversion).
+            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, quote.CurrencyCode, orderDate, throwIfNotFound: false)
         };
         await _orderRepository.InsertAsync(order, autoSave: true);
 
