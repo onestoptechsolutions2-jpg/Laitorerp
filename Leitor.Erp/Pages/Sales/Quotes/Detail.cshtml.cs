@@ -145,8 +145,18 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostChangePriceListAsync()
     {
         var quote = await _quoteAppService.GetAsync(Id);
-        var updateDto = ObjectMapper.Map<QuoteDto, CreateUpdateQuoteDto>(quote);
-        updateDto.PriceListId = SelectedPriceListId;
+        var updateDto = new CreateUpdateQuoteDto
+        {
+            CustomerId = quote.CustomerId,
+            Title = quote.Title,
+            Status = quote.Status,
+            IssueDate = quote.IssueDate,
+            ExpiryDate = quote.ExpiryDate,
+            Notes = quote.Notes,
+            ProposalId = quote.ProposalId,
+            PriceListId = SelectedPriceListId,
+            CurrencyCode = quote.CurrencyCode
+        };
         await _quoteAppService.UpdateAsync(Id, updateDto);
         return RedirectToPage(new { id = Id });
     }
