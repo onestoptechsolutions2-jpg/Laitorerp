@@ -182,16 +182,18 @@ public class PurchaseOrderAppService :
 
         var entity = new PurchaseOrder(GuidGenerator.Create(), createInput.VendorId, poNumber);
         CopyToEntity(createInput, entity);
+        // Exchange rates are optional - defaults to 1:1 if not available
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
-            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate, throwIfNotFound: false);
         return entity;
     }
 
     protected override async Task MapToEntityAsync(CreateUpdatePurchaseOrderDto updateInput, PurchaseOrder entity)
     {
         CopyToEntity(updateInput, entity);
+        // Exchange rates are optional - defaults to 1:1 if not available
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
-            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate, throwIfNotFound: false);
     }
 
     private static void CopyToEntity(CreateUpdatePurchaseOrderDto input, PurchaseOrder entity)

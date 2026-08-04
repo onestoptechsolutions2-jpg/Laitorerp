@@ -132,6 +132,11 @@ public class CreateFromOrderModel : AbpPageModel
 
         var sourceOrder = await _orderAppService.GetAsync(OrderId);
 
+        // Ensure CurrencyCode is set - default to USD if source order has none
+        var currencyCode = string.IsNullOrWhiteSpace(sourceOrder.CurrencyCode)
+            ? "USD"
+            : sourceOrder.CurrencyCode;
+
         var purchaseOrder = await _purchaseOrderAppService.CreateAsync(new CreateUpdatePurchaseOrderDto
         {
             VendorId = VendorId.Value,
@@ -144,7 +149,7 @@ public class CreateFromOrderModel : AbpPageModel
             // A dropship PO is priced in whatever currency the sourcing vendor bills in, but this
             // form has no vendor-currency concept yet - defaulting to the source Order's currency
             // is the closest sensible v1 behavior; editable afterward on the PO itself.
-            CurrencyCode = sourceOrder.CurrencyCode
+            CurrencyCode = currencyCode
         });
 
         foreach (var line in Lines.Where(x => x.Include))
