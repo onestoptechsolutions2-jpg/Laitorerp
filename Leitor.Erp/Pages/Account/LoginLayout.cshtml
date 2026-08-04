@@ -1,0 +1,23 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitor ERP - Sign In</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <abp-style-bundle name="@typeof(Volo.Abp.Account.Web.Pages.Account.LoginModel).FullName">
+        <abp-style src="/Pages/Account/login.css" />
+    </abp-style-bundle>
+</head>
+<body>
+    @RenderBody()
+
+    <abp-script-bundle name="@typeof(Volo.Abp.Account.Web.Pages.Account.LoginModel).FullName">
+        <abp-script src="/Pages/Account/login.js" />
+    </abp-script-bundle>
+</body>
+</html>
