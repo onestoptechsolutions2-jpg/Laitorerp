@@ -15,9 +15,6 @@ public class CreateUpdateProposalDto
 
     public ProposalStatus Status { get; set; } = ProposalStatus.Draft;
 
-    // Price list for product pricing. Optional - null means use base product prices.
-    public Guid? PriceListId { get; set; }
-
     [StringLength(4000)]
     public string? Summary { get; set; }
 

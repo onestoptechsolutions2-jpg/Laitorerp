@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
@@ -21,7 +20,6 @@ public class ProposalAppService :
     CrudAppService<Proposal, ProposalDto, Guid, GetProposalListInput, CreateUpdateProposalDto>
 {
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
-    private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IDataFilter _dataFilter;
@@ -29,14 +27,12 @@ public class ProposalAppService :
     public ProposalAppService(
         IRepository<Proposal, Guid> repository,
         IRepository<Opportunity, Guid> opportunityRepository,
-        IRepository<Customer, Guid> customerRepository,
         IRepository<Quote, Guid> quoteRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
         _opportunityRepository = opportunityRepository;
-        _customerRepository = customerRepository;
         _quoteRepository = quoteRepository;
         _stageEventRepository = stageEventRepository;
         _dataFilter = dataFilter;
@@ -75,15 +71,6 @@ public class ProposalAppService :
 
         var entity = new Proposal(GuidGenerator.Create(), createInput.OpportunityId, proposalNumber, createInput.Title);
         CopyToEntity(createInput, entity);
-
-        // Auto-populate PriceListId from opportunity's customer's default if not explicitly provided
-        if (!entity.PriceListId.HasValue)
-        {
-            var opportunity = await _opportunityRepository.GetAsync(createInput.OpportunityId);
-            var customer = await _customerRepository.GetAsync(opportunity.CustomerId);
-            entity.PriceListId = customer.DefaultPriceListId;
-        }
-
         return entity;
     }
 
@@ -186,7 +173,6 @@ public class ProposalAppService :
         entity.Exclusions = input.Exclusions;
         entity.WarrantyAndSupport = input.WarrantyAndSupport;
         entity.Terms = input.Terms;
-        entity.PriceListId = input.PriceListId;
     }
 
     // The concrete mechanism behind "proposal becomes a quotation" - same shape as
@@ -219,7 +205,6 @@ public class ProposalAppService :
         var quote = new Quote(GuidGenerator.Create(), opportunity.CustomerId, quoteNumber, proposal.Title)
         {
             ProposalId = proposal.Id,
-            PriceListId = proposal.PriceListId,
             IssueDate = Clock.Now
         };
         await _quoteRepository.InsertAsync(quote, autoSave: true);

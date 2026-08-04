@@ -21,7 +21,6 @@ public class QuoteDto : FullAuditedEntityDto<Guid>
     public Guid? UnlockedByUserId { get; set; }
     public DateTime? UnlockedAt { get; set; }
     public string? UnlockReason { get; set; }
-    public Guid? PriceListId { get; set; }
 
     // Resolved/computed by QuoteAppService - not stored columns, Mapperly won't map them.
     public string? CustomerName { get; set; }

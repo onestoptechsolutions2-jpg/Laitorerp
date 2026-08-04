@@ -50,23 +50,6 @@
                 <dd class="col-sm-10">@Model.Quote.ProposalNumber</dd>
             }
 
-            <dt class="col-sm-2">@L["PriceList"]</dt>
-            <dd class="col-sm-10">
-                @if (Model.CanEdit)
-                {
-                    <form method="post" asp-page-handler="ChangePriceList" class="d-inline">
-                        <div class="input-group input-group-sm" style="width: 300px;">
-                            <select asp-for="SelectedPriceListId" asp-items="Model.PriceListOptions" class="form-select"></select>
-                            <button type="submit" class="btn btn-outline-secondary">@L["Update"]</button>
-                        </div>
-                    </form>
-                }
-                else
-                {
-                    <span>@(Model.Quote.PriceListId.HasValue ? Model.PriceListOptions.FirstOrDefault(x => x.Value == Model.Quote.PriceListId.Value.ToString())?.Text ?? "Unknown" : L["None"])</span>
-                }
-            </dd>
-
             <dt class="col-sm-2">@L["Subtotal"]</dt>
             <dd class="col-sm-4">@Model.Quote.Subtotal.ToString("N2")</dd>
             <dt class="col-sm-2">@L["Tax"]</dt>
