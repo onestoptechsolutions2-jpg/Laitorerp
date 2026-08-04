@@ -250,6 +250,57 @@ public class OrderAppService :
         await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", entity.Id, WorkflowStage.Unlocked, notes: reason);
     }
 
+    // Confirms an order with validation checklist - transitions from Submitted to Confirmed status.
+    // Validates required fields and order lines before allowing confirmation.
+    public async Task ConfirmAsync(Guid id)
+    {
+        await CheckUpdatePolicyAsync();
+
+        var order = await Repository.GetAsync(id);
+
+        // Only allow confirmation from Submitted status
+        if (order.Status != OrderStatus.Submitted)
+        {
+            throw new UserFriendlyException("Only submitted orders can be confirmed. This order has already been confirmed or is in another status.");
+        }
+
+        // Validation checklist
+        var validationErrors = new List<string>();
+
+        // Check required fields
+        if (string.IsNullOrWhiteSpace(order.CurrencyCode))
+            validationErrors.Add("Currency code is required");
+
+        if (order.OrderDate == default)
+            validationErrors.Add("Order date is required");
+
+        // Check order lines exist
+        var lines = await _lineRepository.GetListAsync(x => x.OrderId == id);
+        if (lines.Count == 0)
+            validationErrors.Add("Order must have at least one line item");
+
+        // Check customer exists and is valid
+        var customer = await _customerRepository.GetAsync(order.CustomerId);
+        if (customer == null)
+            validationErrors.Add("Customer is invalid or deleted");
+
+        // If any validation errors, throw them all
+        if (validationErrors.Count > 0)
+        {
+            throw new UserFriendlyException("Order cannot be confirmed:\n• " + string.Join("\n• ", validationErrors));
+        }
+
+        // Confirmation passed - transition to Confirmed status
+        order.Status = OrderStatus.Confirmed;
+        order.ConfirmedByUserId = CurrentUser.Id;
+        order.ConfirmedAt = Clock.Now;
+
+        await Repository.UpdateAsync(order, autoSave: true);
+
+        // Trigger confirmation side effects (milestones, workflow logging)
+        await OnOrderConfirmedAsync(order);
+    }
+
     // Fired the moment an Order's Status transitions into Confirmed (see MapToEntityAsync above).
     // Only Milestone-terms orders get an automatic deposit - a Net30/DueOnReceipt/etc order is
     // meant to be invoiced in full via ConvertToInvoiceAsync whenever the user is ready, not split

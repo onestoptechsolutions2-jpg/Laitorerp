@@ -48,6 +48,10 @@ public class Order : FullAuditedAggregateRoot<Guid>
     public DateTime? UnlockedAt { get; set; }
     public string? UnlockReason { get; set; }
 
+    // Tracks confirmation timestamp and who confirmed it
+    public Guid? ConfirmedByUserId { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
+
     protected Order()
     {
     }

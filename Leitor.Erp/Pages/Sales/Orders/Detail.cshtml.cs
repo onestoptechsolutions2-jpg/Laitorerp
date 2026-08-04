@@ -174,6 +174,24 @@ public class DetailModel : AbpPageModel
         return RedirectToPage(new { id = Id });
     }
 
+    // Confirms the order with validation checklist - transitions from Submitted to Confirmed
+    public async Task<IActionResult> OnPostConfirmAsync()
+    {
+        try
+        {
+            await _orderAppService.ConfirmAsync(Id);
+            return RedirectToPage(new { id = Id });
+        }
+        catch (Volo.Abp.UserFriendlyException ex)
+        {
+            // Validation failed - reload page and show errors
+            CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Edit);
+            await LoadAsync();
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return Page();
+        }
+    }
+
     public async Task<IActionResult> OnPostIssueFinalInvoiceAsync()
     {
         var invoice = await _orderAppService.IssueFinalInvoiceAsync(Id);

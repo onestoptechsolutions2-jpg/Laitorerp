@@ -12,6 +12,14 @@
             @if (Model.CanEdit)
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Order.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+
+                @if (Model.Order.Status == OrderStatus.Submitted)
+                {
+                    <form method="post" asp-page-handler="Confirm" class="d-inline" onsubmit="return confirm('Confirm this order? The order will be locked and marked as confirmed.');">
+                        <button type="submit" class="btn btn-warning">@L["ConfirmOrder"]</button>
+                    </form>
+                }
+
                 @if (Model.CanIssueFinalInvoice)
                 {
                     <form method="post" asp-page-handler="IssueFinalInvoice" class="d-inline" onsubmit="return confirm('@L["IssueFinalInvoice"]?');">
