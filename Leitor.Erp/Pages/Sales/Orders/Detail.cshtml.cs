@@ -248,19 +248,4 @@ public class DetailModel : AbpPageModel
 
         return RedirectToPage(new { id = Id });
     }
-
-    public async Task<IActionResult> OnPostConfirmAsync()
-    {
-        try
-        {
-            await _orderAppService.ConfirmAsync(Id);
-            return RedirectToPage(new { id = Id });
-        }
-        catch (Volo.Abp.UserFriendlyException ex)
-        {
-            await LoadAsync();
-            ModelState.AddModelError(string.Empty, ex.Message);
-            return Page();
-        }
-    }
 }
