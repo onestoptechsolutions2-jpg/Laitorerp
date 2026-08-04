@@ -63,7 +63,7 @@
                 }
                 else
                 {
-                    <span>@(Model.Quote.PriceListId.HasValue ? Model.PriceListOptions.FirstOrDefault(x => x.Value == Model.Quote.PriceListId.ToString())?.Text ?? "Unknown" : L["None"])</span>
+                    <span>@(Model.Quote.PriceListId.HasValue ? Model.PriceListOptions.FirstOrDefault(x => x.Value == Model.Quote.PriceListId.Value.ToString())?.Text ?? "Unknown" : L["None"])</span>
                 }
             </dd>
 

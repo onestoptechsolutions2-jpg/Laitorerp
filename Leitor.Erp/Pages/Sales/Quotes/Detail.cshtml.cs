@@ -135,8 +135,8 @@ public class DetailModel : AbpPageModel
         );
 
         // Load price list options
-        var priceLists = await _priceListAppService.GetListAsync(new GetPriceListListInput { MaxResultCount = 1000 });
-        PriceListOptions = new List<SelectListItem> { new(L["NoPriceList"], "") };
+        var priceLists = await _priceListAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+        PriceListOptions = new List<SelectListItem> { new(L["None"], "") };
         PriceListOptions.AddRange(
             priceLists.Items.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
         );
