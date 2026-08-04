@@ -234,11 +234,20 @@ public class DetailModel : AbpPageModel
             Invoices = invoices.Items;
 
             // Load customer price lists for price list management section
-            CustomerPriceLists = await _customerPriceListAppService.GetListAsync(Id);
+            try
+            {
+                CustomerPriceLists = await _customerPriceListAppService.GetListAsync(Id);
 
-            // Get all available price lists (for dropdown)
-            var allPriceLists = await _priceListAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
-            AvailablePriceLists = allPriceLists.Items.ToList();
+                // Get all available price lists (for dropdown)
+                var allPriceLists = await _priceListAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+                AvailablePriceLists = allPriceLists.Items.ToList();
+            }
+            catch
+            {
+                // If price list loading fails, don't crash the page - just leave empty
+                CustomerPriceLists = new List<CustomerPriceListDto>();
+                AvailablePriceLists = new List<PriceListDto>();
+            }
         }
 
         LifetimeRevenue = Invoices.Sum(x => x.Total);
