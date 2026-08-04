@@ -185,7 +185,7 @@ public class OrderAppService :
         var entity = new Order(GuidGenerator.Create(), createInput.CustomerId, orderNumber);
         CopyToEntity(createInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
-            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate, throwIfNotFound: false);
 
         if (entity.WarehouseId == Guid.Empty)
         {
@@ -210,7 +210,7 @@ public class OrderAppService :
 
         CopyToEntity(updateInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
-            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate);
+            _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate, throwIfNotFound: false);
         entity.Version++;
 
         if (wasUnlocked)
@@ -398,7 +398,7 @@ public class OrderAppService :
             Notes = order.Notes,
             PaymentTerms = order.PaymentTerms,
             CurrencyCode = order.CurrencyCode,
-            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate)
+            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate, throwIfNotFound: false)
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
 
@@ -496,7 +496,7 @@ public class OrderAppService :
             Notes = order.Notes,
             PaymentTerms = order.PaymentTerms,
             CurrencyCode = order.CurrencyCode,
-            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate)
+            ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate, throwIfNotFound: false)
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
 
