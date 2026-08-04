@@ -613,13 +613,4 @@ public class OrderAppService :
 
         return ObjectMapper.Map<Invoice, InvoiceDto>(invoice);
     }
-
-    public async Task ConfirmAsync(Guid orderId)
-    {
-        var order = await Repository.GetAsync(orderId);
-        order.Status = OrderStatus.Confirmed;
-        order.ConfirmedByUserId = CurrentUser.Id;
-        order.ConfirmedAt = Clock.Now;
-        await Repository.UpdateAsync(order, autoSave: true);
-    }
 }
