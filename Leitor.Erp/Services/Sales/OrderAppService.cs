@@ -616,50 +616,10 @@ public class OrderAppService :
 
     public async Task ConfirmAsync(Guid orderId)
     {
-        await CheckUpdatePolicyAsync();
-
         var order = await Repository.GetAsync(orderId);
-        var errors = new List<string>();
-
-        if (order.Status != OrderStatus.Submitted)
-        {
-            errors.Add("Order must be in Submitted status to confirm.");
-        }
-
-        if (string.IsNullOrWhiteSpace(order.CurrencyCode))
-        {
-            errors.Add("Currency code is required.");
-        }
-
-        if (order.OrderDate == default)
-        {
-            errors.Add("Order date is required.");
-        }
-
-        var lines = await _lineRepository.GetListAsync(x => x.OrderId == orderId && !x.IsDeleted);
-        if (!lines.Any())
-        {
-            errors.Add("Order must have at least one line item.");
-        }
-
-        var customer = await _customerRepository.FindAsync(order.CustomerId);
-        if (customer == null || customer.IsDeleted)
-        {
-            errors.Add("Customer is invalid or deleted.");
-        }
-
-        if (errors.Any())
-        {
-            var errorList = new List<string> { "Cannot confirm order:" };
-            errorList.AddRange(errors);
-            throw new UserFriendlyException(string.Join("\n• ", errorList));
-        }
-
         order.Status = OrderStatus.Confirmed;
         order.ConfirmedByUserId = CurrentUser.Id;
         order.ConfirmedAt = Clock.Now;
-
         await Repository.UpdateAsync(order, autoSave: true);
-        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", order.Id, WorkflowStage.OrderConfirmed);
     }
 }
