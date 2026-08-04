@@ -20,6 +20,7 @@ using Leitor.Erp.Services.Support;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -236,7 +237,7 @@ public class DetailModel : AbpPageModel
             CustomerPriceLists = await _customerPriceListAppService.GetListAsync(Id);
 
             // Get all available price lists (for dropdown)
-            var allPriceLists = await _priceListAppService.GetListAsync(new GetPriceListListInput { MaxResultCount = 1000 });
+            var allPriceLists = await _priceListAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
             AvailablePriceLists = allPriceLists.Items.ToList();
         }
 
