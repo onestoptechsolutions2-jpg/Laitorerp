@@ -244,15 +244,32 @@ public class DetailModel : AbpPageModel
         }
     }
 
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreateProductAsync([FromBody] CreateProductRequest request)
     {
         // AJAX handler for creating a new product from the quote form
         try
         {
+            // Validate request was bound correctly
+            if (request == null)
+            {
+                return new JsonResult(new { error = "Request body could not be parsed. Ensure Content-Type is application/json" }) { StatusCode = 400 };
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return new JsonResult(new { error = "Product name is required" }) { StatusCode = 400 };
+            }
+
+            if (request.UnitPrice <= 0)
+            {
+                return new JsonResult(new { error = "Unit price must be greater than 0" }) { StatusCode = 400 };
+            }
+
             var createDto = new CreateUpdateProductDto
             {
-                Name = request.Name,
-                Description = request.Description,
+                Name = request.Name.Trim(),
+                Description = request.Description?.Trim() ?? string.Empty,
                 UnitPrice = request.UnitPrice,
                 Cost = request.Cost,
                 TaxRateId = string.IsNullOrEmpty(request.TaxRateId) ? null : Guid.Parse(request.TaxRateId),
@@ -270,16 +287,8 @@ public class DetailModel : AbpPageModel
         }
         catch (Exception ex)
         {
-            return new JsonResult(new { error = ex.Message }) { StatusCode = 400 };
+            return new JsonResult(new { error = $"Error creating product: {ex.Message}" }) { StatusCode = 400 };
         }
     }
 
-    public class CreateProductRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal UnitPrice { get; set; }
-        public decimal Cost { get; set; }
-        public string? TaxRateId { get; set; }
-    }
 }
