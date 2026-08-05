@@ -9,17 +9,25 @@ namespace Leitor.Erp.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "PriceListId",
-                table: "Quotes",
-                type: "uuid",
-                nullable: true);
+            // Idempotent: only add columns if they don't exist
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'Quotes' AND column_name = 'PriceListId'
+                    ) THEN
+                        ALTER TABLE ""Quotes"" ADD COLUMN ""PriceListId"" uuid NULL;
+                    END IF;
 
-            migrationBuilder.AddColumn<Guid>(
-                name: "PriceListId",
-                table: "Proposals",
-                type: "uuid",
-                nullable: true);
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'Proposals' AND column_name = 'PriceListId'
+                    ) THEN
+                        ALTER TABLE ""Proposals"" ADD COLUMN ""PriceListId"" uuid NULL;
+                    END IF;
+                END $$;
+            ");
         }
 
         /// <inheritdoc />
