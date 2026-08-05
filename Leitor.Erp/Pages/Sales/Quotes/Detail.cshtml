@@ -199,6 +199,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="newProductForm" method="post" asp-page-handler="CreateProduct">
+                @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">@L["Name"]</label>
@@ -246,11 +247,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const productSelect = document.querySelector('select[asp-for="NewLine.ProductId"]');
-            if (!productSelect) return;
+            if (!productSelect) {
+                console.warn('Product select element not found');
+                return;
+            }
 
             // Auto-populate product details when product is selected
             productSelect.addEventListener('change', async function () {
                 const productId = this.value;
+                console.log('Product selected:', productId);
+
                 if (!productId) {
                     // Clear fields if no product selected
                     clearProductDetails();
@@ -258,21 +264,42 @@
                 }
 
                 try {
-                    // Get the Quote ID from the URL
+                    // Get the Quote ID and Price List ID from the page
                     const quoteId = '@Model.Id';
-                    const priceListId = '@Model.Quote.PriceListId';
+                    let priceListId = '@Model.Quote.PriceListId';
+
+                    // Handle empty Guid (all zeros or empty string)
+                    if (!priceListId || priceListId === '00000000-0000-0000-0000-000000000000') {
+                        priceListId = '';
+                    }
+
+                    // Build query string - only include priceListId if it has a value
+                    // Note: Razor Pages handler route is "ProductDetails" (removes OnGet prefix and Async suffix)
+                    let url = `?handler=ProductDetails&productId=${productId}`;
+                    if (priceListId) {
+                        url += `&priceListId=${priceListId}`;
+                    }
+
+                    console.log('Fetching from:', url);
 
                     // Call the server to get product details
-                    const response = await fetch(`?handler=GetProductDetails&productId=${productId}&priceListId=${priceListId}`, {
+                    const response = await fetch(url, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
 
+                    console.log('Response status:', response.status);
+
                     if (response.ok) {
                         const details = await response.json();
+                        console.log('Product details received:', details);
                         populateProductDetails(details);
+                    } else {
+                        console.error('Failed to fetch product details. Status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
                     }
                 } catch (error) {
                     console.error('Error fetching product details:', error);
@@ -280,37 +307,65 @@
             });
 
             function populateProductDetails(details) {
+                console.log('Populating product details:', details);
+
                 // Populate Description
                 const descriptionInput = document.querySelector('input[asp-for="NewLine.Description"]');
-                if (descriptionInput && !descriptionInput.value) {
-                    descriptionInput.value = details.description || details.name;
+                if (descriptionInput) {
+                    if (!descriptionInput.value) {
+                        // Try description first, then name
+                        descriptionInput.value = details.description || details.name || '';
+                        console.log('Populated description:', descriptionInput.value);
+                    }
+                } else {
+                    console.warn('Description input not found');
                 }
 
                 // Populate UnitPrice
                 const unitPriceInput = document.querySelector('input[asp-for="NewLine.UnitPrice"]');
-                if (unitPriceInput && !unitPriceInput.value) {
-                    unitPriceInput.value = details.unitPrice;
+                if (unitPriceInput) {
+                    if (!unitPriceInput.value || unitPriceInput.value === '0') {
+                        unitPriceInput.value = details.unitPrice || 0;
+                        console.log('Populated unit price:', unitPriceInput.value);
+                    }
+                } else {
+                    console.warn('UnitPrice input not found');
                 }
 
                 // Populate Cost
                 const costInput = document.querySelector('input[asp-for="NewLine.Cost"]');
-                if (costInput && !costInput.value) {
-                    costInput.value = details.cost;
+                if (costInput) {
+                    if (!costInput.value || costInput.value === '0') {
+                        costInput.value = details.cost || 0;
+                        console.log('Populated cost:', costInput.value);
+                    }
+                } else {
+                    console.warn('Cost input not found');
                 }
 
                 // Populate TaxRateId if available
                 if (details.taxRateId) {
                     const taxRateSelect = document.querySelector('select[asp-for="NewLine.TaxRateId"]');
-                    if (taxRateSelect && !taxRateSelect.value) {
-                        taxRateSelect.value = details.taxRateId;
+                    if (taxRateSelect) {
+                        if (!taxRateSelect.value) {
+                            taxRateSelect.value = details.taxRateId;
+                            console.log('Populated tax rate:', taxRateSelect.value);
+                        }
+                    } else {
+                        console.warn('TaxRate select not found');
                     }
                 }
             }
 
             function clearProductDetails() {
-                document.querySelector('input[asp-for="NewLine.Description"]').value = '';
-                document.querySelector('input[asp-for="NewLine.UnitPrice"]').value = '';
-                document.querySelector('input[asp-for="NewLine.Cost"]').value = '';
+                console.log('Clearing product details');
+                const descriptionInput = document.querySelector('input[asp-for="NewLine.Description"]');
+                const unitPriceInput = document.querySelector('input[asp-for="NewLine.UnitPrice"]');
+                const costInput = document.querySelector('input[asp-for="NewLine.Cost"]');
+
+                if (descriptionInput) descriptionInput.value = '';
+                if (unitPriceInput) unitPriceInput.value = '';
+                if (costInput) costInput.value = '';
             }
 
             // Handle new product form submission
@@ -329,12 +384,19 @@
                     };
 
                     try {
+                        // Get the antiforgery token from the form
+                        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                        const headers = {
+                            'Content-Type': 'application/json'
+                        };
+
+                        if (tokenInput) {
+                            headers['RequestVerificationToken'] = tokenInput.value;
+                        }
+
                         const response = await fetch(`?handler=CreateProduct`, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                            },
+                            headers: headers,
                             body: JSON.stringify(data)
                         });
 
@@ -355,12 +417,17 @@
 
                             // Clear form
                             newProductForm.reset();
+
+                            // Show success message
+                            alert('Product created successfully');
                         } else {
-                            alert('Error creating product');
+                            const error = await response.json();
+                            console.error('Server error:', error);
+                            alert(`Error creating product: ${error.error || 'Unknown error'}`);
                         }
                     } catch (error) {
                         console.error('Error creating product:', error);
-                        alert('Error creating product');
+                        alert(`Error creating product: ${error.message}`);
                     }
                 });
             }
