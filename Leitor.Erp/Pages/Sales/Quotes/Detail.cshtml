@@ -249,7 +249,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const productSelect = document.querySelector('select[asp-for="NewLine.ProductId"]');
+            const productSelect = document.getElementById('NewLine_ProductId');
             if (!productSelect) {
                 console.warn('Product select element not found');
                 return;
@@ -313,7 +313,7 @@
                 console.log('Populating product details:', details);
 
                 // Populate Description
-                const descriptionInput = document.querySelector('input[asp-for="NewLine.Description"]');
+                const descriptionInput = document.getElementById('NewLine_Description');
                 if (descriptionInput) {
                     if (!descriptionInput.value) {
                         // Try description first, then name
@@ -325,7 +325,7 @@
                 }
 
                 // Populate UnitPrice
-                const unitPriceInput = document.querySelector('input[asp-for="NewLine.UnitPrice"]');
+                const unitPriceInput = document.getElementById('NewLine_UnitPrice');
                 if (unitPriceInput) {
                     if (!unitPriceInput.value || unitPriceInput.value === '0') {
                         unitPriceInput.value = details.unitPrice || 0;
@@ -336,7 +336,7 @@
                 }
 
                 // Populate Cost
-                const costInput = document.querySelector('input[asp-for="NewLine.Cost"]');
+                const costInput = document.getElementById('NewLine_Cost');
                 if (costInput) {
                     if (!costInput.value || costInput.value === '0') {
                         costInput.value = details.cost || 0;
@@ -348,7 +348,7 @@
 
                 // Populate TaxRateId if available
                 if (details.taxRateId) {
-                    const taxRateSelect = document.querySelector('select[asp-for="NewLine.TaxRateId"]');
+                    const taxRateSelect = document.getElementById('NewLine_TaxRateId');
                     if (taxRateSelect) {
                         if (!taxRateSelect.value) {
                             taxRateSelect.value = details.taxRateId;
@@ -362,9 +362,9 @@
 
             function clearProductDetails() {
                 console.log('Clearing product details');
-                const descriptionInput = document.querySelector('input[asp-for="NewLine.Description"]');
-                const unitPriceInput = document.querySelector('input[asp-for="NewLine.UnitPrice"]');
-                const costInput = document.querySelector('input[asp-for="NewLine.Cost"]');
+                const descriptionInput = document.getElementById('NewLine_Description');
+                const unitPriceInput = document.getElementById('NewLine_UnitPrice');
+                const costInput = document.getElementById('NewLine_Cost');
 
                 if (descriptionInput) descriptionInput.value = '';
                 if (unitPriceInput) unitPriceInput.value = '';
