@@ -6,6 +6,7 @@ using Leitor.Erp.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Localization;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Features;
@@ -20,9 +21,14 @@ namespace Leitor.Erp.Pages.Administration.ModuleToggles;
 [Authorize(Policy = ErpPermissions.ModuleToggles.Manage)]
 public class IndexModel : AbpPageModel
 {
-    // "H" is ABP's well-known Host feature-value-provider name - the correct scope for a global
-    // toggle in a non-multi-tenant app like this one (ErpModule.IsMultiTenant is false).
-    private const string HostProviderName = "H";
+    // There is no "Host" feature-value provider in this ABP version (10.5.0) - only Default("D"),
+    // Configuration("C"), Edition("E"), and Tenant("T") are registered (confirmed by reflecting
+    // Volo.Abp.FeatureManagement.Domain.dll; "H" was never valid and threw "Unknown feature value
+    // provider: H" on every toggle click). TenantFeatureManagementProvider always resolves against
+    // CurrentTenant.Id regardless of the key passed in, which is always null since
+    // ErpModule.IsMultiTenant is false - so setting via "T" with a null key is the correct
+    // ABP-idiomatic equivalent of "the one global value" in a single-tenant app like this one.
+    private const string HostProviderName = "T";
 
     private readonly IFeatureChecker _featureChecker;
     private readonly IFeatureManager _featureManager;
@@ -37,6 +43,9 @@ public class IndexModel : AbpPageModel
 
     public List<ModuleToggleRow> Modules { get; set; } = new();
 
+    [TempData]
+    public string? ErrorMessage { get; set; }
+
     public async Task OnGetAsync()
     {
         await LoadAsync();
@@ -44,7 +53,15 @@ public class IndexModel : AbpPageModel
 
     public async Task<IActionResult> OnPostToggleAsync(string name, bool enabled)
     {
-        await _featureManager.SetAsync(name, enabled ? "true" : "false", HostProviderName, null);
+        try
+        {
+            await _featureManager.SetAsync(name, enabled ? "true" : "false", HostProviderName, null);
+        }
+        catch (AbpException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+
         return RedirectToPage();
     }
 

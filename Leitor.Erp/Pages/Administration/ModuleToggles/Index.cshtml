@@ -9,6 +9,10 @@
         <h5 class="card-title mb-0">@L["ModuleToggles"]</h5>
     </div>
     <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
         <p class="text-muted">@L["ModuleTogglesHint"]</p>
         <div class="table-responsive">
             <table class="table table-striped">
