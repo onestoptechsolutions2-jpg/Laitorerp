@@ -138,6 +138,28 @@
                 <dt class="col-sm-2">@L["FromLead"]</dt>
                 <dd class="col-sm-10">@Model.OriginatingLead.Name (@L[$"Enum:LeadSource:{(int)Model.OriginatingLead.Source}"])</dd>
             </dl>
+
+            @if (Model.LeadTouches.Count > 0)
+            {
+                <h6>@L["LeadActivity"]</h6>
+                <div class="mb-3">
+                    @foreach (var touch in Model.LeadTouches)
+                    {
+                        <div class="border-bottom pb-2 mb-2">
+                            <div>
+                                <span class="badge bg-secondary">@L[$"Enum:LeadChannel:{(int)touch.Channel}"]</span>
+                                <span class="badge bg-info">@L[$"Enum:LeadDirection:{(int)touch.Direction}"]</span>
+                                <strong class="ms-2">@touch.CreatorUserName</strong>
+                                <span class="text-muted ms-2">@touch.TouchedAt.ToString("g")</span>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(touch.Notes))
+                            {
+                                <div>@touch.Notes</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
         }
 
         <h6>@L["Opportunities"]</h6>

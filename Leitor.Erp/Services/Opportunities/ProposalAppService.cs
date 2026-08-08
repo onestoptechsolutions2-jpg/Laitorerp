@@ -205,7 +205,9 @@ public class ProposalAppService :
         var quote = new Quote(GuidGenerator.Create(), opportunity.CustomerId, quoteNumber, proposal.Title)
         {
             ProposalId = proposal.Id,
-            IssueDate = Clock.Now
+            IssueDate = Clock.Now,
+            // Attributive only (commission/reporting) - see Quote.SalespersonUserId's own comment.
+            SalespersonUserId = opportunity.AssignedToUserId ?? CurrentUser.Id
             // PriceListId will be selected by user on Quote Detail page if needed
         };
         await _quoteRepository.InsertAsync(quote, autoSave: true);

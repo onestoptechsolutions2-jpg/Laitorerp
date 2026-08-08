@@ -26,3 +26,23 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var customerCurrencies = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CustomerDefaultCurrencies));
+            var customerSelect = document.getElementById('Quote_CustomerId');
+            var currencySelect = document.getElementById('Quote_CurrencyCode');
+            if (!customerSelect || !currencySelect) {
+                return;
+            }
+
+            customerSelect.addEventListener('change', function () {
+                var code = customerCurrencies[customerSelect.value];
+                if (code) {
+                    currencySelect.value = code;
+                }
+            });
+        })();
+    </script>
+}

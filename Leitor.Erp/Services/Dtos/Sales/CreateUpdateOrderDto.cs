@@ -30,4 +30,8 @@ public class CreateUpdateOrderDto
     // Optional - defaults to whichever Warehouse has IsDefault set when left blank (see
     // OrderAppService.MapToEntityAsync).
     public Guid? WarehouseId { get; set; }
+
+    // Not exposed on the Create/Edit forms - purely attributive (commission/reporting), always
+    // auto-resolved server-side (see OrderAppService.MapToEntityAsync).
+    public Guid? SalespersonUserId { get; set; }
 }

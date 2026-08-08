@@ -16,6 +16,7 @@ public class InvoiceDto : FullAuditedEntityDto<Guid>
     public PaymentTerms PaymentTerms { get; set; }
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+    public Guid? SalespersonUserId { get; set; }
 
     // Resolved/computed by InvoiceAppService - not stored columns.
     public string? CustomerName { get; set; }
@@ -23,6 +24,7 @@ public class InvoiceDto : FullAuditedEntityDto<Guid>
     public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
+    public string? SalespersonName { get; set; }
 
     // Computed exactly like Manager.io: not a manually-set field. See InvoicePaymentStatus.
     public InvoicePaymentStatus PaymentStatus { get; set; }

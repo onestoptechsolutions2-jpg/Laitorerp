@@ -20,19 +20,25 @@ public class QuoteLineAppService :
     private readonly IRepository<Product, Guid> _productRepository;
     private readonly IRepository<ProductBundleItem, Guid> _bundleItemRepository;
     private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
+    private readonly IRepository<Quote, Guid> _quoteRepository;
+    private readonly IRepository<Customer, Guid> _customerRepository;
 
     public QuoteLineAppService(
         IRepository<QuoteLine, Guid> repository,
         IRepository<TaxRate, Guid> taxRateRepository,
         IRepository<Product, Guid> productRepository,
         IRepository<ProductBundleItem, Guid> bundleItemRepository,
-        IRepository<PriceListItem, Guid> priceListItemRepository)
+        IRepository<PriceListItem, Guid> priceListItemRepository,
+        IRepository<Quote, Guid> quoteRepository,
+        IRepository<Customer, Guid> customerRepository)
         : base(repository)
     {
         _taxRateRepository = taxRateRepository;
         _productRepository = productRepository;
         _bundleItemRepository = bundleItemRepository;
         _priceListItemRepository = priceListItemRepository;
+        _quoteRepository = quoteRepository;
+        _customerRepository = customerRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -126,16 +132,16 @@ public class QuoteLineAppService :
     protected override async Task<QuoteLine> MapToEntityAsync(CreateUpdateQuoteLineDto createInput)
     {
         var entity = new QuoteLine(GuidGenerator.Create(), createInput.QuoteId, createInput.Description, createInput.UnitPrice);
-        await CopyToEntityAsync(createInput, entity);
+        await CopyToEntityAsync(createInput, entity, applyCustomerDefaults: true);
         return entity;
     }
 
     protected override async Task MapToEntityAsync(CreateUpdateQuoteLineDto updateInput, QuoteLine entity)
     {
-        await CopyToEntityAsync(updateInput, entity);
+        await CopyToEntityAsync(updateInput, entity, applyCustomerDefaults: false);
     }
 
-    private async Task CopyToEntityAsync(CreateUpdateQuoteLineDto input, QuoteLine entity)
+    private async Task CopyToEntityAsync(CreateUpdateQuoteLineDto input, QuoteLine entity, bool applyCustomerDefaults)
     {
         entity.QuoteId = input.QuoteId;
         entity.ProductId = input.ProductId;
@@ -144,6 +150,29 @@ public class QuoteLineAppService :
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
         entity.Cost = input.Cost;
+
+        // UnitPrice == 0 means the form's untouched default - resolve a suggested price from the
+        // customer's price list rather than leaving the line free. An explicit 0 (a genuine
+        // giveaway line) is indistinguishable from this and gets re-resolved too, same tradeoff
+        // TaxRateResolver already accepts for a null TaxRateId. DiscountPercent only defaults on
+        // Create (applyCustomerDefaults) - 0% is too common a legitimate value on an edit to guess.
+        if (input.ProductId.HasValue && (entity.UnitPrice == 0 || (applyCustomerDefaults && entity.DiscountPercent == 0)))
+        {
+            var quote = await _quoteRepository.FindAsync(input.QuoteId);
+            var customer = quote != null ? await _customerRepository.FindAsync(quote.CustomerId) : null;
+
+            if (entity.UnitPrice == 0)
+            {
+                var priceListId = quote?.PriceListId ?? customer?.DefaultPriceListId;
+                entity.UnitPrice = await PriceListResolver.ResolveUnitPriceAsync(
+                    _priceListItemRepository, _productRepository, priceListId, input.ProductId.Value);
+            }
+
+            if (applyCustomerDefaults && entity.DiscountPercent == 0 && customer != null)
+            {
+                entity.DiscountPercent = customer.DiscountPercent;
+            }
+        }
 
         (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
             _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);

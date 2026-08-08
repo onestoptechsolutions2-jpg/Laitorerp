@@ -34,4 +34,9 @@ public class CreateUpdateQuoteDto
     /// If not set, standard product prices are used.
     /// </summary>
     public Guid? PriceListId { get; set; }
+
+    // Not exposed on the Create/Edit forms - purely attributive (commission/reporting), always
+    // auto-resolved server-side (see QuoteAppService.MapToEntityAsync). A caller may still pass an
+    // explicit value (e.g. a future API integration); the resolver only fills it in when null.
+    public Guid? SalespersonUserId { get; set; }
 }

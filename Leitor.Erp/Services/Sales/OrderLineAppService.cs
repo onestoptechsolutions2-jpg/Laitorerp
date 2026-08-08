@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -18,17 +19,26 @@ public class OrderLineAppService :
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
     private readonly IRepository<Product, Guid> _productRepository;
     private readonly IRepository<ProductBundleItem, Guid> _bundleItemRepository;
+    private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<Customer, Guid> _customerRepository;
 
     public OrderLineAppService(
         IRepository<OrderLine, Guid> repository,
         IRepository<TaxRate, Guid> taxRateRepository,
         IRepository<Product, Guid> productRepository,
-        IRepository<ProductBundleItem, Guid> bundleItemRepository)
+        IRepository<ProductBundleItem, Guid> bundleItemRepository,
+        IRepository<PriceListItem, Guid> priceListItemRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<Customer, Guid> customerRepository)
         : base(repository)
     {
         _taxRateRepository = taxRateRepository;
         _productRepository = productRepository;
         _bundleItemRepository = bundleItemRepository;
+        _priceListItemRepository = priceListItemRepository;
+        _orderRepository = orderRepository;
+        _customerRepository = customerRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -116,16 +126,16 @@ public class OrderLineAppService :
     protected override async Task<OrderLine> MapToEntityAsync(CreateUpdateOrderLineDto createInput)
     {
         var entity = new OrderLine(GuidGenerator.Create(), createInput.OrderId, createInput.Description, createInput.UnitPrice);
-        await CopyToEntityAsync(createInput, entity);
+        await CopyToEntityAsync(createInput, entity, applyCustomerDefaults: true);
         return entity;
     }
 
     protected override async Task MapToEntityAsync(CreateUpdateOrderLineDto updateInput, OrderLine entity)
     {
-        await CopyToEntityAsync(updateInput, entity);
+        await CopyToEntityAsync(updateInput, entity, applyCustomerDefaults: false);
     }
 
-    private async Task CopyToEntityAsync(CreateUpdateOrderLineDto input, OrderLine entity)
+    private async Task CopyToEntityAsync(CreateUpdateOrderLineDto input, OrderLine entity, bool applyCustomerDefaults)
     {
         entity.OrderId = input.OrderId;
         entity.ProductId = input.ProductId;
@@ -134,6 +144,26 @@ public class OrderLineAppService :
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
         entity.Cost = input.Cost;
+
+        // Same "suggest, don't lock" resolution as QuoteLineAppService.CopyToEntityAsync - see its
+        // comment. Order has no per-document PriceListId (only Quote does), so this only ever
+        // consults the Customer's default price list.
+        if (input.ProductId.HasValue && (entity.UnitPrice == 0 || (applyCustomerDefaults && entity.DiscountPercent == 0)))
+        {
+            var order = await _orderRepository.FindAsync(input.OrderId);
+            var customer = order != null ? await _customerRepository.FindAsync(order.CustomerId) : null;
+
+            if (entity.UnitPrice == 0)
+            {
+                entity.UnitPrice = await PriceListResolver.ResolveUnitPriceAsync(
+                    _priceListItemRepository, _productRepository, customer?.DefaultPriceListId, input.ProductId.Value);
+            }
+
+            if (applyCustomerDefaults && entity.DiscountPercent == 0 && customer != null)
+            {
+                entity.DiscountPercent = customer.DiscountPercent;
+            }
+        }
 
         (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
             _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);

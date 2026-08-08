@@ -22,10 +22,14 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public Guid? UnlockedByUserId { get; set; }
     public DateTime? UnlockedAt { get; set; }
     public string? UnlockReason { get; set; }
+    public Guid? ConfirmedByUserId { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
+    public Guid? SalespersonUserId { get; set; }
 
     public string? CustomerName { get; set; }
     public string? QuoteNumber { get; set; }
     public decimal Subtotal { get; set; }
     public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
+    public string? SalespersonName { get; set; }
 }

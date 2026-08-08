@@ -27,4 +27,8 @@ public class CreateUpdateInvoiceDto
     [Required]
     [StringLength(8)]
     public string CurrencyCode { get; set; } = string.Empty;
+
+    // Not exposed on the Create/Edit forms - purely attributive (commission/reporting), always
+    // auto-resolved server-side (see InvoiceAppService.MapToEntityAsync).
+    public Guid? SalespersonUserId { get; set; }
 }

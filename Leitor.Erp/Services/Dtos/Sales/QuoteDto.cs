@@ -22,6 +22,7 @@ public class QuoteDto : FullAuditedEntityDto<Guid>
     public DateTime? UnlockedAt { get; set; }
     public string? UnlockReason { get; set; }
     public Guid? PriceListId { get; set; }
+    public Guid? SalespersonUserId { get; set; }
 
     // Resolved/computed by QuoteAppService - not stored columns, Mapperly won't map them.
     public string? CustomerName { get; set; }
@@ -29,4 +30,5 @@ public class QuoteDto : FullAuditedEntityDto<Guid>
     public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
     public string? ProposalNumber { get; set; }
+    public string? SalespersonName { get; set; }
 }

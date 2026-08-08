@@ -945,6 +945,7 @@
     "PurchaseHistory": "Purchase History",
     "TotalSpend": "Total Spend",
     "OrderCount": "Order Count",
-    "AverageLeadTimeDays": "Average Lead Time (days)"
+    "AverageLeadTimeDays": "Average Lead Time (days)",
+    "LeadActivity": "Lead Activity"
   }
 }

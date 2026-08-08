@@ -41,6 +41,11 @@ public class CreateModel : AbpPageModel
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
 
+    // Keyed by Customer.Id.ToString() so it serializes straight into the page's inline script -
+    // lets the Currency field follow the Customer dropdown client-side without a round trip, same
+    // "suggest, don't lock" pattern as everywhere else (the field stays a plain editable select).
+    public Dictionary<string, string> CustomerDefaultCurrencies { get; set; } = new();
+
     public async Task OnGetAsync()
     {
         await LoadCustomerOptionsAsync();
@@ -67,6 +72,10 @@ public class CreateModel : AbpPageModel
             .OrderBy(x => x.Name)
             .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
             .ToList();
+
+        CustomerDefaultCurrencies = customers
+            .Where(x => !string.IsNullOrWhiteSpace(x.DefaultCurrencyCode))
+            .ToDictionary(x => x.Id.ToString(), x => x.DefaultCurrencyCode!);
     }
 
     private async Task LoadCurrencyOptionsAsync()

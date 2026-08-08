@@ -83,6 +83,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <dt class="col-sm-2">@L["Status"]</dt>
             <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Invoice.Status)">@L[$"Enum:InvoiceStatus:{(int)Model.Invoice.Status}"]</span></dd>
 
+            <dt class="col-sm-2">@L["Salesperson"]</dt>
+            <dd class="col-sm-4">@Model.Invoice.SalespersonName</dd>
+
             <dt class="col-sm-2">@L["IssueDate"]</dt>
             <dd class="col-sm-4">@Model.Invoice.IssueDate.ToShortDateString()</dd>
             <dt class="col-sm-2">@L["DueDate"]</dt>

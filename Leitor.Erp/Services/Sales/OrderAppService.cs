@@ -19,6 +19,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Identity;
 
 namespace Leitor.Erp.Services.Sales;
 
@@ -43,6 +44,9 @@ public class OrderAppService :
     private readonly IRepository<Product, Guid> _productRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
     private readonly IRepository<StockMovement, Guid> _stockMovementRepository;
+    private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
+    private readonly IRepository<Payment, Guid> _paymentRepository;
+    private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -66,6 +70,9 @@ public class OrderAppService :
         IRepository<Product, Guid> productRepository,
         IRepository<Warehouse, Guid> warehouseRepository,
         IRepository<StockMovement, Guid> stockMovementRepository,
+        IRepository<PriceListItem, Guid> priceListItemRepository,
+        IRepository<Payment, Guid> paymentRepository,
+        IRepository<IdentityUser, Guid> identityUserRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -88,6 +95,9 @@ public class OrderAppService :
         _productRepository = productRepository;
         _warehouseRepository = warehouseRepository;
         _stockMovementRepository = stockMovementRepository;
+        _priceListItemRepository = priceListItemRepository;
+        _paymentRepository = paymentRepository;
+        _identityUserRepository = identityUserRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -150,6 +160,15 @@ public class OrderAppService :
             ? (await _quoteRepository.GetListAsync(x => quoteIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.QuoteNumber)
             : new Dictionary<Guid, string>();
 
+        var salespersonIds = orders
+            .Where(x => x.SalespersonUserId.HasValue)
+            .Select(x => x.SalespersonUserId!.Value)
+            .Distinct()
+            .ToList();
+        var salespersonNamesById = salespersonIds.Count > 0
+            ? (await _identityUserRepository.GetListAsync(x => salespersonIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
+            : new Dictionary<Guid, string>();
+
         foreach (var order in orders)
         {
             if (namesById.TryGetValue(order.CustomerId, out var customerName))
@@ -166,6 +185,11 @@ public class OrderAppService :
             order.Subtotal = lines.Sum(x => x.Subtotal());
             order.TaxAmount = lines.Sum(x => x.TaxAmount());
             order.Total = order.Subtotal + order.TaxAmount;
+
+            if (order.SalespersonUserId.HasValue && salespersonNamesById.TryGetValue(order.SalespersonUserId.Value, out var salespersonName))
+            {
+                order.SalespersonName = salespersonName;
+            }
         }
     }
 
@@ -192,7 +216,33 @@ public class OrderAppService :
             entity.WarehouseId = (await _warehouseRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault()?.Id ?? Guid.Empty;
         }
 
+        entity.SalespersonUserId = await ResolveSalespersonUserIdAsync(createInput.SalespersonUserId, createInput.QuoteId);
+
         return entity;
+    }
+
+    // Purely attributive (commission/reporting) - see Order.SalespersonUserId's own comment.
+    // Respects an explicit value if one is ever passed in; otherwise carries forward the source
+    // Quote's SalespersonUserId when this Order was created via the standalone Create page's
+    // optional QuoteId field (the primary path, QuoteAppService.ConvertToOrderAsync, already sets
+    // it directly), else falls back to whoever is creating the Order directly.
+    private async Task<Guid?> ResolveSalespersonUserIdAsync(Guid? explicitValue, Guid? quoteId)
+    {
+        if (explicitValue.HasValue)
+        {
+            return explicitValue;
+        }
+
+        if (quoteId.HasValue)
+        {
+            var quote = await _quoteRepository.FindAsync(quoteId.Value);
+            if (quote?.SalespersonUserId != null)
+            {
+                return quote.SalespersonUserId;
+            }
+        }
+
+        return CurrentUser.Id;
     }
 
     protected override async Task MapToEntityAsync(CreateUpdateOrderDto updateInput, Order entity)
@@ -207,6 +257,7 @@ public class OrderAppService :
         var wasUnlocked = entity.UnlockedByUserId != null;
         var wasConfirmed = entity.Status == OrderStatus.Confirmed;
         var wasFulfilled = entity.Status == OrderStatus.Fulfilled;
+        var previousCustomerId = entity.CustomerId;
 
         CopyToEntity(updateInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
@@ -220,8 +271,14 @@ public class OrderAppService :
             entity.UnlockReason = null;
         }
 
+        if (previousCustomerId != entity.CustomerId)
+        {
+            await RepriceLinesForNewCustomerAsync(entity);
+        }
+
         if (!wasConfirmed && entity.Status == OrderStatus.Confirmed)
         {
+            await EnsureCreditAvailableAsync(entity);
             await OnOrderConfirmedAsync(entity);
         }
 
@@ -229,6 +286,46 @@ public class OrderAppService :
         {
             await OnOrderFulfilledAsync(entity);
         }
+    }
+
+    // Same "change the customer, refresh the pricing" rule as
+    // QuoteAppService.RepriceLinesForNewCustomerAsync - see its comment. Order has no per-document
+    // PriceListId (only Quote does), so this only ever consults the Customer's default price list.
+    private async Task RepriceLinesForNewCustomerAsync(Order order)
+    {
+        var customer = await _customerRepository.FindAsync(order.CustomerId);
+        if (customer == null)
+        {
+            return;
+        }
+
+        var lines = await _lineRepository.GetListAsync(x => x.OrderId == order.Id && x.ProductId != null);
+        if (lines.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var line in lines)
+        {
+            line.UnitPrice = await PriceListResolver.ResolveUnitPriceAsync(
+                _priceListItemRepository, _productRepository, customer.DefaultPriceListId, line.ProductId!.Value);
+            line.DiscountPercent = customer.DiscountPercent;
+        }
+
+        await _lineRepository.UpdateManyAsync(lines);
+    }
+
+    // Gate shared by ConfirmAsync and the direct-Update confirm transition above, and by
+    // ConvertToInvoiceAsync below - the two moments a Submitted order's total actually becomes debt
+    // the customer owes. Skipped entirely when Customer.CreditLimit is null.
+    private async Task EnsureCreditAvailableAsync(Order order)
+    {
+        var lines = await _lineRepository.GetListAsync(x => x.OrderId == order.Id);
+        var total = lines.Sum(x => x.Total());
+
+        await CreditCheck.EnsureWithinLimitAsync(
+            _customerRepository, _invoiceRepository, _invoiceLineRepository, _paymentRepository,
+            order.CustomerId, total);
     }
 
     // Only a holder of Sales.Unlock (Ops Manager) can unlock an approved Order for revision.
@@ -286,6 +383,8 @@ public class OrderAppService :
         {
             throw new UserFriendlyException("Order cannot be confirmed:\n• " + string.Join("\n• ", validationErrors));
         }
+
+        await EnsureCreditAvailableAsync(order);
 
         // Confirmation passed - transition to Confirmed status
         order.Status = OrderStatus.Confirmed;
@@ -398,6 +497,7 @@ public class OrderAppService :
             Notes = order.Notes,
             PaymentTerms = order.PaymentTerms,
             CurrencyCode = order.CurrencyCode,
+            SalespersonUserId = order.SalespersonUserId,
             ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate, throwIfNotFound: false)
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);
@@ -482,6 +582,8 @@ public class OrderAppService :
             throw new UserFriendlyException("All field service jobs for this order must be completed before it can be invoiced.");
         }
 
+        await EnsureCreditAvailableAsync(order);
+
         var orderLines = await _lineRepository.GetListAsync(x => x.OrderId == orderId);
 
         var invoiceNumber = await DocumentNumbering.NextAsync(_invoiceRepository, _dataFilter, "INV-");
@@ -496,6 +598,7 @@ public class OrderAppService :
             Notes = order.Notes,
             PaymentTerms = order.PaymentTerms,
             CurrencyCode = order.CurrencyCode,
+            SalespersonUserId = order.SalespersonUserId,
             ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(_currencyRepository, _exchangeRateRepository, order.CurrencyCode, issueDate, throwIfNotFound: false)
         };
         await _invoiceRepository.InsertAsync(invoice, autoSave: true);

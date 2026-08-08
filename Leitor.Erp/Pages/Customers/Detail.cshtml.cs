@@ -43,6 +43,7 @@ public class DetailModel : AbpPageModel
     private readonly QuoteAppService _quoteAppService;
     private readonly OrderAppService _orderAppService;
     private readonly InvoiceAppService _invoiceAppService;
+    private readonly LeadTouchAppService _leadTouchAppService;
     private readonly IRepository<Lead, Guid> _leadRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -62,6 +63,7 @@ public class DetailModel : AbpPageModel
         QuoteAppService quoteAppService,
         OrderAppService orderAppService,
         InvoiceAppService invoiceAppService,
+        LeadTouchAppService leadTouchAppService,
         IRepository<Lead, Guid> leadRepository,
         IRepository<Proposal, Guid> proposalRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -80,6 +82,7 @@ public class DetailModel : AbpPageModel
         _quoteAppService = quoteAppService;
         _orderAppService = orderAppService;
         _invoiceAppService = invoiceAppService;
+        _leadTouchAppService = leadTouchAppService;
         _leadRepository = leadRepository;
         _proposalRepository = proposalRepository;
         _deletionRequestRepository = deletionRequestRepository;
@@ -100,6 +103,7 @@ public class DetailModel : AbpPageModel
     // 360 pipeline/finance view - the Quote/Order/Invoice repositories already existed in
     // CustomerAppService for cascade-delete; this surfaces the same data for display instead.
     public Lead? OriginatingLead { get; set; }
+    public IReadOnlyList<LeadTouchDto> LeadTouches { get; set; } = Array.Empty<LeadTouchDto>();
     public IReadOnlyList<OpportunityDto> Opportunities { get; set; } = Array.Empty<OpportunityDto>();
     public IReadOnlyList<Proposal> Proposals { get; set; } = Array.Empty<Proposal>();
     public IReadOnlyList<QuoteDto> Quotes { get; set; } = Array.Empty<QuoteDto>();
@@ -167,6 +171,19 @@ public class DetailModel : AbpPageModel
         Attachments = await _customerAttachmentAppService.GetListAsync(Id);
 
         OriginatingLead = (await _leadRepository.GetListAsync(x => x.ConvertedCustomerId == Id)).FirstOrDefault();
+
+        // Surfaces the Lead's pre-conversion contact history on the Customer it became - LeadTouch
+        // rows stay keyed to LeadId (never migrated to CustomerId), so this reads through
+        // OriginatingLead rather than needing a schema change.
+        if (OriginatingLead != null && await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Default))
+        {
+            var touches = await _leadTouchAppService.GetListAsync(new GetLeadTouchListInput
+            {
+                LeadId = OriginatingLead.Id,
+                MaxResultCount = 1000
+            });
+            LeadTouches = touches.Items;
+        }
 
         // FieldService.Default/Support.Default/Opportunities.Default/Sales.Default aren't granted
         // to every role that holds Customers.Default (e.g. a Procurement/Dispatcher role can view

@@ -53,6 +53,7 @@ public class CreateModel : AbpPageModel
 
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
+    public Dictionary<string, string> CustomerDefaultCurrencies { get; set; } = new();
     public List<SelectListItem> WarehouseOptions { get; set; } = new();
     public List<SelectListItem> ProjectOptions { get; set; } = new();
     public bool CanUseProjects { get; set; }
@@ -87,6 +88,10 @@ public class CreateModel : AbpPageModel
             .OrderBy(x => x.Name)
             .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
             .ToList();
+
+        CustomerDefaultCurrencies = customers
+            .Where(x => !string.IsNullOrWhiteSpace(x.DefaultCurrencyCode))
+            .ToDictionary(x => x.Id.ToString(), x => x.DefaultCurrencyCode!);
     }
 
     private async Task LoadCurrencyOptionsAsync()

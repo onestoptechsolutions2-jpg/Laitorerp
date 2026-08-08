@@ -39,6 +39,9 @@
             <dt class="col-sm-2">@L["Status"]</dt>
             <dd class="col-sm-4"><span class="pill @StatusPill.For(Model.Quote.Status)">@L[$"Enum:QuoteStatus:{(int)Model.Quote.Status}"]</span></dd>
 
+            <dt class="col-sm-2">@L["Salesperson"]</dt>
+            <dd class="col-sm-4">@Model.Quote.SalespersonName</dd>
+
             <dt class="col-sm-2">@L["IssueDate"]</dt>
             <dd class="col-sm-4">@Model.Quote.IssueDate.ToShortDateString()</dd>
             <dt class="col-sm-2">@L["ExpiryDate"]</dt>

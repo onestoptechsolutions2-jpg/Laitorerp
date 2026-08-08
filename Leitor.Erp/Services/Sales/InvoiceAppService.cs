@@ -16,6 +16,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Identity;
 
 namespace Leitor.Erp.Services.Sales;
 
@@ -31,6 +32,8 @@ public class InvoiceAppService :
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
     private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -45,6 +48,8 @@ public class InvoiceAppService :
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
         IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<IdentityUser, Guid> identityUserRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -58,6 +63,8 @@ public class InvoiceAppService :
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
         _fiscalPeriodRepository = fiscalPeriodRepository;
+        _orderRepository = orderRepository;
+        _identityUserRepository = identityUserRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -126,6 +133,15 @@ public class InvoiceAppService :
 
         var now = Clock.Now;
 
+        var salespersonIds = invoices
+            .Where(x => x.SalespersonUserId.HasValue)
+            .Select(x => x.SalespersonUserId!.Value)
+            .Distinct()
+            .ToList();
+        var salespersonNamesById = salespersonIds.Count > 0
+            ? (await _identityUserRepository.GetListAsync(x => salespersonIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
+            : new Dictionary<Guid, string>();
+
         foreach (var invoice in invoices)
         {
             if (namesById.TryGetValue(invoice.CustomerId, out var customerName))
@@ -141,6 +157,11 @@ public class InvoiceAppService :
             invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
             invoice.PaymentStatus = ComputePaymentStatus(invoice, now);
+
+            if (invoice.SalespersonUserId.HasValue && salespersonNamesById.TryGetValue(invoice.SalespersonUserId.Value, out var salespersonName))
+            {
+                invoice.SalespersonName = salespersonName;
+            }
         }
     }
 
@@ -203,7 +224,33 @@ public class InvoiceAppService :
         CopyToEntity(createInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
             _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.IssueDate);
+        entity.SalespersonUserId = await ResolveSalespersonUserIdAsync(createInput.SalespersonUserId, createInput.OrderId);
         return entity;
+    }
+
+    // Purely attributive (commission/reporting) - see Invoice.SalespersonUserId's own comment.
+    // Respects an explicit value if one is ever passed in; otherwise carries forward the source
+    // Order's SalespersonUserId when this Invoice was created via the standalone Create page's
+    // optional OrderId field (the primary paths, OrderAppService.ConvertToInvoiceAsync/
+    // CreateInvoiceForMilestoneAsync, already set it directly), else falls back to whoever is
+    // creating the Invoice directly.
+    private async Task<Guid?> ResolveSalespersonUserIdAsync(Guid? explicitValue, Guid? orderId)
+    {
+        if (explicitValue.HasValue)
+        {
+            return explicitValue;
+        }
+
+        if (orderId.HasValue)
+        {
+            var order = await _orderRepository.FindAsync(orderId.Value);
+            if (order?.SalespersonUserId != null)
+            {
+                return order.SalespersonUserId;
+            }
+        }
+
+        return CurrentUser.Id;
     }
 
     protected override async Task MapToEntityAsync(CreateUpdateInvoiceDto updateInput, Invoice entity)
