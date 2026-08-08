@@ -22,4 +22,8 @@ public class CreateUpdatePurchaseOrderLineDto
 
     [Range(0, 100)]
     public decimal DiscountPercent { get; set; }
+
+    // Null means "use Product.TaxRateId, or the system default TaxRate if that's also null too" -
+    // resolved by PurchaseOrderLineAppService.MapToEntityAsync, not here.
+    public Guid? TaxRateId { get; set; }
 }

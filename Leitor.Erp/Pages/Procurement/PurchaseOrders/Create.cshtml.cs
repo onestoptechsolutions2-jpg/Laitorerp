@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
@@ -21,15 +22,18 @@ public class CreateModel : AbpPageModel
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<Warehouse, Guid> _warehouseRepository;
 
     public CreateModel(
         PurchaseOrderAppService purchaseOrderAppService,
         IRepository<Vendor, Guid> vendorRepository,
-        IRepository<Currency, Guid> currencyRepository)
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<Warehouse, Guid> warehouseRepository)
     {
         _purchaseOrderAppService = purchaseOrderAppService;
         _vendorRepository = vendorRepository;
         _currencyRepository = currencyRepository;
+        _warehouseRepository = warehouseRepository;
     }
 
     [BindProperty]
@@ -40,11 +44,18 @@ public class CreateModel : AbpPageModel
 
     public List<SelectListItem> VendorOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
+    public List<SelectListItem> WarehouseOptions { get; set; } = new();
+
+    // Keyed by Vendor.Id.ToString(), valued by the (int)PaymentTerms - serializes into the page's
+    // inline script so the PaymentTerms field follows the Vendor dropdown client-side, same
+    // pattern as Pages/Sales/Quotes/Create.cshtml's Customer -> Currency inheritance.
+    public Dictionary<string, int> VendorDefaultPaymentTerms { get; set; } = new();
 
     public async Task OnGetAsync()
     {
         await LoadVendorOptionsAsync();
         await LoadCurrencyOptionsAsync();
+        await LoadWarehouseOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -53,11 +64,23 @@ public class CreateModel : AbpPageModel
         {
             await LoadVendorOptionsAsync();
             await LoadCurrencyOptionsAsync();
+            await LoadWarehouseOptionsAsync();
             return Page();
         }
 
         var purchaseOrder = await _purchaseOrderAppService.CreateAsync(PurchaseOrder);
         return RedirectToPage("./Detail", new { id = purchaseOrder.Id });
+    }
+
+    private async Task LoadWarehouseOptionsAsync()
+    {
+        var warehouses = await _warehouseRepository.GetListAsync(x => x.IsActive);
+        WarehouseOptions = warehouses
+            .OrderBy(x => x.Name)
+            .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+            .ToList();
+
+        PurchaseOrder.WarehouseId ??= warehouses.FirstOrDefault(x => x.IsDefault)?.Id;
     }
 
     private async Task LoadVendorOptionsAsync()
@@ -67,6 +90,8 @@ public class CreateModel : AbpPageModel
             .OrderBy(x => x.Name)
             .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
             .ToList();
+
+        VendorDefaultPaymentTerms = vendors.ToDictionary(x => x.Id.ToString(), x => (int)x.DefaultPaymentTerms);
     }
 
     private async Task LoadCurrencyOptionsAsync()

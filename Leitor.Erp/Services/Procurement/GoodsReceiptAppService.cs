@@ -98,6 +98,8 @@ public class GoodsReceiptAppService : ApplicationService
             throw new UserFriendlyException("At least one line with a quantity received is required.");
         }
 
+        var purchaseOrder = await _purchaseOrderRepository.GetAsync(input.PurchaseOrderId);
+
         var poLines = await _purchaseOrderLineRepository.GetListAsync(x => x.PurchaseOrderId == input.PurchaseOrderId);
         var poLinesById = poLines.ToDictionary(x => x.Id);
         var poLineIds = poLines.Select(x => x.Id).ToList();
@@ -124,7 +126,11 @@ public class GoodsReceiptAppService : ApplicationService
             }
         }
 
+        // Suggested (not enforced) receiving location - the PO's own WarehouseId if it has one,
+        // else whichever Warehouse is flagged IsDefault. Still fully overridable per-receipt via
+        // input.WarehouseId (e.g. receiving into a different location than originally planned).
         var warehouseId = input.WarehouseId
+            ?? (purchaseOrder.WarehouseId != Guid.Empty ? (Guid?)purchaseOrder.WarehouseId : null)
             ?? (await _warehouseRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault()?.Id
             ?? throw new UserFriendlyException("No default warehouse is configured - set one on the Warehouses page first.");
 
@@ -171,7 +177,6 @@ public class GoodsReceiptAppService : ApplicationService
         var isFullyReceived = poLines.All(poLine => receivedSoFarByLineId.GetValueOrDefault(poLine.Id) >= poLine.Quantity);
         if (isFullyReceived)
         {
-            var purchaseOrder = await _purchaseOrderRepository.GetAsync(input.PurchaseOrderId);
             purchaseOrder.Status = PurchaseOrderStatus.Received;
             await _purchaseOrderRepository.UpdateAsync(purchaseOrder, autoSave: true);
         }

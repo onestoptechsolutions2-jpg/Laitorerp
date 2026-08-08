@@ -150,8 +150,10 @@ public class SupplierInvoiceAppService :
                 invoice.PONumber = poNumber;
             }
 
-            invoice.Total = linesByInvoiceId[invoice.Id]
-                .Sum(x => x.Subtotal());
+            var invoiceLines = linesByInvoiceId[invoice.Id].ToList();
+            invoice.Subtotal = invoiceLines.Sum(x => x.Subtotal());
+            invoice.TaxAmount = invoiceLines.Sum(x => x.TaxAmount());
+            invoice.Total = invoice.Subtotal + invoice.TaxAmount;
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
             invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
@@ -181,7 +183,11 @@ public class SupplierInvoiceAppService :
         }
 
         var lines = await _lineRepository.GetListAsync(x => x.SupplierInvoiceId == id);
-        var total = lines.Sum(x => x.Subtotal());
+        // Tax-inclusive - AccountsPayable below must reflect the full amount owed to the vendor,
+        // same reasoning InvoiceAppService.PostToLedgerAsync already applies on the Sales side (VAT
+        // isn't split into its own liability/recoverable account, just folded into whichever side
+        // of the entry the tax belongs to).
+        var total = lines.Sum(x => x.Total());
         if (total <= 0)
         {
             throw new UserFriendlyException("Add at least one line before posting this supplier invoice to the ledger.");
@@ -200,7 +206,7 @@ public class SupplierInvoiceAppService :
 
         var inventoryTotal = lines
             .Where(x => x.ProductId.HasValue && trackedProductIds.Contains(x.ProductId.Value))
-            .Sum(x => x.Subtotal());
+            .Sum(x => x.Total());
         var expenseTotal = total - inventoryTotal;
 
         if (inventoryTotal > 0)
@@ -266,5 +272,6 @@ public class SupplierInvoiceAppService :
         entity.DueDate = input.DueDate;
         entity.Notes = input.Notes;
         entity.CurrencyCode = input.CurrencyCode;
+        entity.PaymentTerms = input.PaymentTerms;
     }
 }

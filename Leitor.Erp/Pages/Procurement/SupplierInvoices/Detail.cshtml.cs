@@ -13,6 +13,7 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -25,6 +26,7 @@ public class DetailModel : AbpPageModel
     private readonly SupplierInvoiceLineAppService _supplierInvoiceLineAppService;
     private readonly VendorPaymentAppService _vendorPaymentAppService;
     private readonly ProductAppService _productAppService;
+    private readonly TaxRateAppService _taxRateAppService;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -33,6 +35,7 @@ public class DetailModel : AbpPageModel
         SupplierInvoiceLineAppService supplierInvoiceLineAppService,
         VendorPaymentAppService vendorPaymentAppService,
         ProductAppService productAppService,
+        TaxRateAppService taxRateAppService,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
@@ -40,6 +43,7 @@ public class DetailModel : AbpPageModel
         _supplierInvoiceLineAppService = supplierInvoiceLineAppService;
         _vendorPaymentAppService = vendorPaymentAppService;
         _productAppService = productAppService;
+        _taxRateAppService = taxRateAppService;
         _vendorRepository = vendorRepository;
         _deletionRequestRepository = deletionRequestRepository;
     }
@@ -51,6 +55,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<SupplierInvoiceLineDto> Lines { get; set; } = Array.Empty<SupplierInvoiceLineDto>();
     public IReadOnlyList<VendorPaymentDto> Payments { get; set; } = Array.Empty<VendorPaymentDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
+    public List<SelectListItem> TaxRateOptions { get; set; } = new();
     public Vendor Vendor { get; set; } = null!;
 
     [BindProperty]
@@ -102,6 +107,12 @@ public class DetailModel : AbpPageModel
         ProductOptions = new List<SelectListItem> { new(L["None"], "") };
         ProductOptions.AddRange(
             products.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.UnitPrice:N2})", x.Id.ToString()))
+        );
+
+        var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+        TaxRateOptions = new List<SelectListItem> { new(L["UseDefaultTaxRate"], "") };
+        TaxRateOptions.AddRange(
+            taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
         );
     }
 

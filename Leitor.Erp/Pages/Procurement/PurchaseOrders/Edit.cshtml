@@ -16,7 +16,9 @@
             <abp-input asp-for="PurchaseOrder.Status" />
             <abp-input asp-for="PurchaseOrder.OrderDate" />
             <abp-input asp-for="PurchaseOrder.ExpectedDeliveryDate" />
+            <abp-input asp-for="PurchaseOrder.PaymentTerms" />
             <abp-select asp-for="PurchaseOrder.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
+            <abp-select asp-for="PurchaseOrder.WarehouseId" asp-items="Model.WarehouseOptions" label="@L["Warehouse"].Value" />
             <abp-input asp-for="PurchaseOrder.Notes" />
 
             <div class="mt-3">

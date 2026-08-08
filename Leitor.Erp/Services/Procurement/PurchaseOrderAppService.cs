@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
@@ -32,6 +33,7 @@ public class PurchaseOrderAppService :
     private readonly IRepository<VendorPayment, Guid> _vendorPaymentRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
+    private readonly IRepository<Warehouse, Guid> _warehouseRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -47,6 +49,7 @@ public class PurchaseOrderAppService :
         IRepository<VendorPayment, Guid> vendorPaymentRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
+        IRepository<Warehouse, Guid> warehouseRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -61,6 +64,7 @@ public class PurchaseOrderAppService :
         _vendorPaymentRepository = vendorPaymentRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
+        _warehouseRepository = warehouseRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -165,7 +169,9 @@ public class PurchaseOrderAppService :
             }
 
             var lines = linesByPurchaseOrderId[purchaseOrder.Id].ToList();
-            purchaseOrder.Total = lines.Sum(x => x.Subtotal());
+            purchaseOrder.Subtotal = lines.Sum(x => x.Subtotal());
+            purchaseOrder.TaxAmount = lines.Sum(x => x.TaxAmount());
+            purchaseOrder.Total = purchaseOrder.Subtotal + purchaseOrder.TaxAmount;
 
             var orderedQuantity = lines.Sum(x => x.Quantity);
             var receivedQuantity = lines.Sum(x => Math.Min(receivedByPoLineId.GetValueOrDefault(x.Id), x.Quantity));
@@ -185,6 +191,12 @@ public class PurchaseOrderAppService :
         // Exchange rates are optional - defaults to 1:1 if not available
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
             _currencyRepository, _exchangeRateRepository, entity.CurrencyCode, entity.OrderDate, throwIfNotFound: false);
+
+        if (entity.WarehouseId == Guid.Empty)
+        {
+            entity.WarehouseId = (await _warehouseRepository.GetListAsync(x => x.IsDefault)).FirstOrDefault()?.Id ?? Guid.Empty;
+        }
+
         return entity;
     }
 
@@ -206,5 +218,10 @@ public class PurchaseOrderAppService :
         entity.SourceOrderId = input.SourceOrderId;
         entity.ShipToCustomer = input.ShipToCustomer;
         entity.CurrencyCode = input.CurrencyCode;
+        entity.PaymentTerms = input.PaymentTerms;
+        if (input.WarehouseId.HasValue)
+        {
+            entity.WarehouseId = input.WarehouseId.Value;
+        }
     }
 }

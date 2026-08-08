@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
 
@@ -30,4 +31,6 @@ public class CreateUpdateSupplierInvoiceDto
     [Required]
     [StringLength(8)]
     public string CurrencyCode { get; set; } = string.Empty;
+
+    public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
 }

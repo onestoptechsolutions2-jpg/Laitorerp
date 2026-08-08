@@ -19,12 +19,10 @@ namespace Leitor.Erp.Services.Tax;
 // anything - there's no known jurisdiction e-filing API to integrate against, so submission stays
 // a manual step for whoever prepares the return.
 //
-// Output VAT is exact - InvoiceLine.TaxRatePercent is already captured per line at issue time.
-// Input VAT is an approximation: Procurement (PurchaseOrderLine/SupplierInvoiceLine) has never
-// captured a per-line tax rate the way Sales does, so this applies the single default VAT rate to
-// every SupplierInvoiceLine's taxable base rather than a real per-line rate. Flagged here rather
-// than silently treated as exact - a deliberate v1 scope cut to avoid retrofitting tax fields onto
-// every Procurement line entity as a prerequisite for this report.
+// Both Output VAT and Input VAT are now exact - InvoiceLine/SupplierInvoiceLine.TaxRatePercent are
+// each captured per line at add-time (see TaxRateResolver). Input VAT used to approximate off a
+// single default rate applied to SupplierInvoiceLine totals, back when Procurement had no per-line
+// tax rate at all - see Entities/Procurement/PurchaseOrderLine.cs's own comment for that fix.
 [RequiresFeature(ErpFeatures.TaxCompliance)]
 public class VatReturnAppService : ApplicationService
 {
@@ -32,20 +30,17 @@ public class VatReturnAppService : ApplicationService
     private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
     private readonly IRepository<SupplierInvoice, Guid> _supplierInvoiceRepository;
     private readonly IRepository<SupplierInvoiceLine, Guid> _supplierInvoiceLineRepository;
-    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
 
     public VatReturnAppService(
         IRepository<Invoice, Guid> invoiceRepository,
         IRepository<InvoiceLine, Guid> invoiceLineRepository,
         IRepository<SupplierInvoice, Guid> supplierInvoiceRepository,
-        IRepository<SupplierInvoiceLine, Guid> supplierInvoiceLineRepository,
-        IRepository<TaxRate, Guid> taxRateRepository)
+        IRepository<SupplierInvoiceLine, Guid> supplierInvoiceLineRepository)
     {
         _invoiceRepository = invoiceRepository;
         _invoiceLineRepository = invoiceLineRepository;
         _supplierInvoiceRepository = supplierInvoiceRepository;
         _supplierInvoiceLineRepository = supplierInvoiceLineRepository;
-        _taxRateRepository = taxRateRepository;
     }
 
     public async Task<VatReturnDto> GetVatReturnAsync(DateTime fromDate, DateTime toDate)
@@ -87,12 +82,6 @@ public class VatReturnAppService : ApplicationService
 
     private async Task<decimal> ComputeInputVatAsync(DateTime fromDate, DateTime toDate)
     {
-        var defaultVatRate = (await _taxRateRepository.GetListAsync(x => x.IsDefault && x.TaxType == TaxType.Vat)).FirstOrDefault();
-        if (defaultVatRate == null || defaultVatRate.Percent == 0)
-        {
-            return 0;
-        }
-
         var supplierInvoices = await _supplierInvoiceRepository.GetListAsync(
             x => x.Status == SupplierInvoiceStatus.Issued && x.IssueDate >= fromDate && x.IssueDate <= toDate);
         if (supplierInvoices.Count == 0)
@@ -107,7 +96,7 @@ public class VatReturnAppService : ApplicationService
         return lines.Sum(line =>
         {
             var supplierInvoice = invoicesById[line.SupplierInvoiceId];
-            return line.Subtotal() * defaultVatRate.Percent / 100m * supplierInvoice.ExchangeRateToBase;
+            return line.TaxAmount() * supplierInvoice.ExchangeRateToBase;
         });
     }
 }

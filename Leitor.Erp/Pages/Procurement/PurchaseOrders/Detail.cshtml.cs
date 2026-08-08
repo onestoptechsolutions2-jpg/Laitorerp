@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
@@ -32,6 +33,7 @@ public class DetailModel : AbpPageModel
     private readonly ProductAppService _productAppService;
     private readonly GoodsReceiptAppService _goodsReceiptAppService;
     private readonly SupplierInvoiceAppService _supplierInvoiceAppService;
+    private readonly TaxRateAppService _taxRateAppService;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<Customer, Guid> _customerRepository;
@@ -47,6 +49,7 @@ public class DetailModel : AbpPageModel
         ProductAppService productAppService,
         GoodsReceiptAppService goodsReceiptAppService,
         SupplierInvoiceAppService supplierInvoiceAppService,
+        TaxRateAppService taxRateAppService,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<Customer, Guid> customerRepository,
@@ -61,6 +64,7 @@ public class DetailModel : AbpPageModel
         _productAppService = productAppService;
         _goodsReceiptAppService = goodsReceiptAppService;
         _supplierInvoiceAppService = supplierInvoiceAppService;
+        _taxRateAppService = taxRateAppService;
         _vendorRepository = vendorRepository;
         _orderRepository = orderRepository;
         _customerRepository = customerRepository;
@@ -89,6 +93,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<GoodsReceiptDto> Receipts { get; set; } = Array.Empty<GoodsReceiptDto>();
     public IReadOnlyList<SupplierInvoiceDto> SupplierInvoices { get; set; } = Array.Empty<SupplierInvoiceDto>();
     public List<SelectListItem> WarehouseOptions { get; set; } = new();
+    public List<SelectListItem> TaxRateOptions { get; set; } = new();
 
     [BindProperty]
     public CreateGoodsReceiptDto NewReceipt { get; set; } = new()
@@ -155,8 +160,16 @@ public class DetailModel : AbpPageModel
         var warehouses = await _warehouseRepository.GetListAsync(x => x.IsActive);
         WarehouseOptions = warehouses.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList();
 
+        var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+        TaxRateOptions = new List<SelectListItem> { new(L["UseDefaultTaxRate"], "") };
+        TaxRateOptions.AddRange(
+            taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
+        );
+
         NewReceipt.PurchaseOrderId = Id;
-        NewReceipt.WarehouseId ??= warehouses.FirstOrDefault(x => x.IsDefault)?.Id;
+        NewReceipt.WarehouseId ??= PurchaseOrder.WarehouseId != Guid.Empty
+            ? PurchaseOrder.WarehouseId
+            : warehouses.FirstOrDefault(x => x.IsDefault)?.Id;
         NewReceipt.Lines = Lines
             .Select(line => new CreateGoodsReceiptLineDto
             {

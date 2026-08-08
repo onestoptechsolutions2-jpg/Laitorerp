@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Sales;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -13,9 +15,18 @@ namespace Leitor.Erp.Services.Procurement;
 public class SupplierInvoiceLineAppService :
     CrudAppService<SupplierInvoiceLine, SupplierInvoiceLineDto, Guid, GetSupplierInvoiceLineListInput, CreateUpdateSupplierInvoiceLineDto>
 {
-    public SupplierInvoiceLineAppService(IRepository<SupplierInvoiceLine, Guid> repository)
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+
+    public SupplierInvoiceLineAppService(
+        IRepository<SupplierInvoiceLine, Guid> repository,
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Product, Guid> productRepository)
         : base(repository)
     {
+        _taxRateRepository = taxRateRepository;
+        _productRepository = productRepository;
+
         GetPolicyName = ErpPermissions.Procurement.Default;
         GetListPolicyName = ErpPermissions.Procurement.Default;
         CreatePolicyName = ErpPermissions.Procurement.Edit;
@@ -52,20 +63,19 @@ public class SupplierInvoiceLineAppService :
         dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
     }
 
-    protected override Task<SupplierInvoiceLine> MapToEntityAsync(CreateUpdateSupplierInvoiceLineDto createInput)
+    protected override async Task<SupplierInvoiceLine> MapToEntityAsync(CreateUpdateSupplierInvoiceLineDto createInput)
     {
         var entity = new SupplierInvoiceLine(GuidGenerator.Create(), createInput.SupplierInvoiceId, createInput.Description, createInput.UnitPrice);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateSupplierInvoiceLineDto updateInput, SupplierInvoiceLine entity)
+    protected override async Task MapToEntityAsync(CreateUpdateSupplierInvoiceLineDto updateInput, SupplierInvoiceLine entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private static void CopyToEntity(CreateUpdateSupplierInvoiceLineDto input, SupplierInvoiceLine entity)
+    private async Task CopyToEntityAsync(CreateUpdateSupplierInvoiceLineDto input, SupplierInvoiceLine entity)
     {
         entity.SupplierInvoiceId = input.SupplierInvoiceId;
         entity.ProductId = input.ProductId;
@@ -73,5 +83,8 @@ public class SupplierInvoiceLineAppService :
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
+
+        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
+            _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
     }
 }

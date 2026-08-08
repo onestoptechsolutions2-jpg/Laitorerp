@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
+using Leitor.Erp.Services.Sales;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -14,9 +16,24 @@ namespace Leitor.Erp.Services.Procurement;
 public class PurchaseOrderLineAppService :
     CrudAppService<PurchaseOrderLine, PurchaseOrderLineDto, Guid, GetPurchaseOrderLineListInput, CreateUpdatePurchaseOrderLineDto>
 {
-    public PurchaseOrderLineAppService(IRepository<PurchaseOrderLine, Guid> repository)
+    private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
+    private readonly IRepository<ProductVendor, Guid> _productVendorRepository;
+    private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Product, Guid> _productRepository;
+
+    public PurchaseOrderLineAppService(
+        IRepository<PurchaseOrderLine, Guid> repository,
+        IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
+        IRepository<ProductVendor, Guid> productVendorRepository,
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Product, Guid> productRepository)
         : base(repository)
     {
+        _purchaseOrderRepository = purchaseOrderRepository;
+        _productVendorRepository = productVendorRepository;
+        _taxRateRepository = taxRateRepository;
+        _productRepository = productRepository;
+
         GetPolicyName = ErpPermissions.Procurement.Default;
         GetListPolicyName = ErpPermissions.Procurement.Default;
         CreatePolicyName = ErpPermissions.Procurement.Edit;
@@ -53,20 +70,19 @@ public class PurchaseOrderLineAppService :
         dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
     }
 
-    protected override Task<PurchaseOrderLine> MapToEntityAsync(CreateUpdatePurchaseOrderLineDto createInput)
+    protected override async Task<PurchaseOrderLine> MapToEntityAsync(CreateUpdatePurchaseOrderLineDto createInput)
     {
         var entity = new PurchaseOrderLine(GuidGenerator.Create(), createInput.PurchaseOrderId, createInput.Description, createInput.UnitPrice);
-        CopyToEntity(createInput, entity);
-        return Task.FromResult(entity);
+        await CopyToEntityAsync(createInput, entity);
+        return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdatePurchaseOrderLineDto updateInput, PurchaseOrderLine entity)
+    protected override async Task MapToEntityAsync(CreateUpdatePurchaseOrderLineDto updateInput, PurchaseOrderLine entity)
     {
-        CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
+        await CopyToEntityAsync(updateInput, entity);
     }
 
-    private static void CopyToEntity(CreateUpdatePurchaseOrderLineDto input, PurchaseOrderLine entity)
+    private async Task CopyToEntityAsync(CreateUpdatePurchaseOrderLineDto input, PurchaseOrderLine entity)
     {
         entity.PurchaseOrderId = input.PurchaseOrderId;
         entity.ProductId = input.ProductId;
@@ -74,5 +90,27 @@ public class PurchaseOrderLineAppService :
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
         entity.DiscountPercent = input.DiscountPercent;
+
+        // UnitPrice == 0 means the form's untouched default - resolve the vendor's own sourcing
+        // cost for this product (same (VendorId, ProductId) -> ProductVendor.Cost lookup the
+        // "Create PO from Sales Order" dropship flow already does), generalized to every PO's
+        // normal manual add-line path. Same tradeoff as the Sales-side PriceListResolver: an
+        // explicit 0 gets re-resolved too.
+        if (entity.UnitPrice == 0 && input.ProductId.HasValue)
+        {
+            var purchaseOrder = await _purchaseOrderRepository.FindAsync(input.PurchaseOrderId);
+            if (purchaseOrder != null)
+            {
+                var productVendor = (await _productVendorRepository.GetListAsync(
+                    x => x.VendorId == purchaseOrder.VendorId && x.ProductId == input.ProductId.Value)).FirstOrDefault();
+                if (productVendor != null)
+                {
+                    entity.UnitPrice = productVendor.Cost;
+                }
+            }
+        }
+
+        (entity.TaxRateId, entity.TaxRatePercent) = await TaxRateResolver.ResolveAsync(
+            _taxRateRepository, _productRepository, input.TaxRateId, input.ProductId);
     }
 }

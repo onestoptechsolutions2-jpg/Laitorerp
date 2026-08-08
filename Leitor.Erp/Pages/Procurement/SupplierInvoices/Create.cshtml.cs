@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Procurement;
+using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -27,6 +28,7 @@ public class CreateModel : AbpPageModel
     private readonly SupplierInvoiceLineAppService _supplierInvoiceLineAppService;
     private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
     private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
+    private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
 
     public CreateModel(
@@ -34,12 +36,14 @@ public class CreateModel : AbpPageModel
         SupplierInvoiceLineAppService supplierInvoiceLineAppService,
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
         IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
+        IRepository<Vendor, Guid> vendorRepository,
         IRepository<Currency, Guid> currencyRepository)
     {
         _supplierInvoiceAppService = supplierInvoiceAppService;
         _supplierInvoiceLineAppService = supplierInvoiceLineAppService;
         _purchaseOrderRepository = purchaseOrderRepository;
         _purchaseOrderLineRepository = purchaseOrderLineRepository;
+        _vendorRepository = vendorRepository;
         _currencyRepository = currencyRepository;
     }
 
@@ -65,6 +69,13 @@ public class CreateModel : AbpPageModel
         // Defaults to the PO's own currency - the vendor's invoice is expected to bill in the
         // same currency the PO was raised in, but this stays editable for the (rare) mismatch.
         SupplierInvoice.CurrencyCode = purchaseOrder.CurrencyCode;
+
+        // Defaults from the Vendor's own terms rather than a hardcoded 30 days - same
+        // PaymentTermsCalculator helper Sales already uses. Both fields stay editable afterwards.
+        var vendor = await _vendorRepository.GetAsync(purchaseOrder.VendorId);
+        SupplierInvoice.PaymentTerms = vendor.DefaultPaymentTerms;
+        SupplierInvoice.DueDate = PaymentTermsCalculator.DueDate(SupplierInvoice.IssueDate, vendor.DefaultPaymentTerms);
+
         await LoadCurrencyOptionsAsync();
         return Page();
     }
@@ -94,7 +105,8 @@ public class CreateModel : AbpPageModel
                 Description = poLine.Description,
                 UnitPrice = poLine.UnitPrice,
                 Quantity = poLine.Quantity,
-                DiscountPercent = poLine.DiscountPercent
+                DiscountPercent = poLine.DiscountPercent,
+                TaxRateId = poLine.TaxRateId
             });
         }
 

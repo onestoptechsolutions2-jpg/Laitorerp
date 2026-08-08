@@ -82,7 +82,7 @@ public class StatementAppService : ApplicationService
             ? await _vendorPaymentRepository.GetListAsync(x => invoiceIds.Contains(x.SupplierInvoiceId))
             : new List<VendorPayment>();
 
-        var charges = allInvoices.Select(x => (Date: x.IssueDate, Description: $"Supplier Invoice {x.SupplierInvoiceNumber}", Amount: linesByInvoiceId[x.Id].Sum(l => l.Subtotal())));
+        var charges = allInvoices.Select(x => (Date: x.IssueDate, Description: $"Supplier Invoice {x.SupplierInvoiceNumber}", Amount: linesByInvoiceId[x.Id].Sum(l => l.Total())));
         var credits = allPayments.Select(x => (Date: x.PaymentDate, Description: "Payment made", Amount: x.Amount + x.WithholdingTaxAmount));
 
         return BuildStatement(vendorId, vendor.Name, fromDate, toDate, charges, credits);

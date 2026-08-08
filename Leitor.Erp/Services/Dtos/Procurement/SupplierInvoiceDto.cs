@@ -1,5 +1,6 @@
 using System;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Services.Dtos.Sales;
 using Volo.Abp.Application.Dtos;
 
@@ -16,10 +17,13 @@ public class SupplierInvoiceDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+    public PaymentTerms PaymentTerms { get; set; }
 
     // Resolved/computed by SupplierInvoiceAppService - not stored columns, Mapperly won't map them.
     public string? VendorName { get; set; }
     public string? PONumber { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }
     public InvoicePaymentStatus PaymentStatus { get; set; }

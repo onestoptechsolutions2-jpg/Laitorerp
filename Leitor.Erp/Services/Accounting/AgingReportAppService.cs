@@ -95,7 +95,7 @@ public class AgingReportAppService : ApplicationService
             .Select(invoice => new
             {
                 invoice.VendorId,
-                AmountDue = lines[invoice.Id].Sum(x => x.Subtotal()) - payments[invoice.Id].Sum(x => x.Amount + x.WithholdingTaxAmount),
+                AmountDue = lines[invoice.Id].Sum(x => x.Total()) - payments[invoice.Id].Sum(x => x.Amount + x.WithholdingTaxAmount),
                 DaysOverdue = (asOfDate.Date - invoice.DueDate.Date).Days
             })
             .Where(x => x.AmountDue > 0);

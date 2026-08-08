@@ -1,4 +1,5 @@
 using System;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Procurement;
@@ -18,6 +19,11 @@ public class SupplierInvoice : FullAuditedAggregateRoot<Guid>
     public DateTime IssueDate { get; set; }
     public DateTime DueDate { get; set; }
     public string? Notes { get; set; }
+
+    // Defaulted from Vendor.DefaultPaymentTerms at creation; DueDate is computed from this via
+    // PaymentTermsCalculator.DueDate (the same helper Sales already uses) rather than the previous
+    // hardcoded 30-day default - both stay independently editable afterwards.
+    public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
 
     // Snapshotted at creation/edit time via CurrencyRateResolver, never recomputed later.
     public string CurrencyCode { get; set; } = string.Empty;

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
@@ -90,7 +91,7 @@ public class IndexModel : AbpPageModel
         var lines = poIds.Count > 0 ? await _purchaseOrderLineRepository.GetListAsync(x => poIds.Contains(x.PurchaseOrderId)) : new List<PurchaseOrderLine>();
         PurchaseOrderTotals = lines
             .GroupBy(x => x.PurchaseOrderId)
-            .ToDictionary(g => g.Key, g => g.Sum(x => x.UnitPrice * x.Quantity * (1 - x.DiscountPercent / 100m)));
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Total()));
 
         Jobs = (await _jobRepository.GetListAsync(x => x.VendorId == vendor.Id))
             .OrderByDescending(x => x.ScheduledDate)

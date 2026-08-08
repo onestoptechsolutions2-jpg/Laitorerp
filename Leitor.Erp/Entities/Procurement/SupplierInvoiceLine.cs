@@ -4,9 +4,9 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Procurement;
 
-// Mirrors PurchaseOrderLine's fields exactly (no tax modeling) since these lines are typically
-// seeded from the PO's own lines - see SupplierInvoices/Create.cshtml.cs.
-public class SupplierInvoiceLine : FullAuditedAggregateRoot<Guid>, ILineItem
+// Mirrors PurchaseOrderLine's fields exactly, including tax modeling, since these lines are
+// typically seeded from the PO's own lines - see SupplierInvoices/Create.cshtml.cs.
+public class SupplierInvoiceLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem
 {
     public Guid SupplierInvoiceId { get; set; }
     public Guid? ProductId { get; set; }
@@ -14,6 +14,10 @@ public class SupplierInvoiceLine : FullAuditedAggregateRoot<Guid>, ILineItem
     public decimal UnitPrice { get; set; }
     public decimal Quantity { get; set; } = 1;
     public decimal DiscountPercent { get; set; }
+
+    // Snapshotted at add-time via TaxRateResolver - see PurchaseOrderLine.TaxRateId's own comment.
+    public Guid? TaxRateId { get; set; }
+    public decimal TaxRatePercent { get; set; }
 
     protected SupplierInvoiceLine()
     {

@@ -183,7 +183,7 @@ public class CurrencyRevaluationAppService : ApplicationService
 
         foreach (var supplierInvoice in supplierInvoices)
         {
-            var amountDue = supplierInvoiceLines[supplierInvoice.Id].Sum(x => x.Subtotal())
+            var amountDue = supplierInvoiceLines[supplierInvoice.Id].Sum(x => x.Total())
                 - vendorPayments[supplierInvoice.Id].Sum(x => x.Amount + x.WithholdingTaxAmount);
             if (amountDue <= 0)
             {

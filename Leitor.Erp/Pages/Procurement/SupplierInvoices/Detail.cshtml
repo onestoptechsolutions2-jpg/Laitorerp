@@ -40,6 +40,14 @@
             <dt class="col-sm-2">@L["DueDate"]</dt>
             <dd class="col-sm-4">@Model.SupplierInvoice.DueDate.ToShortDateString()</dd>
 
+            <dt class="col-sm-2">@L["PaymentTerms"]</dt>
+            <dd class="col-sm-4">@L[$"Enum:PaymentTerms:{(int)Model.SupplierInvoice.PaymentTerms}"]</dd>
+
+            <dt class="col-sm-2">@L["Subtotal"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.Subtotal.ToString("N2")</dd>
+            <dt class="col-sm-2">@L["Tax"]</dt>
+            <dd class="col-sm-4">@Model.SupplierInvoice.TaxAmount.ToString("N2")</dd>
+
             <dt class="col-sm-2">@L["Total"]</dt>
             <dd class="col-sm-4">@Model.SupplierInvoice.Total.ToString("N2") @Model.SupplierInvoice.CurrencyCode</dd>
             <dt class="col-sm-2">@L["AmountPaid"]</dt>
@@ -83,6 +91,10 @@
                     <input asp-for="NewLine.DiscountPercent" class="form-control" />
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label">@L["TaxRate"]</label>
+                    <select asp-for="NewLine.TaxRateId" asp-items="Model.TaxRateOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-primary">@L["AddLine"]</button>
                 </div>
             </form>
@@ -95,6 +107,7 @@
                         <th>@L["UnitPrice"]</th>
                         <th>@L["Quantity"]</th>
                         <th>@L["DiscountPercent"]</th>
+                        <th>@L["Tax"]</th>
                         <th>@L["LineTotal"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
@@ -107,6 +120,7 @@
                             <td>@line.UnitPrice.ToString("N2")</td>
                             <td>@line.Quantity</td>
                             <td>@line.DiscountPercent</td>
+                            <td>@line.TaxRatePercent.ToString("N0")%</td>
                             <td>@line.LineTotal.ToString("N2")</td>
                             <td>
                                 @if (Model.CanEdit)

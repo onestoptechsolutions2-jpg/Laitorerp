@@ -1,4 +1,5 @@
 using System;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Procurement;
@@ -22,6 +23,16 @@ public class PurchaseOrder : FullAuditedAggregateRoot<Guid>
     // discipline as Entities/Sales/Quote.cs.
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+
+    // Defaulted from Vendor.DefaultPaymentTerms at creation, editable afterwards - mirrors
+    // Order.PaymentTerms. Carried onto the SupplierInvoice created from this PO's own default,
+    // not copied directly (a PO's terms can be renegotiated per invoice).
+    public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
+
+    // Which stock location expects this PO's goods - defaults to the warehouse flagged
+    // IsDefault, editable for multi-location shops. Suggested (not enforced) as the receiving
+    // warehouse when creating a GoodsReceipt against this PO - see GoodsReceiptAppService.CreateAsync.
+    public Guid WarehouseId { get; set; }
 
     protected PurchaseOrder()
     {

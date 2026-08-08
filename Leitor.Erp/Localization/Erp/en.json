@@ -684,7 +684,7 @@
     "WithholdingTaxAmount": "Withholding Tax",
     "Menu:TaxCompliance": "Tax Compliance",
     "VatReturn": "VAT Return",
-    "VatReturnHint": "Output VAT is exact (from Sales invoice lines). Input VAT is approximated using the default VAT rate against Supplier Invoice totals, since Procurement doesn't capture a per-line tax rate.",
+    "VatReturnHint": "Output VAT is computed from Sales invoice lines. Input VAT is computed from Supplier Invoice lines, both using each line's own tax rate.",
     "OutputVat": "Output VAT",
     "InputVat": "Input VAT",
     "NetVatPayable": "Net VAT Payable",

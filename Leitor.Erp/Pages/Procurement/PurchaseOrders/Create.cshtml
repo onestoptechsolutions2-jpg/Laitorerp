@@ -15,7 +15,9 @@
             <abp-input asp-for="PurchaseOrder.Status" />
             <abp-input asp-for="PurchaseOrder.OrderDate" />
             <abp-input asp-for="PurchaseOrder.ExpectedDeliveryDate" />
+            <abp-input asp-for="PurchaseOrder.PaymentTerms" />
             <abp-select asp-for="PurchaseOrder.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
+            <abp-select asp-for="PurchaseOrder.WarehouseId" asp-items="Model.WarehouseOptions" label="@L["Warehouse"].Value" />
             <abp-input asp-for="PurchaseOrder.Notes" />
 
             <div class="mt-3">
@@ -25,3 +27,23 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var vendorPaymentTerms = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.VendorDefaultPaymentTerms));
+            var vendorSelect = document.getElementById('PurchaseOrder_VendorId');
+            var paymentTermsSelect = document.getElementById('PurchaseOrder_PaymentTerms');
+            if (!vendorSelect || !paymentTermsSelect) {
+                return;
+            }
+
+            vendorSelect.addEventListener('change', function () {
+                var terms = vendorPaymentTerms[vendorSelect.value];
+                if (terms !== undefined) {
+                    paymentTermsSelect.value = terms;
+                }
+            });
+        })();
+    </script>
+}

@@ -1,5 +1,6 @@
 using System;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
@@ -16,10 +17,14 @@ public class PurchaseOrderDto : FullAuditedEntityDto<Guid>
     public bool ShipToCustomer { get; set; }
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
+    public PaymentTerms PaymentTerms { get; set; }
+    public Guid WarehouseId { get; set; }
 
     // Resolved/computed by PurchaseOrderAppService - not stored columns, Mapperly won't map them.
     public string? VendorName { get; set; }
     public string? SourceOrderNumber { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
 
     // Summed from GoodsReceiptLines - lets the UI show receiving progress without a dedicated
