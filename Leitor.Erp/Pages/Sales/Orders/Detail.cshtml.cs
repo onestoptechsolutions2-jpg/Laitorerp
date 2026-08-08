@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
@@ -96,6 +97,9 @@ public class DetailModel : AbpPageModel
     public bool CanEdit { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
+    [TempData]
+    public string? ErrorMessage { get; set; }
+
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Edit);
@@ -158,7 +162,15 @@ public class DetailModel : AbpPageModel
         var hasFinalInvoice = Order.PaymentTerms == PaymentTerms.Milestone
             ? Milestones.Any(x => x.Kind == OrderPaymentMilestoneKind.Final && x.IsInvoiced)
             : (await _invoiceRepository.GetListAsync(x => x.OrderId == Id)).Any();
-        CanIssueFinalInvoice = Order.Status is OrderStatus.Confirmed or OrderStatus.Fulfilled && !hasFinalInvoice;
+
+        // Mirrors the guard OrderAppService.ConvertToInvoiceAsync/ConvertMilestoneToInvoiceAsync
+        // both enforce - hides the button rather than letting the click surface a raw
+        // UserFriendlyException as an unstyled ABP error page (OnPostIssueFinalInvoiceAsync's
+        // try/catch below is the remaining safety net, e.g. a job gets un-completed between page
+        // load and submit).
+        var allJobsCompleted = !Jobs.Any(x => x.Status != FieldServiceJobStatus.Completed);
+
+        CanIssueFinalInvoice = Order.Status is OrderStatus.Confirmed or OrderStatus.Fulfilled && !hasFinalInvoice && allJobsCompleted;
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()
@@ -176,14 +188,30 @@ public class DetailModel : AbpPageModel
 
     public async Task<IActionResult> OnPostConfirmAsync()
     {
-        await _orderAppService.ConfirmAsync(Id);
+        try
+        {
+            await _orderAppService.ConfirmAsync(Id);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+
         return RedirectToPage(new { id = Id });
     }
 
     public async Task<IActionResult> OnPostIssueFinalInvoiceAsync()
     {
-        var invoice = await _orderAppService.IssueFinalInvoiceAsync(Id);
-        return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
+        try
+        {
+            var invoice = await _orderAppService.IssueFinalInvoiceAsync(Id);
+            return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
+        }
+        catch (UserFriendlyException ex)
+        {
+            ErrorMessage = ex.Message;
+            return RedirectToPage(new { id = Id });
+        }
     }
 
     public async Task<IActionResult> OnPostAddMilestoneAsync()
@@ -201,8 +229,16 @@ public class DetailModel : AbpPageModel
 
     public async Task<IActionResult> OnPostInvoiceMilestoneAsync(Guid milestoneId)
     {
-        var invoice = await _orderAppService.ConvertMilestoneToInvoiceAsync(Id, milestoneId);
-        return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
+        try
+        {
+            var invoice = await _orderAppService.ConvertMilestoneToInvoiceAsync(Id, milestoneId);
+            return RedirectToPage("/Sales/Invoices/Detail", new { id = invoice.Id });
+        }
+        catch (UserFriendlyException ex)
+        {
+            ErrorMessage = ex.Message;
+            return RedirectToPage(new { id = Id });
+        }
     }
 
     public async Task<IActionResult> OnGetPdfAsync()

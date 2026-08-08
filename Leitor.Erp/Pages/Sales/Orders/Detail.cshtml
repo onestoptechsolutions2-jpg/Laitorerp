@@ -40,6 +40,10 @@
     </div>
     <div class="card-body">
         <partial name="/Pages/Shared/_PendingDeletionBanner.cshtml" model="Model.HasPendingDeletionRequest" />
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
         <dl class="row mb-0">
             <dt class="col-sm-2">@L["Customer"]</dt>
             <dd class="col-sm-4">@Model.Order.CustomerName</dd>
