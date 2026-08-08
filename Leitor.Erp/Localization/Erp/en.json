@@ -938,6 +938,13 @@
     "NetCashFromFinancing": "Net Cash from Financing Activities",
     "FinancingActivitiesHint": "Always zero - this app has no loan or equity-contribution records to compute it from.",
     "NetChangeInCash": "Net Change in Cash",
-    "ActualCashChange": "Actual Change in Cash Account Balance"
+    "ActualCashChange": "Actual Change in Cash Account Balance",
+    "DefaultCurrency": "Default Currency",
+    "CreditLimit": "Credit Limit",
+    "VendorDetail": "Vendor Detail",
+    "PurchaseHistory": "Purchase History",
+    "TotalSpend": "Total Spend",
+    "OrderCount": "Order Count",
+    "AverageLeadTimeDays": "Average Lead Time (days)"
   }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
@@ -21,12 +22,18 @@ public class CreateModel : AbpPageModel
 {
     private readonly VendorAppService _vendorAppService;
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IFeatureChecker _featureChecker;
 
-    public CreateModel(VendorAppService vendorAppService, IRepository<TaxRate, Guid> taxRateRepository, IFeatureChecker featureChecker)
+    public CreateModel(
+        VendorAppService vendorAppService,
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Currency, Guid> currencyRepository,
+        IFeatureChecker featureChecker)
     {
         _vendorAppService = vendorAppService;
         _taxRateRepository = taxRateRepository;
+        _currencyRepository = currencyRepository;
         _featureChecker = featureChecker;
     }
 
@@ -34,6 +41,7 @@ public class CreateModel : AbpPageModel
     public CreateUpdateVendorDto Vendor { get; set; } = new();
 
     public List<SelectListItem> WithholdingTaxRateOptions { get; set; } = new();
+    public List<SelectListItem> CurrencyOptions { get; set; } = new();
     public bool CanUseTaxCompliance { get; set; }
 
     public async Task OnGetAsync()
@@ -49,12 +57,18 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        await _vendorAppService.CreateAsync(Vendor);
-        return RedirectToPage("./Index");
+        var vendor = await _vendorAppService.CreateAsync(Vendor);
+        return RedirectToPage("./Detail", new { id = vendor.Id });
     }
 
     private async Task LoadOptionsAsync()
     {
+        var currencies = await _currencyRepository.GetListAsync(x => x.IsActive);
+        CurrencyOptions = new List<SelectListItem> { new(L["None"], "") };
+        CurrencyOptions.AddRange(
+            currencies.OrderBy(x => x.Code).Select(x => new SelectListItem(x.Code, x.Code))
+        );
+
         CanUseTaxCompliance = await _featureChecker.IsEnabledAsync(ErpFeatures.TaxCompliance);
         if (!CanUseTaxCompliance)
         {

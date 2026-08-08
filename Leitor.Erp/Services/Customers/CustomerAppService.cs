@@ -286,5 +286,8 @@ public class CustomerAppService :
         entity.PortalUserId = input.PortalUserId;
         entity.DefaultPaymentTerms = input.DefaultPaymentTerms;
         entity.DefaultPriceListId = input.DefaultPriceListId;
+        entity.CreditLimit = input.CreditLimit;
+        entity.DefaultCurrencyCode = input.DefaultCurrencyCode;
+        entity.DiscountPercent = input.DiscountPercent;
     }
 }

@@ -22,6 +22,8 @@
             <abp-input asp-for="Vendor.PostalCode" />
             <abp-input asp-for="Vendor.Country" />
             <abp-input asp-for="Vendor.Notes" />
+            <abp-input asp-for="Vendor.DefaultPaymentTerms" />
+            <abp-select asp-for="Vendor.DefaultCurrencyCode" asp-items="Model.CurrencyOptions" label="@L["DefaultCurrency"].Value" />
             <abp-select asp-for="Vendor.PortalUserId" asp-items="Model.UserOptions" label="@L["PortalAccess"].Value" />
             @if (Model.CanUseTaxCompliance)
             {
@@ -30,7 +32,7 @@
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>
-                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+                <a asp-page="./Detail" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
             </div>
         </form>
     </div>

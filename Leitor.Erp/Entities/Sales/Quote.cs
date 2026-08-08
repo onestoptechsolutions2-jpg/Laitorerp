@@ -38,6 +38,11 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     // Can be null (use standard prices) or set to one of the customer's assigned price lists.
     public Guid? PriceListId { get; set; }
 
+    // Defaulted from the originating Opportunity's AssignedToUserId when created via
+    // Proposal->Quote conversion, else CurrentUser.Id - see QuoteAppService.MapToEntityAsync.
+    // Purely attributive (commission/reporting), never enforced against who can edit the quote.
+    public Guid? SalespersonUserId { get; set; }
+
     protected Quote()
     {
     }

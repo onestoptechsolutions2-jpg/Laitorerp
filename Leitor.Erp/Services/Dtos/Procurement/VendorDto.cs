@@ -1,4 +1,5 @@
 using System;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
@@ -16,6 +17,8 @@ public class VendorDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public Guid? PortalUserId { get; set; }
     public Guid? WithholdingTaxRateId { get; set; }
+    public PaymentTerms DefaultPaymentTerms { get; set; }
+    public string? DefaultCurrencyCode { get; set; }
 
     // Resolved by VendorAppService from IdentityUser/TaxRate repositories - not stored columns.
     public string? PortalUserName { get; set; }

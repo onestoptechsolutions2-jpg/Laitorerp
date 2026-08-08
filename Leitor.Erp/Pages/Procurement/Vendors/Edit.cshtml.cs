@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
@@ -25,6 +26,7 @@ public class EditModel : AbpPageModel
     private readonly VendorAppService _vendorAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IFeatureChecker _featureChecker;
 
@@ -32,12 +34,14 @@ public class EditModel : AbpPageModel
         VendorAppService vendorAppService,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<TaxRate, Guid> taxRateRepository,
+        IRepository<Currency, Guid> currencyRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IFeatureChecker featureChecker)
     {
         _vendorAppService = vendorAppService;
         _identityUserRepository = identityUserRepository;
         _taxRateRepository = taxRateRepository;
+        _currencyRepository = currencyRepository;
         _deletionRequestRepository = deletionRequestRepository;
         _featureChecker = featureChecker;
     }
@@ -50,6 +54,7 @@ public class EditModel : AbpPageModel
 
     public List<SelectListItem> UserOptions { get; set; } = new();
     public List<SelectListItem> WithholdingTaxRateOptions { get; set; } = new();
+    public List<SelectListItem> CurrencyOptions { get; set; } = new();
     public bool CanUseTaxCompliance { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
@@ -70,11 +75,14 @@ public class EditModel : AbpPageModel
             Country = vendor.Country,
             Notes = vendor.Notes,
             PortalUserId = vendor.PortalUserId,
-            WithholdingTaxRateId = vendor.WithholdingTaxRateId
+            WithholdingTaxRateId = vendor.WithholdingTaxRateId,
+            DefaultPaymentTerms = vendor.DefaultPaymentTerms,
+            DefaultCurrencyCode = vendor.DefaultCurrencyCode
         };
 
         await LoadUserOptionsAsync();
         await LoadWithholdingTaxRateOptionsAsync();
+        await LoadCurrencyOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -83,11 +91,12 @@ public class EditModel : AbpPageModel
         {
             await LoadUserOptionsAsync();
             await LoadWithholdingTaxRateOptionsAsync();
+            await LoadCurrencyOptionsAsync();
             return Page();
         }
 
         await _vendorAppService.UpdateAsync(Id, Vendor);
-        return RedirectToPage("./Index");
+        return RedirectToPage("./Detail", new { id = Id });
     }
 
     private async Task LoadUserOptionsAsync()
@@ -111,6 +120,15 @@ public class EditModel : AbpPageModel
         WithholdingTaxRateOptions = new List<SelectListItem> { new(L["None"], "") };
         WithholdingTaxRateOptions.AddRange(
             rates.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N1}%)", x.Id.ToString()))
+        );
+    }
+
+    private async Task LoadCurrencyOptionsAsync()
+    {
+        var currencies = await _currencyRepository.GetListAsync(x => x.IsActive);
+        CurrencyOptions = new List<SelectListItem> { new(L["None"], "") };
+        CurrencyOptions.AddRange(
+            currencies.OrderBy(x => x.Code).Select(x => new SelectListItem(x.Code, x.Code))
         );
     }
 }

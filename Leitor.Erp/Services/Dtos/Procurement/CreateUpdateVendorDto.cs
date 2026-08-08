@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Leitor.Erp.Entities.Sales;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
 
@@ -35,4 +36,9 @@ public class CreateUpdateVendorDto
 
     public Guid? PortalUserId { get; set; }
     public Guid? WithholdingTaxRateId { get; set; }
+
+    public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
+
+    [StringLength(8)]
+    public string? DefaultCurrencyCode { get; set; }
 }

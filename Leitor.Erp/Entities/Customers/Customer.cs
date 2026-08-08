@@ -33,6 +33,18 @@ public class Customer : FullAuditedAggregateRoot<Guid>
     // authorization - no separate permission is granted for it.
     public Guid? PortalUserId { get; set; }
 
+    // Null = no limit enforced. Checked in OrderAppService before an Order is confirmed/converted
+    // to an Invoice - see CreditCheck.EnsureWithinLimitAsync.
+    public decimal? CreditLimit { get; set; }
+
+    // Defaults new Quote/Order/Invoice Create pages' currency field, same "suggest, don't lock"
+    // pattern as DefaultPriceListId - the field stays editable per-document.
+    public string? DefaultCurrencyCode { get; set; }
+
+    // Applied as the suggested DiscountPercent when a line is added to a Quote/Order for this
+    // customer - on top of DefaultPriceListId's price suggestion, same non-binding philosophy.
+    public decimal DiscountPercent { get; set; }
+
     protected Customer()
     {
     }

@@ -45,4 +45,11 @@ public class CreateUpdateCustomerDto
     public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
 
     public Guid? DefaultPriceListId { get; set; }
+
+    public decimal? CreditLimit { get; set; }
+
+    [StringLength(8)]
+    public string? DefaultCurrencyCode { get; set; }
+
+    public decimal DiscountPercent { get; set; }
 }

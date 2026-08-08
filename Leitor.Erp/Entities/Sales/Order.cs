@@ -52,6 +52,11 @@ public class Order : FullAuditedAggregateRoot<Guid>
     public Guid? ConfirmedByUserId { get; set; }
     public DateTime? ConfirmedAt { get; set; }
 
+    // Defaulted from the source Quote.SalespersonUserId (or the originating Opportunity's
+    // AssignedToUserId if there's no Quote), else CurrentUser.Id - carried onto the resulting
+    // Invoice by ConvertToInvoiceAsync. Purely attributive.
+    public Guid? SalespersonUserId { get; set; }
+
     protected Order()
     {
     }

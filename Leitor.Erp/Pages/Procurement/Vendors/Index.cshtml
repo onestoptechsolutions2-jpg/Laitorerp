@@ -40,7 +40,7 @@
                     @foreach (var vendor in Model.Vendors)
                     {
                         <tr>
-                            <td>@vendor.Name</td>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@vendor.Id">@vendor.Name</a></td>
                             <td>@vendor.Email</td>
                             <td>@vendor.Phone</td>
                             <td>@vendor.Country</td>

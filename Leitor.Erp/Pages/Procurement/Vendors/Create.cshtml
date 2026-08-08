@@ -20,6 +20,8 @@
             <abp-input asp-for="Vendor.PostalCode" />
             <abp-input asp-for="Vendor.Country" />
             <abp-input asp-for="Vendor.Notes" />
+            <abp-input asp-for="Vendor.DefaultPaymentTerms" />
+            <abp-select asp-for="Vendor.DefaultCurrencyCode" asp-items="Model.CurrencyOptions" label="@L["DefaultCurrency"].Value" />
             @if (Model.CanUseTaxCompliance)
             {
                 <abp-select asp-for="Vendor.WithholdingTaxRateId" asp-items="Model.WithholdingTaxRateOptions" label="@L["WithholdingTaxRate"].Value" />

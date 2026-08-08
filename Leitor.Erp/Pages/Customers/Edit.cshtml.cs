@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
@@ -21,15 +22,18 @@ public class EditModel : AbpPageModel
     private readonly CustomerAppService _customerAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<PriceList, Guid> _priceListRepository;
+    private readonly IRepository<Currency, Guid> _currencyRepository;
 
     public EditModel(
         CustomerAppService customerAppService,
         IRepository<IdentityUser, Guid> identityUserRepository,
-        IRepository<PriceList, Guid> priceListRepository)
+        IRepository<PriceList, Guid> priceListRepository,
+        IRepository<Currency, Guid> currencyRepository)
     {
         _customerAppService = customerAppService;
         _identityUserRepository = identityUserRepository;
         _priceListRepository = priceListRepository;
+        _currencyRepository = currencyRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -40,6 +44,7 @@ public class EditModel : AbpPageModel
 
     public List<SelectListItem> UserOptions { get; set; } = new();
     public List<SelectListItem> PriceListOptions { get; set; } = new();
+    public List<SelectListItem> CurrencyOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -59,11 +64,15 @@ public class EditModel : AbpPageModel
             AccountOwnerUserId = customer.AccountOwnerUserId,
             PortalUserId = customer.PortalUserId,
             DefaultPaymentTerms = customer.DefaultPaymentTerms,
-            DefaultPriceListId = customer.DefaultPriceListId
+            DefaultPriceListId = customer.DefaultPriceListId,
+            CreditLimit = customer.CreditLimit,
+            DefaultCurrencyCode = customer.DefaultCurrencyCode,
+            DiscountPercent = customer.DiscountPercent
         };
 
         await LoadUserOptionsAsync();
         await LoadPriceListOptionsAsync();
+        await LoadCurrencyOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -72,6 +81,7 @@ public class EditModel : AbpPageModel
         {
             await LoadUserOptionsAsync();
             await LoadPriceListOptionsAsync();
+            await LoadCurrencyOptionsAsync();
             return Page();
         }
 
@@ -94,6 +104,15 @@ public class EditModel : AbpPageModel
         PriceListOptions = new List<SelectListItem> { new(L["None"], "") };
         PriceListOptions.AddRange(
             priceLists.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+        );
+    }
+
+    private async Task LoadCurrencyOptionsAsync()
+    {
+        var currencies = await _currencyRepository.GetListAsync(x => x.IsActive);
+        CurrencyOptions = new List<SelectListItem> { new(L["None"], "") };
+        CurrencyOptions.AddRange(
+            currencies.OrderBy(x => x.Code).Select(x => new SelectListItem(x.Code, x.Code))
         );
     }
 }

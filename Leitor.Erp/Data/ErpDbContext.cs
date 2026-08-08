@@ -89,6 +89,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<FieldServiceJobPart> FieldServiceJobParts { get; set; } = null!;
 
     public DbSet<Vendor> Vendors { get; set; } = null!;
+    public DbSet<VendorContact> VendorContacts { get; set; } = null!;
     public DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
     public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; } = null!;
     public DbSet<GoodsReceipt> GoodsReceipts { get; set; } = null!;
@@ -171,6 +172,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.PostalCode).HasMaxLength(32);
             b.Property(x => x.Country).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CreditLimit).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DefaultCurrencyCode).HasMaxLength(8);
+            b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
             b.HasIndex(x => x.PortalUserId);
             b.HasIndex(x => x.DefaultPriceListId);
         });
@@ -650,7 +654,20 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.PostalCode).HasMaxLength(32);
             b.Property(x => x.Country).HasMaxLength(128);
             b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.DefaultCurrencyCode).HasMaxLength(8);
             b.HasIndex(x => x.PortalUserId);
+        });
+
+        builder.Entity<VendorContact>(b =>
+        {
+            b.ToTable("VendorContacts");
+            b.ConfigureByConvention();
+            b.Property(x => x.FullName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.JobTitle).HasMaxLength(128);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.PhoneNumber).HasMaxLength(32);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.VendorId);
         });
 
         builder.Entity<PurchaseOrder>(b =>

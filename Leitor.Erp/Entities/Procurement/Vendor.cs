@@ -1,4 +1,5 @@
 using System;
+using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Procurement;
@@ -14,6 +15,15 @@ public class Vendor : FullAuditedAggregateRoot<Guid>
     public string? PostalCode { get; set; }
     public string? Country { get; set; }
     public string? Notes { get; set; }
+
+    // Defaults new PurchaseOrder/SupplierInvoice's PaymentTerms field at creation - mirrors
+    // Customer.DefaultPaymentTerms exactly, reuses the same enum from the Sales side rather than
+    // duplicating it for Procurement.
+    public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
+
+    // Defaults new PurchaseOrder/SupplierInvoice Create pages' currency field - mirrors
+    // Customer.DefaultCurrencyCode.
+    public string? DefaultCurrencyCode { get; set; }
 
     // Links this Vendor to the IdentityUser they log in as on the Vendor Portal (see
     // Pages/Portal/Vendor/Index.cshtml.cs) - one login covers both supplier (Purchase Orders) and

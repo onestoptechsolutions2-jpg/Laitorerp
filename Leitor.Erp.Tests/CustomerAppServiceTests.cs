@@ -45,6 +45,27 @@ public class CustomerAppServiceTests : ErpTestBase
     }
 
     [Fact]
+    public async Task CreateAsync_Persists_CreditLimit_DefaultCurrency_And_DiscountPercent()
+    {
+        await EnsureDatabaseCreatedAsync();
+        var customerAppService = GetRequiredService<CustomerAppService>();
+
+        var customer = await customerAppService.CreateAsync(new CreateUpdateCustomerDto
+        {
+            Name = "Wayne Enterprises",
+            CreditLimit = 50000m,
+            DefaultCurrencyCode = "USD",
+            DiscountPercent = 10m
+        });
+
+        var fetched = await customerAppService.GetAsync(customer.Id);
+
+        Assert.Equal(50000m, fetched.CreditLimit);
+        Assert.Equal("USD", fetched.DefaultCurrencyCode);
+        Assert.Equal(10m, fetched.DiscountPercent);
+    }
+
+    [Fact]
     public async Task DeleteAsync_Cascades_To_Notes()
     {
         await EnsureDatabaseCreatedAsync();

@@ -23,6 +23,10 @@ public class Invoice : FullAuditedAggregateRoot<Guid>
     public string CurrencyCode { get; set; } = string.Empty;
     public decimal ExchangeRateToBase { get; set; } = 1m;
 
+    // Copied from the source Order.SalespersonUserId, or CurrentUser.Id for a standalone invoice -
+    // same attributive-only purpose as Quote.SalespersonUserId.
+    public Guid? SalespersonUserId { get; set; }
+
     protected Invoice()
     {
     }

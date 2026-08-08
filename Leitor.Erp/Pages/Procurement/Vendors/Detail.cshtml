@@ -1,0 +1,179 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Procurement.Vendors.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Vendor.Name</h5>
+        @if (Model.CanEdit)
+        {
+            <a asp-page="./Edit" asp-route-id="@Model.Vendor.Id" class="btn btn-outline-primary btn-sm">@L["Edit"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@L["Email"]</dt>
+            <dd class="col-sm-9">@Model.Vendor.Email</dd>
+            <dt class="col-sm-3">@L["PhoneNumber"]</dt>
+            <dd class="col-sm-9">@Model.Vendor.Phone</dd>
+            <dt class="col-sm-3">@L["Country"]</dt>
+            <dd class="col-sm-9">@Model.Vendor.Country</dd>
+            <dt class="col-sm-3">@L["PaymentTerms"]</dt>
+            <dd class="col-sm-9">@L[$"Enum:PaymentTerms:{(int)Model.Vendor.DefaultPaymentTerms}"]</dd>
+            <dt class="col-sm-3">@L["DefaultCurrency"]</dt>
+            <dd class="col-sm-9">@Model.Vendor.DefaultCurrencyCode</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-sm-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">@L["TotalSpend"]</div>
+                <div class="fs-4">@Model.TotalSpend.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">@L["OrderCount"]</div>
+                <div class="fs-4">@Model.OrderCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">@L["AverageLeadTimeDays"]</div>
+                <div class="fs-4">@(Model.AverageLeadTimeDays.HasValue ? Model.AverageLeadTimeDays.Value.ToString("N1") : "-")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Contacts"]</h5>
+        @if (Model.CanEdit)
+        {
+            <a asp-page="/Procurement/Vendors/Contacts/Create" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-primary btn-sm">@L["NewContact"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["FullName"]</th>
+                        <th>@L["JobTitle"]</th>
+                        <th>@L["Email"]</th>
+                        <th>@L["PhoneNumber"]</th>
+                        <th>@L["IsPrimary"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Contacts.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var contact in Model.Contacts)
+                    {
+                        <tr>
+                            <td>@contact.FullName</td>
+                            <td>@contact.JobTitle</td>
+                            <td>@contact.Email</td>
+                            <td>@contact.PhoneNumber</td>
+                            <td>@(contact.IsPrimary ? "✓" : "")</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="/Procurement/Vendors/Contacts/Edit" asp-route-id="@contact.Id" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["PurchaseOrders"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["PONumber"]</th>
+                        <th>@L["OrderDate"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Total"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.PurchaseOrders.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var purchaseOrder in Model.PurchaseOrders)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="/Procurement/PurchaseOrders/Detail" asp-route-id="@purchaseOrder.Id">@purchaseOrder.PONumber</a></td>
+                            <td>@purchaseOrder.OrderDate.ToShortDateString()</td>
+                            <td><span class="pill @StatusPill.For(purchaseOrder.Status)">@L[$"Enum:PurchaseOrderStatus:{(int)purchaseOrder.Status}"]</span></td>
+                            <td>@purchaseOrder.Total.ToString("N2") @purchaseOrder.CurrencyCode</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["SupplierInvoices"]</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["SupplierInvoiceNumber"]</th>
+                        <th>@L["DueDate"]</th>
+                        <th>@L["Total"]</th>
+                        <th>@L["AmountPaid"]</th>
+                        <th>@L["PaymentStatus"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.SupplierInvoices.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var invoice in Model.SupplierInvoices)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="/Procurement/SupplierInvoices/Detail" asp-route-id="@invoice.Id">@invoice.SupplierInvoiceNumber</a></td>
+                            <td>@invoice.DueDate.ToShortDateString()</td>
+                            <td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td>
+                            <td>@invoice.AmountPaid.ToString("N2")</td>
+                            <td><span class="pill @StatusPill.For(invoice.PaymentStatus)">@L[$"Enum:InvoicePaymentStatus:{(int)invoice.PaymentStatus}"]</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -174,5 +174,7 @@ public class VendorAppService :
         entity.Notes = input.Notes;
         entity.PortalUserId = input.PortalUserId;
         entity.WithholdingTaxRateId = input.WithholdingTaxRateId;
+        entity.DefaultPaymentTerms = input.DefaultPaymentTerms;
+        entity.DefaultCurrencyCode = input.DefaultCurrencyCode;
     }
 }
