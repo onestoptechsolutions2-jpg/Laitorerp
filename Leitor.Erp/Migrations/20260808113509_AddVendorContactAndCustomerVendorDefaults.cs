@@ -26,12 +26,6 @@ namespace Leitor.Erp.Migrations
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<Guid>(
-                name: "PriceListId",
-                table: "Quotes",
-                type: "uuid",
-                nullable: true);
-
-            migrationBuilder.AddColumn<Guid>(
                 name: "SalespersonUserId",
                 table: "Quotes",
                 type: "uuid",
@@ -153,10 +147,6 @@ namespace Leitor.Erp.Migrations
             migrationBuilder.DropColumn(
                 name: "DefaultPaymentTerms",
                 table: "Vendors");
-
-            migrationBuilder.DropColumn(
-                name: "PriceListId",
-                table: "Quotes");
 
             migrationBuilder.DropColumn(
                 name: "SalespersonUserId",
