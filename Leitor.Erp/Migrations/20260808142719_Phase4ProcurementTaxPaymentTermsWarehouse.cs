@@ -11,52 +11,17 @@ namespace Leitor.Erp.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "PaymentTerms",
-                table: "SupplierInvoices",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "TaxRateId",
-                table: "SupplierInvoiceLines",
-                type: "uuid",
-                nullable: true);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "TaxRatePercent",
-                table: "SupplierInvoiceLines",
-                type: "numeric(5,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<int>(
-                name: "PaymentTerms",
-                table: "PurchaseOrders",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "WarehouseId",
-                table: "PurchaseOrders",
-                type: "uuid",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "TaxRateId",
-                table: "PurchaseOrderLines",
-                type: "uuid",
-                nullable: true);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "TaxRatePercent",
-                table: "PurchaseOrderLines",
-                type: "numeric(5,2)",
-                nullable: false,
-                defaultValue: 0m);
+            // Guarded the same way 20260808113509_AddVendorContactAndCustomerVendorDefaults was
+            // fixed - this dev database has a history of drift from ad-hoc changes made outside
+            // any migration, so every step here is IF NOT EXISTS rather than trusting a clean
+            // baseline.
+            migrationBuilder.Sql(@"ALTER TABLE ""SupplierInvoices"" ADD COLUMN IF NOT EXISTS ""PaymentTerms"" integer NOT NULL DEFAULT 0;");
+            migrationBuilder.Sql(@"ALTER TABLE ""SupplierInvoiceLines"" ADD COLUMN IF NOT EXISTS ""TaxRateId"" uuid NULL;");
+            migrationBuilder.Sql(@"ALTER TABLE ""SupplierInvoiceLines"" ADD COLUMN IF NOT EXISTS ""TaxRatePercent"" numeric(5,2) NOT NULL DEFAULT 0;");
+            migrationBuilder.Sql(@"ALTER TABLE ""PurchaseOrders"" ADD COLUMN IF NOT EXISTS ""PaymentTerms"" integer NOT NULL DEFAULT 0;");
+            migrationBuilder.Sql(@"ALTER TABLE ""PurchaseOrders"" ADD COLUMN IF NOT EXISTS ""WarehouseId"" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';");
+            migrationBuilder.Sql(@"ALTER TABLE ""PurchaseOrderLines"" ADD COLUMN IF NOT EXISTS ""TaxRateId"" uuid NULL;");
+            migrationBuilder.Sql(@"ALTER TABLE ""PurchaseOrderLines"" ADD COLUMN IF NOT EXISTS ""TaxRatePercent"" numeric(5,2) NOT NULL DEFAULT 0;");
         }
 
         /// <inheritdoc />
