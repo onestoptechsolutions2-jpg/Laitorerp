@@ -131,6 +131,7 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         assetsPermission.AddChild(ErpPermissions.Assets.Create, L("Permission:Create"));
         assetsPermission.AddChild(ErpPermissions.Assets.Edit, L("Permission:Edit"));
         assetsPermission.AddChild(ErpPermissions.Assets.Delete, L("Permission:Delete"));
+        assetsPermission.AddChild(ErpPermissions.Assets.RevealCredentials, L("Permission:RevealCredentials"));
 
         var knowledgeBaseGroup = context.AddGroup(ErpPermissions.KnowledgeBase.GroupName, L("Permission:KnowledgeBase"));
         var knowledgeBasePermission = knowledgeBaseGroup.AddPermission(ErpPermissions.KnowledgeBase.Default, L("Permission:KnowledgeBase"));

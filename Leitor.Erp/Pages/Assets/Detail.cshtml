@@ -54,6 +54,91 @@
     </div>
 </div>
 
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Credentials"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.CanEdit)
+        {
+            <form method="post" asp-page-handler="AddCredential" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">@L["Label"]</label>
+                    <input asp-for="NewCredential.Label" class="form-control" required />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["CredentialType"]</label>
+                    <select asp-for="NewCredential.CredentialType" class="form-select">
+                        <option value="0">@L["Enum:AssetCredentialType:0"]</option>
+                        <option value="1">@L["Enum:AssetCredentialType:1"]</option>
+                        <option value="2">@L["Enum:AssetCredentialType:2"]</option>
+                        <option value="3">@L["Enum:AssetCredentialType:3"]</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Username"]</label>
+                    <input asp-for="NewCredential.Username" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Value"]</label>
+                    <input asp-for="NewCredential.Value" type="password" class="form-control" autocomplete="new-password" required />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Notes"]</label>
+                    <input asp-for="NewCredential.Notes" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">@L["AddCredential"]</button>
+                </div>
+            </form>
+        }
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Label"]</th>
+                        <th>@L["CredentialType"]</th>
+                        <th>@L["Username"]</th>
+                        <th>@L["Value"]</th>
+                        <th>@L["Notes"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Credentials.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var credential in Model.Credentials)
+                    {
+                        <tr data-credential-row="@credential.Id">
+                            <td>@credential.Label</td>
+                            <td>@L[$"Enum:AssetCredentialType:{(int)credential.CredentialType}"]</td>
+                            <td>@credential.Username</td>
+                            <td>
+                                <span class="doc-no credential-value" data-credential-value="@credential.Id">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
+                                @if (Model.CanRevealCredentials)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary credential-reveal-btn" data-credential-id="@credential.Id">@L["Reveal"]</button>
+                                }
+                            </td>
+                            <td>@credential.Notes</td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" asp-page-handler="DeleteCredential" asp-route-credentialId="@credential.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">@L["Relationships"]</h5>
@@ -111,3 +196,34 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            // Each click re-fetches (and re-logs, server-side) rather than caching after the first
+            // reveal - the audit trail is meant to record every time someone actually looked at a
+            // stored value, not just the first.
+            document.querySelectorAll('.credential-reveal-btn').forEach(function (btn) {
+                btn.addEventListener('click', async function () {
+                    var id = btn.getAttribute('data-credential-id');
+                    var valueSpan = document.querySelector('.credential-value[data-credential-value="' + id + '"]');
+                    if (!valueSpan) {
+                        return;
+                    }
+
+                    try {
+                        var response = await fetch('?handler=RevealCredential&credentialId=' + id);
+                        if (!response.ok) {
+                            return;
+                        }
+                        var result = await response.json();
+                        valueSpan.textContent = result.value;
+                        btn.remove();
+                    } catch (error) {
+                        console.error('Error revealing credential:', error);
+                    }
+                });
+            });
+        })();
+    </script>
+}

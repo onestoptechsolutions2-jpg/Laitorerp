@@ -220,6 +220,11 @@ public static class ErpPermissions
         public const string Create = Default + ".Create";
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
+
+        // Separate from Edit: being able to manage the asset record (and set/rotate a stored
+        // credential's value) doesn't imply being able to see what's currently stored - see
+        // AssetCredentialAppService.RevealAsync.
+        public const string RevealCredentials = Default + ".RevealCredentials";
     }
 
     // Gated behind ErpFeatures.KnowledgeManagement (see Features/ErpFeatures.cs).

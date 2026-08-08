@@ -23,5 +23,6 @@ public enum WorkflowStage
     ClosedWon = 14,
     ClosedLost = 15,
     Unlocked = 16,
-    DataErased = 17
+    DataErased = 17,
+    CredentialRevealed = 18
 }

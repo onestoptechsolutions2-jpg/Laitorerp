@@ -10,6 +10,7 @@
     "Permission:Edit": "Edit",
     "Permission:Delete": "Delete",
     "Permission:Erase": "Erase Customer Data",
+    "Permission:RevealCredentials": "Reveal Stored Credentials",
     "Customer": "Customer",
     "Customers": "Customers",
     "NewCustomer": "New Customer",
@@ -954,6 +955,16 @@
     "StepNow": "Now",
     "StepNext": "Next",
     "StepDone": "Done",
-    "ContinueToItems": "Continue to Items"
+    "ContinueToItems": "Continue to Items",
+    "Credentials": "Credentials",
+    "Label": "Label",
+    "CredentialType": "Type",
+    "Username": "Username",
+    "Reveal": "Reveal",
+    "AddCredential": "Add Credential",
+    "Enum:AssetCredentialType:0": "Password",
+    "Enum:AssetCredentialType:1": "API Key",
+    "Enum:AssetCredentialType:2": "SSH Key",
+    "Enum:AssetCredentialType:3": "Other"
   }
 }

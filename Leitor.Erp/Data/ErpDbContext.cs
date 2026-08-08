@@ -112,6 +112,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 
     public DbSet<ConfigurationItem> ConfigurationItems { get; set; } = null!;
     public DbSet<ConfigurationItemRelationship> ConfigurationItemRelationships { get; set; } = null!;
+    public DbSet<AssetCredential> AssetCredentials { get; set; } = null!;
 
     public DbSet<KnowledgeArticle> KnowledgeArticles { get; set; } = null!;
 
@@ -876,6 +877,19 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.ConfigureByConvention();
             b.HasIndex(x => x.SourceCiId);
             b.HasIndex(x => x.TargetCiId);
+        });
+
+        builder.Entity<AssetCredential>(b =>
+        {
+            b.ToTable("AssetCredentials");
+            b.ConfigureByConvention();
+            b.Property(x => x.Label).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Username).HasMaxLength(128);
+            // No HasMaxLength - ciphertext (AES + IV + Base64 overhead) runs longer than the
+            // plaintext it came from; left as an unbounded text column rather than guessing a cap.
+            b.Property(x => x.EncryptedValue).IsRequired();
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.ConfigurationItemId);
         });
 
         builder.Entity<KnowledgeArticle>(b =>
