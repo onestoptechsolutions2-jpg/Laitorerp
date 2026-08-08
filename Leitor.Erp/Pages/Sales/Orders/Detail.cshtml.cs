@@ -13,6 +13,7 @@ using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Procurement;
 using Leitor.Erp.Services.Sales;
+using Leitor.Erp.Pages.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -84,6 +85,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<OrderPaymentMilestoneDto> Milestones { get; set; } = Array.Empty<OrderPaymentMilestoneDto>();
     public IReadOnlyList<FieldServiceJob> Jobs { get; set; } = Array.Empty<FieldServiceJob>();
     public bool CanIssueFinalInvoice { get; set; }
+    public OrderWizardStep CurrentStep { get; set; }
 
     [BindProperty]
     public CreateUpdateOrderLineDto NewLine { get; set; } = new()
@@ -171,6 +173,15 @@ public class DetailModel : AbpPageModel
         var allJobsCompleted = !Jobs.Any(x => x.Status != FieldServiceJobStatus.Completed);
 
         CanIssueFinalInvoice = Order.Status is OrderStatus.Confirmed or OrderStatus.Fulfilled && !hasFinalInvoice && allJobsCompleted;
+
+        // Presentational only (see OrderWizardStep's own comment) - Items while the order has no
+        // lines yet, Payment once lines exist and the order is still awaiting confirmation (that's
+        // where the Confirm button, which locks in payment terms, lives), Review once confirmed.
+        CurrentStep = Lines.Count == 0
+            ? OrderWizardStep.Items
+            : Order.Status == OrderStatus.Submitted
+                ? OrderWizardStep.Payment
+                : OrderWizardStep.Review;
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()

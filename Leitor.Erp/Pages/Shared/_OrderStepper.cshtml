@@ -1,0 +1,38 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Shared.OrderWizardStep
+
+@{
+    var steps = new (OrderWizardStep Step, string Icon, string Label)[]
+    {
+        (OrderWizardStep.Customer, "fa-user", L["StepCustomer"].Value),
+        (OrderWizardStep.Items, "fa-box", L["StepItems"].Value),
+        (OrderWizardStep.Payment, "fa-file-invoice-dollar", L["StepPayment"].Value),
+        (OrderWizardStep.Review, "fa-clipboard-check", L["StepReview"].Value)
+    };
+}
+
+<div class="order-stepper mb-3">
+    @foreach (var step in steps)
+    {
+        var state = step.Step < Model ? "done" : step.Step == Model ? "current" : "upcoming";
+        var sub = state == "current" ? L["StepNow"] : state == "done" ? L["StepDone"] : L["StepNext"];
+        <div class="order-stepper-item order-stepper-@state">
+            <div class="order-stepper-icon">
+                @if (state == "done")
+                {
+                    <i class="fas fa-check"></i>
+                }
+                else
+                {
+                    <i class="fas @step.Icon"></i>
+                }
+            </div>
+            <div class="order-stepper-text">
+                <div class="order-stepper-label">@step.Label</div>
+                <div class="order-stepper-sub">@sub</div>
+            </div>
+        </div>
+    }
+</div>

@@ -946,6 +946,14 @@
     "TotalSpend": "Total Spend",
     "OrderCount": "Order Count",
     "AverageLeadTimeDays": "Average Lead Time (days)",
-    "LeadActivity": "Lead Activity"
+    "LeadActivity": "Lead Activity",
+    "StepCustomer": "Customer",
+    "StepItems": "Items",
+    "StepPayment": "Payment",
+    "StepReview": "Review",
+    "StepNow": "Now",
+    "StepNext": "Next",
+    "StepDone": "Done",
+    "ContinueToItems": "Continue to Items"
   }
 }

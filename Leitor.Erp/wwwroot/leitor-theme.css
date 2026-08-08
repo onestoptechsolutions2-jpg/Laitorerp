@@ -510,6 +510,86 @@ body:has(.leitor-auth-wrap) .card:not(.leitor-auth-card):not(:has(.leitor-auth-c
   row-gap: 10px;
 }
 
+/* ============================= Order stepper ============================= */
+/* Applied via Pages/Shared/_OrderStepper.cshtml - a presentational progress guide through Order
+   creation (Customer -> Items -> Payment -> Review). Every section on Create/Detail stays
+   reachable regardless of current step; this never gates content, only orients the user. */
+
+.order-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.order-stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 180px;
+  padding: 12px 16px;
+  border-radius: var(--leitor-radius-sm);
+  border: 1px solid var(--leitor-border-soft);
+  background: var(--leitor-surface);
+}
+
+.order-stepper-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.order-stepper-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--leitor-ink);
+}
+
+.order-stepper-sub {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--leitor-ink-soft);
+}
+
+.order-stepper-current {
+  background: var(--leitor-primary);
+  border-color: var(--leitor-primary);
+  box-shadow: var(--leitor-shadow-sm);
+}
+.order-stepper-current .order-stepper-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.order-stepper-current .order-stepper-label,
+.order-stepper-current .order-stepper-sub {
+  color: #fff;
+}
+
+.order-stepper-done .order-stepper-icon {
+  background: var(--leitor-success-bg);
+  color: var(--leitor-success);
+}
+.order-stepper-done .order-stepper-sub {
+  color: var(--leitor-success);
+}
+
+.order-stepper-upcoming {
+  background: var(--leitor-surface-sunken);
+}
+.order-stepper-upcoming .order-stepper-icon {
+  background: var(--leitor-neutral-bg);
+  color: var(--leitor-neutral);
+}
+.order-stepper-upcoming .order-stepper-label {
+  color: var(--leitor-ink-soft);
+}
+
 @media (max-width: 767.98px) {
   .card-body {
     padding: 18px;
@@ -527,6 +607,9 @@ body:has(.leitor-auth-wrap) .card:not(.leitor-auth-card):not(:has(.leitor-auth-c
   }
   .kpi-card .display-6 {
     font-size: 24px;
+  }
+  .order-stepper-item {
+    flex: 1 1 100%;
   }
 }
 

@@ -13,6 +13,10 @@
         <h5 class="card-title mb-0">@L["EditOrder"]</h5>
     </div>
     <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
         @if (isLockedAndNotUnlocked)
         {
             <div class="alert alert-warning">@L["LockedMessage"]</div>

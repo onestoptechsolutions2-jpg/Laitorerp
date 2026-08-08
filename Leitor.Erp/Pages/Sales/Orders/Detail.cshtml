@@ -5,6 +5,8 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Sales.Orders.DetailModel
 
+<partial name="/Pages/Shared/_OrderStepper.cshtml" model="Model.CurrentStep" />
+
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0"><span class="doc-no">@Model.Order.OrderNumber</span></h5>

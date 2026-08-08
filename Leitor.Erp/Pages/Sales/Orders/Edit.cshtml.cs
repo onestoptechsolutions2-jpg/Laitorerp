@@ -13,6 +13,7 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -61,6 +62,7 @@ public class EditModel : AbpPageModel
     public List<SelectListItem> WarehouseOptions { get; set; } = new();
     public List<SelectListItem> ProjectOptions { get; set; } = new();
     public bool CanUseProjects { get; set; }
+    public string? ErrorMessage { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -89,15 +91,36 @@ public class EditModel : AbpPageModel
     {
         if (!ModelState.IsValid)
         {
-            await LoadCustomerOptionsAsync();
-            await LoadCurrencyOptionsAsync();
-            await LoadWarehouseOptionsAsync();
-            await LoadProjectOptionsAsync();
+            await ReloadPageDataAsync();
             return Page();
         }
 
-        await _orderAppService.UpdateAsync(Id, Order);
-        return RedirectToPage("./Detail", new { id = Id });
+        try
+        {
+            await _orderAppService.UpdateAsync(Id, Order);
+            return RedirectToPage("./Detail", new { id = Id });
+        }
+        catch (UserFriendlyException ex)
+        {
+            // Same class of bug as the raw ABP error page fixed on Detail.cshtml.cs - a business
+            // rule (e.g. Phase 3's credit-limit check firing when this edit flips Status to
+            // Confirmed) must not crash out of the request pipeline. OrderDetails/options weren't
+            // being reloaded on the ModelState-invalid branch either before this fix - both paths
+            // need it since the page renders Model.OrderDetails.IsLocked unconditionally.
+            ErrorMessage = ex.Message;
+            await ReloadPageDataAsync();
+            return Page();
+        }
+    }
+
+    private async Task ReloadPageDataAsync()
+    {
+        OrderDetails = await _orderAppService.GetAsync(Id);
+        CanUnlock = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Unlock);
+        await LoadCustomerOptionsAsync();
+        await LoadCurrencyOptionsAsync();
+        await LoadWarehouseOptionsAsync();
+        await LoadProjectOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostUnlockAsync()
