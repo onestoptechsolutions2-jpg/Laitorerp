@@ -1,9 +1,10 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
 
-public class SupplierInvoiceLineDto : FullAuditedEntityDto<Guid>
+public class SupplierInvoiceLineDto : FullAuditedEntityDto<Guid>, ILineItem
 {
     public Guid SupplierInvoiceId { get; set; }
     public Guid? ProductId { get; set; }

@@ -1,10 +1,11 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Leitor.Erp.Entities.Sales;
 using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Sales;
 
-public class InvoiceDto : FullAuditedEntityDto<Guid>
+public class InvoiceDto : FullAuditedEntityDto<Guid>, IPayableDocument
 {
     public Guid CustomerId { get; set; }
     public Guid? OrderId { get; set; }

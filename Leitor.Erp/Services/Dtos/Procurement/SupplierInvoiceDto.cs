@@ -1,4 +1,5 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -6,7 +7,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Procurement;
 
-public class SupplierInvoiceDto : FullAuditedEntityDto<Guid>
+public class SupplierInvoiceDto : FullAuditedEntityDto<Guid>, IPayableDocument
 {
     public Guid PurchaseOrderId { get; set; }
     public Guid VendorId { get; set; }

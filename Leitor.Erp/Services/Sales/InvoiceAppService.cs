@@ -156,7 +156,7 @@ public class InvoiceAppService :
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
             invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
-            invoice.PaymentStatus = ComputePaymentStatus(invoice, now);
+            invoice.PaymentStatus = invoice.Compute(now);
 
             if (invoice.SalespersonUserId.HasValue && salespersonNamesById.TryGetValue(invoice.SalespersonUserId.Value, out var salespersonName))
             {
@@ -198,22 +198,6 @@ public class InvoiceAppService :
             $"Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.AccountsReceivable, SystemAccountRole.Revenue,
             total, invoice.CurrencyCode, invoice.ExchangeRateToBase);
-    }
-
-    // Computed exactly like Manager.io: never manually set, always derived from payments applied.
-    private static InvoicePaymentStatus ComputePaymentStatus(InvoiceDto invoice, DateTime now)
-    {
-        if (invoice.AmountPaid <= 0)
-        {
-            return invoice.DueDate < now ? InvoicePaymentStatus.Overdue : InvoicePaymentStatus.Unpaid;
-        }
-
-        if (invoice.AmountPaid < invoice.Total)
-        {
-            return InvoicePaymentStatus.PartiallyPaid;
-        }
-
-        return invoice.AmountPaid > invoice.Total ? InvoicePaymentStatus.Overpaid : InvoicePaymentStatus.PaidInFull;
     }
 
     protected override async Task<Invoice> MapToEntityAsync(CreateUpdateInvoiceDto createInput)

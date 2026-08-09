@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Sales;
+using Leitor.Erp.Services;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -60,7 +61,7 @@ public class SupplierInvoiceLineAppService :
 
     private static void ComputeLineTotal(SupplierInvoiceLineDto dto)
     {
-        dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
+        dto.LineTotal = dto.Subtotal();
     }
 
     protected override async Task<SupplierInvoiceLine> MapToEntityAsync(CreateUpdateSupplierInvoiceLineDto createInput)

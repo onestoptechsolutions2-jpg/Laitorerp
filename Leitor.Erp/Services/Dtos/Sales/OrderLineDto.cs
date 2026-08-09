@@ -1,9 +1,10 @@
 using System;
+using Leitor.Erp.Entities.Common;
 using Volo.Abp.Application.Dtos;
 
 namespace Leitor.Erp.Services.Dtos.Sales;
 
-public class OrderLineDto : FullAuditedEntityDto<Guid>
+public class OrderLineDto : FullAuditedEntityDto<Guid>, ILineItem
 {
     public Guid OrderId { get; set; }
     public Guid? ProductId { get; set; }

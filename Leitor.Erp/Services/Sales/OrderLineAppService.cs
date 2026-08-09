@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -119,7 +120,7 @@ public class OrderLineAppService :
 
     private static void ComputeLineTotal(OrderLineDto dto)
     {
-        dto.LineTotal = dto.UnitPrice * dto.Quantity * (1 - dto.DiscountPercent / 100m);
+        dto.LineTotal = dto.Subtotal();
         dto.MarginPercent = dto.UnitPrice > 0 ? Math.Round(100m * (dto.UnitPrice - dto.Cost) / dto.UnitPrice, 1) : null;
     }
 

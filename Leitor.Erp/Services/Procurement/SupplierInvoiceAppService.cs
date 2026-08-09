@@ -157,7 +157,7 @@ public class SupplierInvoiceAppService :
             invoice.AmountPaid = paymentsByInvoiceId[invoice.Id].Sum(x => x.Amount);
             invoice.IsPostedToLedger = postedInvoiceIds.Contains(invoice.Id);
 
-            invoice.PaymentStatus = ComputePaymentStatus(invoice, now);
+            invoice.PaymentStatus = invoice.Compute(now);
         }
     }
 
@@ -228,22 +228,6 @@ public class SupplierInvoiceAppService :
                 SystemAccountRole.Expense, SystemAccountRole.AccountsPayable,
                 expenseTotal, invoice.CurrencyCode, invoice.ExchangeRateToBase);
         }
-    }
-
-    // Same rule InvoiceAppService.ComputePaymentStatus already uses, on the payable side.
-    private static InvoicePaymentStatus ComputePaymentStatus(SupplierInvoiceDto invoice, DateTime now)
-    {
-        if (invoice.AmountPaid <= 0)
-        {
-            return invoice.DueDate < now ? InvoicePaymentStatus.Overdue : InvoicePaymentStatus.Unpaid;
-        }
-
-        if (invoice.AmountPaid < invoice.Total)
-        {
-            return InvoicePaymentStatus.PartiallyPaid;
-        }
-
-        return invoice.AmountPaid > invoice.Total ? InvoicePaymentStatus.Overpaid : InvoicePaymentStatus.PaidInFull;
     }
 
     protected override async Task<SupplierInvoice> MapToEntityAsync(CreateUpdateSupplierInvoiceDto createInput)
