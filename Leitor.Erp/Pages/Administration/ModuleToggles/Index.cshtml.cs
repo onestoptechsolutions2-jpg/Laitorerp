@@ -88,7 +88,8 @@ public class IndexModel : AbpPageModel
             await ToRowAsync(ErpFeatures.KnowledgeManagement, _l["Feature:KnowledgeManagement"]),
             await ToRowAsync(ErpFeatures.PointOfSale, _l["Feature:PointOfSale"]),
             await ToRowAsync(ErpFeatures.PartnerCommission, _l["Feature:PartnerCommission"]),
-            await ToRowAsync(ErpFeatures.Cybersecurity, _l["Feature:Cybersecurity"])
+            await ToRowAsync(ErpFeatures.Cybersecurity, _l["Feature:Cybersecurity"]),
+            await ToRowAsync(ErpFeatures.ChangeEnablement, _l["Feature:ChangeEnablement"])
         };
     }
 

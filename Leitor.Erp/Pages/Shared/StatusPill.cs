@@ -234,4 +234,15 @@ public static class StatusPill
         SecurityRiskRating.Critical => Danger,
         _ => Neutral
     };
+
+    public static string For(ChangeRequestStatus status) => status switch
+    {
+        ChangeRequestStatus.Draft => Neutral,
+        ChangeRequestStatus.PendingApproval => Warning,
+        ChangeRequestStatus.Approved => Info,
+        ChangeRequestStatus.Rejected => Danger,
+        ChangeRequestStatus.Completed => Success,
+        ChangeRequestStatus.RolledBack => Danger,
+        _ => Neutral
+    };
 }

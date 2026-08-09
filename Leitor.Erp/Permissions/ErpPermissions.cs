@@ -303,4 +303,17 @@ public static class ErpPermissions
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
     }
+
+    // Gated behind ErpFeatures.ChangeEnablement. Approve is separate from Edit - anyone doing the
+    // work can file a Normal-tier change, but only a holder of Approve can move it past
+    // PendingApproval, same separation-of-duties reasoning as DeletionApprovals.Decide.
+    public static class Changes
+    {
+        public const string GroupName = "Erp.Changes";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Approve = Default + ".Approve";
+        public const string Delete = Default + ".Delete";
+    }
 }

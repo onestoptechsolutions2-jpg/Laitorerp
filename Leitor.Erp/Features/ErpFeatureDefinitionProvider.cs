@@ -71,6 +71,12 @@ public class ErpFeatureDefinitionProvider : FeatureDefinitionProvider
             defaultValue: "false",
             displayName: L("Feature:Cybersecurity"),
             valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.ChangeEnablement,
+            defaultValue: "false",
+            displayName: L("Feature:ChangeEnablement"),
+            valueType: new ToggleStringValueType());
     }
 
     private static LocalizableString L(string name)

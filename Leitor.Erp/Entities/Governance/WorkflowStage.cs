@@ -27,5 +27,9 @@ public enum WorkflowStage
     CredentialRevealed = 18,
     ProposalSuperseded = 19,
     CommissionAccrued = 20,
-    CommissionPaid = 21
+    CommissionPaid = 21,
+    ChangeApproved = 22,
+    ChangeRejected = 23,
+    ChangeCompleted = 24,
+    ChangeRolledBack = 25
 }

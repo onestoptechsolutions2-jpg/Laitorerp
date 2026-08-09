@@ -56,6 +56,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 
     public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
     public DbSet<WorkflowStageEvent> WorkflowStageEvents { get; set; } = null!;
+    public DbSet<ChangeRequest> ChangeRequests { get; set; } = null!;
 
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
@@ -978,6 +979,20 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Channel).HasMaxLength(32);
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => new { x.EntityType, x.EntityId });
+        });
+
+        builder.Entity<ChangeRequest>(b =>
+        {
+            b.ToTable("ChangeRequests");
+            b.ConfigureByConvention();
+            b.Property(x => x.ChangeNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.RejectionReason).HasMaxLength(2000);
+            b.Property(x => x.RollbackNotes).HasMaxLength(2000);
+            b.HasIndex(x => x.ChangeNumber).IsUnique();
+            b.HasIndex(x => x.ConfigurationItemId);
+            b.HasIndex(x => x.Status);
         });
     }
 }

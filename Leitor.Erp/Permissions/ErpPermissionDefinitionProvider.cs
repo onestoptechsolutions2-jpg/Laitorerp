@@ -164,6 +164,13 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         cybersecurityPermission.AddChild(ErpPermissions.Cybersecurity.Create, L("Permission:Create"));
         cybersecurityPermission.AddChild(ErpPermissions.Cybersecurity.Edit, L("Permission:Edit"));
         cybersecurityPermission.AddChild(ErpPermissions.Cybersecurity.Delete, L("Permission:Delete"));
+
+        var changesGroup = context.AddGroup(ErpPermissions.Changes.GroupName, L("Permission:Changes"));
+        var changesPermission = changesGroup.AddPermission(ErpPermissions.Changes.Default, L("Permission:Changes"));
+        changesPermission.AddChild(ErpPermissions.Changes.Create, L("Permission:Create"));
+        changesPermission.AddChild(ErpPermissions.Changes.Edit, L("Permission:Edit"));
+        changesPermission.AddChild(ErpPermissions.Changes.Approve, L("Permission:Approve"));
+        changesPermission.AddChild(ErpPermissions.Changes.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

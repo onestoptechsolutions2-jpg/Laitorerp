@@ -42,6 +42,7 @@ public class ErpMenus
     public const string ServiceManagementServiceCatalog = ServiceManagement + ".ServiceCatalog";
     public const string ServiceManagementServiceRequests = ServiceManagement + ".ServiceRequests";
     public const string ServiceManagementAssets = ServiceManagement + ".Assets";
+    public const string ServiceManagementChanges = ServiceManagement + ".Changes";
     public const string ServiceManagementKnowledgeBase = ServiceManagement + ".KnowledgeBase";
 
     public const string Procurement = Prefix + ".Procurement";

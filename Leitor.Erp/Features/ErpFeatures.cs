@@ -16,4 +16,12 @@ public static class ErpFeatures
     public const string PointOfSale = GroupName + ".PointOfSale";
     public const string PartnerCommission = GroupName + ".PartnerCommission";
     public const string Cybersecurity = GroupName + ".Cybersecurity";
+
+    // ITIL Change Enablement - tracks deliberate changes to a ConfigurationItem (patches, config
+    // changes, migrations) separately from Tickets (which model something reported as broken).
+    // Depends on AssetManagement being meaningful (there's nothing to change without a CI), but
+    // kept as its own toggle rather than folded in - a business may want the CMDB without the
+    // extra change-approval overhead, same reasoning as ServiceRequestManagement being separate
+    // from ServiceCatalog.
+    public const string ChangeEnablement = GroupName + ".ChangeEnablement";
 }

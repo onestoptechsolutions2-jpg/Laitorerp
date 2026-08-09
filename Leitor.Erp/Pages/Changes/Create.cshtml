@@ -1,0 +1,33 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Changes.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewChange"]</h5>
+    </div>
+    <div class="card-body">
+        @if (!Model.ConfigurationItemOptions.Any())
+        {
+            <div class="alert alert-warning">
+                @L["NoConfigurationItemsYet"] <a asp-page="/Assets/Create">@L["CreateOne"]</a>.
+            </div>
+        }
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="ChangeRequest.ConfigurationItemId" asp-items="Model.ConfigurationItemOptions" label="@L["ConfigurationItem"].Value" />
+            <abp-input asp-for="ChangeRequest.Title" />
+            <abp-input asp-for="ChangeRequest.Description" />
+            <abp-input asp-for="ChangeRequest.Tier" />
+            <abp-select asp-for="ChangeRequest.TicketId" asp-items="Model.TicketOptions" label="@L["Ticket"].Value" />
+            <abp-input asp-for="ChangeRequest.PlannedDate" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Changes.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Changes"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewChange"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["ChangeNumber"]</th>
+                        <th>@L["Title"]</th>
+                        <th>@L["ConfigurationItem"]</th>
+                        <th>@L["Tier"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["PlannedDate"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Changes.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var change in Model.Changes)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@change.Id">@change.ChangeNumber</a></td>
+                            <td>@change.Title</td>
+                            <td>@change.ConfigurationItemName</td>
+                            <td>@L[$"Enum:ChangeTier:{(int)change.Tier}"]</td>
+                            <td><span class="pill @StatusPill.For(change.Status)">@L[$"Enum:ChangeRequestStatus:{(int)change.Status}"]</span></td>
+                            <td>@(change.PlannedDate?.ToShortDateString() ?? "-")</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@change.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

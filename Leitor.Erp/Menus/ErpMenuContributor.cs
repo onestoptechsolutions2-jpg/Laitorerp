@@ -219,8 +219,10 @@ public class ErpMenuContributor : IMenuContributor
             await featureChecker.IsEnabledAsync(ErpFeatures.AssetManagement);
         var canViewKnowledgeBase = await context.IsGrantedAsync(ErpPermissions.KnowledgeBase.Default) &&
             await featureChecker.IsEnabledAsync(ErpFeatures.KnowledgeManagement);
+        var canViewChanges = await context.IsGrantedAsync(ErpPermissions.Changes.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.ChangeEnablement);
 
-        if (canViewSupport || canViewServiceCatalog || canViewServiceRequests || canViewAssets || canViewKnowledgeBase)
+        if (canViewSupport || canViewServiceCatalog || canViewServiceRequests || canViewAssets || canViewKnowledgeBase || canViewChanges)
         {
             var serviceManagementMenu = new ApplicationMenuItem(
                 ErpMenus.ServiceManagement,
@@ -267,6 +269,13 @@ public class ErpMenuContributor : IMenuContributor
             {
                 serviceManagementMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ServiceManagementKnowledgeBase, l["Menu:KnowledgeBase"], "~/KnowledgeBase", order: 7)
+                );
+            }
+
+            if (canViewChanges)
+            {
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementChanges, l["Menu:Changes"], "~/Changes", order: 8)
                 );
             }
 
