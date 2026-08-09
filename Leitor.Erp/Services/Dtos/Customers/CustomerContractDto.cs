@@ -20,4 +20,6 @@ public class CustomerContractDto : FullAuditedEntityDto<Guid>
     public int? SlaHighHours { get; set; }
     public int? SlaMediumHours { get; set; }
     public int? SlaLowHours { get; set; }
+
+    public ContractServiceScope ServicesIncluded { get; set; }
 }

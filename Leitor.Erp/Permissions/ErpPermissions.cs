@@ -291,4 +291,16 @@ public static class ErpPermissions
         public const string Default = GroupName;
         public const string Manage = Default + ".Manage";
     }
+
+    // Gated behind ErpFeatures.Cybersecurity (see Features/ErpFeatures.cs) - the "eventually:
+    // Cybersecurity" upsell tier (vulnerability/cyber-risk assessments, policy reviews, awareness
+    // training, backup/DR reviews), distinct from the always-on Support/Assets modules.
+    public static class Cybersecurity
+    {
+        public const string GroupName = "Erp.Cybersecurity";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
 }

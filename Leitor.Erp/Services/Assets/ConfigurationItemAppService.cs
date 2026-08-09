@@ -120,5 +120,11 @@ public class ConfigurationItemAppService :
         entity.PurchaseDate = input.PurchaseDate;
         entity.WarrantyExpiryDate = input.WarrantyExpiryDate;
         entity.Notes = input.Notes;
+
+        entity.HasEndpointProtection = input.HasEndpointProtection;
+        entity.IsBackedUp = input.IsBackedUp;
+        entity.LastBackupVerifiedDate = input.LastBackupVerifiedDate;
+        entity.LastPatchedDate = input.LastPatchedDate;
+        entity.SecurityMonitoringEnabled = input.SecurityMonitoringEnabled;
     }
 }

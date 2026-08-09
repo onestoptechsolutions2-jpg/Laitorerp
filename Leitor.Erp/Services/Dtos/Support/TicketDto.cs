@@ -21,6 +21,8 @@ public class TicketDto : FullAuditedEntityDto<Guid>
     public int? CustomerSatisfactionRating { get; set; }
     public DateTime? SlaDueDate { get; set; }
     public int ReopenCount { get; set; }
+    public bool IsSecurityBreach { get; set; }
+    public DateTime? ContainedDate { get; set; }
 
     // Resolved by TicketAppService from Customer/IdentityUser/Problem repositories - not stored columns.
     public string? CustomerName { get; set; }

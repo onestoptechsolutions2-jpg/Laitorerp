@@ -1115,11 +1115,20 @@ namespace Leitor.Erp.Migrations
                         .HasColumnType("text")
                         .HasColumnName("ExtraProperties");
 
+                    b.Property<bool>("HasEndpointProtection")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsBackedUp")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastBackupVerifiedDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("timestamp without time zone")
@@ -1128,6 +1137,9 @@ namespace Leitor.Erp.Migrations
                     b.Property<Guid?>("LastModifierId")
                         .HasColumnType("uuid")
                         .HasColumnName("LastModifierId");
+
+                    b.Property<DateTime?>("LastPatchedDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1140,6 +1152,9 @@ namespace Leitor.Erp.Migrations
 
                     b.Property<DateTime?>("PurchaseDate")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("SecurityMonitoringEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SerialNumber")
                         .HasMaxLength(128)
@@ -1558,6 +1573,9 @@ namespace Leitor.Erp.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<int>("ServicesIncluded")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("SlaHighHours")
                         .HasColumnType("integer");
 
@@ -1967,6 +1985,105 @@ namespace Leitor.Erp.Migrations
                     b.HasIndex("LeadId");
 
                     b.ToTable("LeadTouches", (string)null);
+                });
+
+            modelBuilder.Entity("Leitor.Erp.Entities.Cybersecurity.SecurityAssessment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssessmentNumber")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<Guid?>("ConductedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("Findings")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTime?>("FollowUpDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("Recommendations")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<int?>("RiskRating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssessmentNumber")
+                        .IsUnique();
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("SecurityAssessments", (string)null);
                 });
 
             modelBuilder.Entity("Leitor.Erp.Entities.FieldService.FieldServiceJob", b =>
@@ -4333,6 +4450,9 @@ namespace Leitor.Erp.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("ConcurrencyStamp");
 
+                    b.Property<Guid?>("ConvertedToContractId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("CreationTime");
@@ -5978,6 +6098,9 @@ namespace Leitor.Erp.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("ConcurrencyStamp");
 
+                    b.Property<DateTime?>("ContainedDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<Guid?>("ContractId")
                         .HasColumnType("uuid");
 
@@ -6013,6 +6136,9 @@ namespace Leitor.Erp.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsSecurityBreach")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid?>("JobId")
                         .HasColumnType("uuid");

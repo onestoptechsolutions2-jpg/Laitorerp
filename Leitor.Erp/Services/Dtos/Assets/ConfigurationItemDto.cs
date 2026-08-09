@@ -15,6 +15,12 @@ public class ConfigurationItemDto : FullAuditedEntityDto<Guid>
     public DateTime? WarrantyExpiryDate { get; set; }
     public string? Notes { get; set; }
 
+    public bool HasEndpointProtection { get; set; }
+    public bool IsBackedUp { get; set; }
+    public DateTime? LastBackupVerifiedDate { get; set; }
+    public DateTime? LastPatchedDate { get; set; }
+    public bool SecurityMonitoringEnabled { get; set; }
+
     // Resolved by ConfigurationItemAppService - not a stored column.
     public string? CustomerName { get; set; }
 }

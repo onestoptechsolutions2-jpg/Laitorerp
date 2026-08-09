@@ -58,7 +58,12 @@ public class EditModel : AbpPageModel
             Status = item.Status,
             PurchaseDate = item.PurchaseDate,
             WarrantyExpiryDate = item.WarrantyExpiryDate,
-            Notes = item.Notes
+            Notes = item.Notes,
+            HasEndpointProtection = item.HasEndpointProtection,
+            IsBackedUp = item.IsBackedUp,
+            LastBackupVerifiedDate = item.LastBackupVerifiedDate,
+            LastPatchedDate = item.LastPatchedDate,
+            SecurityMonitoringEnabled = item.SecurityMonitoringEnabled
         };
 
         await LoadOptionsAsync();

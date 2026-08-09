@@ -24,6 +24,11 @@ public class CustomerContract : FullAuditedAggregateRoot<Guid>
     public int? SlaMediumHours { get; set; }
     public int? SlaLowHours { get; set; }
 
+    // Which of the retainer's 13 possible services this specific contract actually covers - see
+    // ContractServiceScope. Defaults to None (nothing recorded) rather than everything, since not
+    // every contract is the full managed-IT-and-cybersecurity bundle.
+    public ContractServiceScope ServicesIncluded { get; set; } = ContractServiceScope.None;
+
     // Set by ContractExpiryAlertWorker once it emails the account owner about this EndDate: stops
     // the daily worker run from re-sending the same alert. Reset to null whenever EndDate changes
     // (see CustomerContractAppService.CopyToEntity) so a renewal gets its own 30-day alert.

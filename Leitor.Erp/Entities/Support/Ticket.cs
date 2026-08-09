@@ -35,6 +35,12 @@ public class Ticket : FullAuditedAggregateRoot<Guid>
     // ITSM audit flagged as missing (SupportAnalyticsAppService.GetReopenRateTrendAsync reports on it).
     public int ReopenCount { get; set; }
 
+    // Only meaningful when Type is SecurityIncident - both manually set (containment can happen
+    // before root-cause investigation finishes, so this isn't auto-tracked from Status the way
+    // ResolvedDate is).
+    public bool IsSecurityBreach { get; set; }
+    public DateTime? ContainedDate { get; set; }
+
     protected Ticket()
     {
     }

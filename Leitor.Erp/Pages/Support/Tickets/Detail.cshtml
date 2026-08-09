@@ -89,6 +89,14 @@
                 <dt class="col-sm-2">@L["Problem"]</dt>
                 <dd class="col-sm-10"><a class="doc-no" asp-page="/Support/Problems/Detail" asp-route-id="@Model.Ticket.ProblemId">@Model.Ticket.ProblemNumber</a></dd>
             }
+
+            @if (Model.Ticket.Type == TicketType.SecurityIncident)
+            {
+                <dt class="col-sm-2">@L["IsSecurityBreach"]</dt>
+                <dd class="col-sm-4"><span class="pill @(Model.Ticket.IsSecurityBreach ? "pill-danger" : "pill-neutral")">@(Model.Ticket.IsSecurityBreach ? L["Yes"] : L["No"])</span></dd>
+                <dt class="col-sm-2">@L["ContainedDate"]</dt>
+                <dd class="col-sm-4">@(Model.Ticket.ContainedDate?.ToString("g"))</dd>
+            }
         </dl>
     </div>
 </div>

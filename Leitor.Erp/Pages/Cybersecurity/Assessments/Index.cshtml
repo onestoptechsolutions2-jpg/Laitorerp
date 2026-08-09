@@ -1,0 +1,73 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Cybersecurity.Assessments.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["SecurityAssessments"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary">@L["NewSecurityAssessment"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Title"]" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["AssessmentNumber"]</th>
+                        <th>@L["Title"]</th>
+                        <th>@L["Customer"]</th>
+                        <th>@L["Type"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["RiskRating"]</th>
+                        <th>@L["ScheduledDate"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Assessments.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var assessment in Model.Assessments)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@assessment.Id">@assessment.AssessmentNumber</a></td>
+                            <td>@assessment.Title</td>
+                            <td>@assessment.CustomerName</td>
+                            <td>@L[$"Enum:SecurityAssessmentType:{(int)assessment.Type}"]</td>
+                            <td><span class="pill @StatusPill.For(assessment.Status)">@L[$"Enum:SecurityAssessmentStatus:{(int)assessment.Status}"]</span></td>
+                            <td>
+                                @if (assessment.RiskRating.HasValue)
+                                {
+                                    <span class="pill @StatusPill.For(assessment.RiskRating.Value)">@L[$"Enum:SecurityRiskRating:{(int)assessment.RiskRating.Value}"]</span>
+                                }
+                            </td>
+                            <td>@assessment.ScheduledDate.ToShortDateString()</td>
+                            <td>
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@assessment.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

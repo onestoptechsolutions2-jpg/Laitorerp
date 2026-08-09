@@ -18,6 +18,15 @@ public class ConfigurationItem : FullAuditedAggregateRoot<Guid>
     public DateTime? WarrantyExpiryDate { get; set; }
     public string? Notes { get; set; }
 
+    // "Basic security monitoring" from the managed-IT-and-cybersecurity retainer pitch - a
+    // per-asset security posture snapshot, manually updated rather than pulled from a live
+    // AV/EDR/backup agent (no such integration exists in this app).
+    public bool HasEndpointProtection { get; set; }
+    public bool IsBackedUp { get; set; }
+    public DateTime? LastBackupVerifiedDate { get; set; }
+    public DateTime? LastPatchedDate { get; set; }
+    public bool SecurityMonitoringEnabled { get; set; }
+
     protected ConfigurationItem()
     {
     }

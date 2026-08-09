@@ -230,6 +230,8 @@ public class TicketAppService :
         entity.Priority = input.Priority;
         entity.AssignedToUserId = input.AssignedToUserId;
         entity.CustomerSatisfactionRating = input.CustomerSatisfactionRating;
+        entity.IsSecurityBreach = input.IsSecurityBreach;
+        entity.ContainedDate = input.ContainedDate;
 
         // Resolved and Closed are both terminal "no longer active work" outcomes (see
         // TicketStatus.cs) - ResolvedDate tracks the transition into either, cleared if reopened,

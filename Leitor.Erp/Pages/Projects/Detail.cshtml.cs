@@ -60,6 +60,7 @@ public class DetailModel : AbpPageModel
     public CreateUpdateProjectTaskDto NewTask { get; set; } = new();
 
     public bool CanEdit { get; set; }
+    public bool CanConvertToContract { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
@@ -70,6 +71,7 @@ public class DetailModel : AbpPageModel
         }
 
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Projects.Edit);
+        CanConvertToContract = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Project", Id);
         await LoadAsync();
         return Page();

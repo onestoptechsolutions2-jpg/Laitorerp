@@ -44,4 +44,6 @@ public class CreateUpdateCustomerContractDto
 
     [Range(1, 8760)]
     public int? SlaLowHours { get; set; }
+
+    public ContractServiceScope ServicesIncluded { get; set; } = ContractServiceScope.None;
 }

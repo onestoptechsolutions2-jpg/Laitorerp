@@ -20,6 +20,12 @@ public class Project : FullAuditedAggregateRoot<Guid>
     public DateTime? EndDate { get; set; }
     public decimal? Budget { get; set; }
 
+    // Set once when the project is converted into a recurring CustomerContract via the "Convert
+    // to Contract" link on Project Detail - records the "projects feed the recurring contract"
+    // flywheel from Laitor's stated business model as a real relationship, not just a navigation
+    // hint. A loose reference (no FK), same convention as Ticket.ContractId.
+    public Guid? ConvertedToContractId { get; set; }
+
     protected Project()
     {
     }

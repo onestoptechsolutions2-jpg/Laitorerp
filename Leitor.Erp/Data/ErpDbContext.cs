@@ -2,6 +2,7 @@
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Cybersecurity;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.KnowledgeBase;
@@ -120,6 +121,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Partner> Partners { get; set; } = null!;
     public DbSet<Agent> Agents { get; set; } = null!;
     public DbSet<Commission> Commissions { get; set; } = null!;
+
+    public DbSet<SecurityAssessment> SecurityAssessments { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -942,6 +945,18 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.HasIndex(x => x.PartnerId);
             b.HasIndex(x => x.AgentId);
             b.HasIndex(x => x.SourceInvoiceId);
+        });
+
+        builder.Entity<SecurityAssessment>(b =>
+        {
+            b.ToTable("SecurityAssessments");
+            b.ConfigureByConvention();
+            b.Property(x => x.AssessmentNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Findings).HasMaxLength(4000);
+            b.Property(x => x.Recommendations).HasMaxLength(4000);
+            b.HasIndex(x => x.CustomerId);
+            b.HasIndex(x => x.AssessmentNumber).IsUnique();
         });
 
         builder.Entity<DeletionRequest>(b =>

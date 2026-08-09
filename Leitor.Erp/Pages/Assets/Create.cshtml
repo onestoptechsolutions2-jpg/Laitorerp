@@ -20,6 +20,13 @@
             <abp-input asp-for="Item.WarrantyExpiryDate" />
             <abp-input asp-for="Item.Notes" />
 
+            <h6 class="mt-3">@L["SecurityStatus"]</h6>
+            <abp-input asp-for="Item.HasEndpointProtection" />
+            <abp-input asp-for="Item.IsBackedUp" />
+            <abp-input asp-for="Item.LastBackupVerifiedDate" />
+            <abp-input asp-for="Item.LastPatchedDate" />
+            <abp-input asp-for="Item.SecurityMonitoringEnabled" />
+
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>
                 <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>

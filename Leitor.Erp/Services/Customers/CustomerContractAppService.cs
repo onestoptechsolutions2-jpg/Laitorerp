@@ -71,5 +71,7 @@ public class CustomerContractAppService :
         entity.SlaHighHours = input.SlaHighHours;
         entity.SlaMediumHours = input.SlaMediumHours;
         entity.SlaLowHours = input.SlaLowHours;
+
+        entity.ServicesIncluded = input.ServicesIncluded;
     }
 }

@@ -1,0 +1,32 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Cybersecurity.Assessments.EditModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["EditSecurityAssessment"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="Assessment.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
+            <abp-input asp-for="Assessment.Title" />
+            <abp-input asp-for="Assessment.Type" />
+            <abp-input asp-for="Assessment.Status" />
+            <abp-input asp-for="Assessment.ScheduledDate" />
+            <abp-select asp-for="Assessment.ConductedByUserId" asp-items="Model.UserOptions" label="@L["ConductedBy"].Value" />
+            <abp-input asp-for="Assessment.RiskRating" />
+            <abp-input asp-for="Assessment.Findings" />
+            <abp-input asp-for="Assessment.Recommendations" />
+            <abp-input asp-for="Assessment.FollowUpDate" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Detail" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

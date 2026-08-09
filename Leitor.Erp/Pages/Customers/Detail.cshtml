@@ -404,6 +404,7 @@
                         <th>@L["StartDate"]</th>
                         <th>@L["EndDate"]</th>
                         <th>@L["Value"]</th>
+                        <th>@L["ServicesIncluded"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
                 </thead>
@@ -418,6 +419,19 @@
                             <td>@contract.StartDate.ToShortDateString()</td>
                             <td>@(contract.EndDate?.ToShortDateString())</td>
                             <td>@contract.Value</td>
+                            <td>
+                                @{
+                                    var includedServices = Leitor.Erp.Entities.Customers.ContractServiceScopeOptions.All.Where(flag => contract.ServicesIncluded.HasFlag(flag)).ToList();
+                                }
+                                @if (includedServices.Count == 0)
+                                {
+                                    <span class="text-muted">&mdash;</span>
+                                }
+                                else
+                                {
+                                    <span title="@string.Join(", ", includedServices.Select(flag => L[$"Enum:ContractServiceScope:{flag}"].Value))">@includedServices.Count @L["ServicesCount"]</span>
+                                }
+                            </td>
                             <td>
                                 <a asp-page="/Customers/Contracts/Edit" asp-route-id="@contract.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
                                 <form method="post" asp-page-handler="DeleteContract" asp-route-contractId="@contract.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">

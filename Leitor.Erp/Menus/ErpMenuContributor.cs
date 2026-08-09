@@ -418,6 +418,20 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(partnersMenu);
         }
 
+        // Toggleable module (see Features/ErpFeatures.cs).
+        if (await context.IsGrantedAsync(ErpPermissions.Cybersecurity.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.Cybersecurity))
+        {
+            var cybersecurityMenu = new ApplicationMenuItem(
+                ErpMenus.Cybersecurity,
+                l["Menu:Cybersecurity"],
+                icon: "fas fa-shield-halved",
+                order: 11
+            );
+            cybersecurityMenu.AddItem(new ApplicationMenuItem(ErpMenus.CybersecurityAssessments, l["Menu:CybersecurityAssessments"], "~/Cybersecurity/Assessments", order: 1));
+            context.Menu.Items.Add(cybersecurityMenu);
+        }
+
         // Cross-cutting: every read-only analytics/aggregation page that isn't a financial
         // statement, regardless of which business module it reports on - lives under
         // Administration (not the main module area) since it's a cross-module utility area, same

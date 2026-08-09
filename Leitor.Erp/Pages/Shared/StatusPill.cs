@@ -1,6 +1,7 @@
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Cybersecurity;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.KnowledgeBase;
@@ -214,6 +215,23 @@ public static class StatusPill
     {
         FixedAssetStatus.InUse => Success,
         FixedAssetStatus.Disposed => Neutral,
+        _ => Neutral
+    };
+
+    public static string For(SecurityAssessmentStatus status) => status switch
+    {
+        SecurityAssessmentStatus.Scheduled => Info,
+        SecurityAssessmentStatus.InProgress => Warning,
+        SecurityAssessmentStatus.Completed => Success,
+        _ => Neutral
+    };
+
+    public static string For(SecurityRiskRating rating) => rating switch
+    {
+        SecurityRiskRating.Low => Success,
+        SecurityRiskRating.Medium => Warning,
+        SecurityRiskRating.High => Danger,
+        SecurityRiskRating.Critical => Danger,
         _ => Neutral
     };
 }

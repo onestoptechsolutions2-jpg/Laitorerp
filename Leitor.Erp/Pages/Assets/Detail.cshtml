@@ -56,6 +56,28 @@
 
 <div class="card mb-3">
     <div class="card-header">
+        <h5 class="card-title mb-0">@L["SecurityStatus"]</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["HasEndpointProtection"]</dt>
+            <dd class="col-sm-4"><span class="pill @(Model.Item.HasEndpointProtection ? "pill-success" : "pill-danger")">@(Model.Item.HasEndpointProtection ? L["Yes"] : L["No"])</span></dd>
+            <dt class="col-sm-2">@L["SecurityMonitoringEnabled"]</dt>
+            <dd class="col-sm-4"><span class="pill @(Model.Item.SecurityMonitoringEnabled ? "pill-success" : "pill-danger")">@(Model.Item.SecurityMonitoringEnabled ? L["Yes"] : L["No"])</span></dd>
+
+            <dt class="col-sm-2">@L["IsBackedUp"]</dt>
+            <dd class="col-sm-4"><span class="pill @(Model.Item.IsBackedUp ? "pill-success" : "pill-danger")">@(Model.Item.IsBackedUp ? L["Yes"] : L["No"])</span></dd>
+            <dt class="col-sm-2">@L["LastBackupVerifiedDate"]</dt>
+            <dd class="col-sm-4">@(Model.Item.LastBackupVerifiedDate?.ToShortDateString())</dd>
+
+            <dt class="col-sm-2">@L["LastPatchedDate"]</dt>
+            <dd class="col-sm-4">@(Model.Item.LastPatchedDate?.ToShortDateString())</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
         <h5 class="card-title mb-0">@L["Credentials"]</h5>
     </div>
     <div class="card-body">

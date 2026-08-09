@@ -24,4 +24,10 @@ public class CreateUpdateConfigurationItemDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public bool HasEndpointProtection { get; set; }
+    public bool IsBackedUp { get; set; }
+    public DateTime? LastBackupVerifiedDate { get; set; }
+    public DateTime? LastPatchedDate { get; set; }
+    public bool SecurityMonitoringEnabled { get; set; }
 }

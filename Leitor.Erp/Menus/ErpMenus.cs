@@ -73,6 +73,12 @@ public class ErpMenus
     public const string PartnersAgents = Partners + ".Agents";
     public const string PartnersCommissions = Partners + ".Commissions";
 
+    // The "eventually: Cybersecurity" upsell tier - its own top-level area since it's a distinct
+    // sellable service line, not folded into Service Management (which is the always-on
+    // support/CMDB core).
+    public const string Cybersecurity = Prefix + ".Cybersecurity";
+    public const string CybersecurityAssessments = Cybersecurity + ".Assessments";
+
     public const string Portal = Prefix + ".Portal";
     public const string Workspace = Prefix + ".Workspace";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";

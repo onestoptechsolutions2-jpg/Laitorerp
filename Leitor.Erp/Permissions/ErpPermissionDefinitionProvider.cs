@@ -158,6 +158,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         var appSettingsGroup = context.AddGroup(ErpPermissions.AppSettings.GroupName, L("Permission:AppSettings"));
         var appSettingsPermission = appSettingsGroup.AddPermission(ErpPermissions.AppSettings.Default, L("Permission:AppSettings"));
         appSettingsPermission.AddChild(ErpPermissions.AppSettings.Manage, L("Permission:Manage"));
+
+        var cybersecurityGroup = context.AddGroup(ErpPermissions.Cybersecurity.GroupName, L("Permission:Cybersecurity"));
+        var cybersecurityPermission = cybersecurityGroup.AddPermission(ErpPermissions.Cybersecurity.Default, L("Permission:Cybersecurity"));
+        cybersecurityPermission.AddChild(ErpPermissions.Cybersecurity.Create, L("Permission:Create"));
+        cybersecurityPermission.AddChild(ErpPermissions.Cybersecurity.Edit, L("Permission:Edit"));
+        cybersecurityPermission.AddChild(ErpPermissions.Cybersecurity.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

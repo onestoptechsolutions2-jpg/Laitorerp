@@ -1,11 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Domain.Repositories;
 
 namespace Leitor.Erp.Pages.Customers.Contracts;
 
@@ -13,14 +18,26 @@ namespace Leitor.Erp.Pages.Customers.Contracts;
 public class CreateModel : AbpPageModel
 {
     private readonly CustomerContractAppService _customerContractAppService;
+    private readonly IRepository<Project, Guid> _projectRepository;
 
-    public CreateModel(CustomerContractAppService customerContractAppService)
+    public CreateModel(CustomerContractAppService customerContractAppService, IRepository<Project, Guid> projectRepository)
     {
         _customerContractAppService = customerContractAppService;
+        _projectRepository = projectRepository;
     }
 
     [BindProperty(SupportsGet = true)]
     public Guid CustomerId { get; set; }
+
+    // Set when arriving via the Project Detail page's "Convert to Contract" link - prefills the
+    // title/start date from the Project and, on save, links the Project back to the new contract
+    // (Project.ConvertedToContractId) so the "projects feed the recurring contract" flow is
+    // recorded, not just navigated. No new wizard page - this extends the existing Create page.
+    [BindProperty(SupportsGet = true)]
+    public Guid? FromProjectId { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? PrefillTitle { get; set; }
 
     [BindProperty]
     public CreateUpdateCustomerContractDto Contract { get; set; } = new()
@@ -28,21 +45,41 @@ public class CreateModel : AbpPageModel
         StartDate = DateTime.Today
     };
 
+    [BindProperty]
+    public List<int> SelectedServiceFlags { get; set; } = new();
+
     public void OnGet()
     {
         Contract.CustomerId = CustomerId;
+
+        if (!string.IsNullOrWhiteSpace(PrefillTitle))
+        {
+            Contract.Title = PrefillTitle;
+        }
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         Contract.CustomerId = CustomerId;
+        Contract.ServicesIncluded = (ContractServiceScope)SelectedServiceFlags.Aggregate(0, (acc, flag) => acc | flag);
 
         if (!ModelState.IsValid)
         {
             return Page();
         }
 
-        await _customerContractAppService.CreateAsync(Contract);
+        var contract = await _customerContractAppService.CreateAsync(Contract);
+
+        if (FromProjectId.HasValue)
+        {
+            var project = await _projectRepository.FindAsync(FromProjectId.Value);
+            if (project != null)
+            {
+                project.ConvertedToContractId = contract.Id;
+                await _projectRepository.UpdateAsync(project);
+            }
+        }
+
         return RedirectToPage("/Customers/Detail", new { id = CustomerId });
     }
 }

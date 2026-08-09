@@ -31,4 +31,8 @@ public class CreateUpdateTicketDto
 
     [Range(1, 5)]
     public int? CustomerSatisfactionRating { get; set; }
+
+    public bool IsSecurityBreach { get; set; }
+
+    public DateTime? ContainedDate { get; set; }
 }

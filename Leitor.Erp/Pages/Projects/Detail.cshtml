@@ -12,6 +12,17 @@
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Project.Id" class="btn btn-outline-primary">@L["Edit"]</a>
             }
+            @if (Model.CanConvertToContract)
+            {
+                @if (Model.Project.ConvertedToContractId.HasValue)
+                {
+                    <a asp-page="/Customers/Detail" asp-route-id="@Model.Project.CustomerId" class="btn btn-outline-success">@L["ViewContract"]</a>
+                }
+                else
+                {
+                    <a asp-page="/Customers/Contracts/Create" asp-route-customerId="@Model.Project.CustomerId" asp-route-PrefillTitle="@Model.Project.Title" asp-route-FromProjectId="@Model.Project.Id" class="btn btn-outline-success">@L["ConvertToContract"]</a>
+                }
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

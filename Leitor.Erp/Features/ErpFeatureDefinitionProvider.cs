@@ -65,6 +65,12 @@ public class ErpFeatureDefinitionProvider : FeatureDefinitionProvider
             defaultValue: "false",
             displayName: L("Feature:PartnerCommission"),
             valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.Cybersecurity,
+            defaultValue: "false",
+            displayName: L("Feature:Cybersecurity"),
+            valueType: new ToggleStringValueType());
     }
 
     private static LocalizableString L(string name)

@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -28,6 +31,9 @@ public class EditModel : AbpPageModel
     [BindProperty]
     public CreateUpdateCustomerContractDto Contract { get; set; } = new();
 
+    [BindProperty]
+    public List<int> SelectedServiceFlags { get; set; } = new();
+
     public async Task OnGetAsync()
     {
         var contract = await _customerContractAppService.GetAsync(Id);
@@ -45,13 +51,19 @@ public class EditModel : AbpPageModel
             SlaUrgentHours = contract.SlaUrgentHours,
             SlaHighHours = contract.SlaHighHours,
             SlaMediumHours = contract.SlaMediumHours,
-            SlaLowHours = contract.SlaLowHours
+            SlaLowHours = contract.SlaLowHours,
+            ServicesIncluded = contract.ServicesIncluded
         };
+        SelectedServiceFlags = ContractServiceScopeOptions.All
+            .Where(flag => contract.ServicesIncluded.HasFlag(flag))
+            .Select(flag => (int)flag)
+            .ToList();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         Contract.CustomerId = CustomerId;
+        Contract.ServicesIncluded = (ContractServiceScope)SelectedServiceFlags.Aggregate(0, (acc, flag) => acc | flag);
 
         if (!ModelState.IsValid)
         {

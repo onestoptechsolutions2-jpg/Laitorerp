@@ -23,6 +23,8 @@
             <abp-input asp-for="Ticket.Priority" />
             <abp-select asp-for="Ticket.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"].Value" />
             <abp-input asp-for="Ticket.CustomerSatisfactionRating" />
+            <abp-input asp-for="Ticket.IsSecurityBreach" />
+            <abp-input asp-for="Ticket.ContainedDate" />
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>
