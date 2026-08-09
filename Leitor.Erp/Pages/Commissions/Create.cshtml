@@ -9,6 +9,10 @@
         <h5 class="card-title mb-0">@L["NewCommission"]</h5>
     </div>
     <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
             <abp-select asp-for="Commission.OpportunityId" asp-items="Model.OpportunityOptions" label="@L["Opportunity"].Value" />

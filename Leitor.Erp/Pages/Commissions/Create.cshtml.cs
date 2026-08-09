@@ -11,6 +11,7 @@ using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -45,6 +46,8 @@ public class CreateModel : AbpPageModel
 
     [BindProperty]
     public CreateUpdateCommissionDto Commission { get; set; } = new();
+
+    public string? ErrorMessage { get; set; }
 
     public List<SelectListItem> OpportunityOptions { get; set; } = new();
     public List<SelectListItem> PartnerOptions { get; set; } = new();
@@ -98,7 +101,17 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        await _commissionAppService.CreateAsync(Commission);
+        try
+        {
+            await _commissionAppService.CreateAsync(Commission);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ErrorMessage = ex.Message;
+            await LoadOptionsAsync();
+            return Page();
+        }
+
         return RedirectToPage("./Index", new { OpportunityId = Commission.OpportunityId });
     }
 
