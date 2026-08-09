@@ -23,16 +23,18 @@
   --leitor-border: #e1ddd2;
 
   /* Semantic status colors - separate palette from the brand accent, muted rather than
-     Bootstrap's saturated defaults. */
-  --leitor-success: #2e7d4f;
+     Bootstrap's saturated defaults. success/warning/neutral are calibrated to clear WCAG AA's
+     4.5:1 text-contrast minimum against their own -bg tint (the pill/badge/alert use case) with
+     a safety margin, not just the bare pass/fail line - see accessibility pass, 2026-08-09. */
+  --leitor-success: #256a41;
   --leitor-success-bg: #e4f1e8;
-  --leitor-warning: #9a6a15;
+  --leitor-warning: #875c11;
   --leitor-warning-bg: #fbf0dc;
   --leitor-danger: #b23b32;
   --leitor-danger-bg: #f8e4e1;
   --leitor-info: #3e6b93;
   --leitor-info-bg: #e5edf3;
-  --leitor-neutral: #6b6b62;
+  --leitor-neutral: #5f5f57;
   --leitor-neutral-bg: #ece9e1;
 
   --leitor-font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -46,6 +48,26 @@
   --leitor-border-soft: rgba(35, 36, 31, 0.06);
   --leitor-shadow: 0 1px 2px rgba(35, 36, 31, 0.03), 0 6px 16px rgba(35, 36, 31, 0.06), 0 20px 40px -20px rgba(35, 36, 31, 0.12);
   --leitor-shadow-sm: 0 1px 2px rgba(35, 36, 31, 0.04), 0 2px 6px rgba(35, 36, 31, 0.05);
+
+  /* A third, deeper elevation tier for the layer that floats *above* page content - modals,
+     dropdown menus, SweetAlert2 dialogs - so the shell keeps a resting/floating distinction
+     instead of every surface reading at the same depth. */
+  --leitor-shadow-floating: 0 2px 4px rgba(35, 36, 31, 0.05), 0 12px 28px rgba(35, 36, 31, 0.10), 0 32px 64px -24px rgba(35, 36, 31, 0.22);
+
+  /* Keyboard-focus ring, independent of the primary brand color so it stays visible against
+     both light surfaces and the --leitor-primary buttons it outlines. */
+  --leitor-focus-ring: 0 0 0 3px rgba(var(--leitor-primary-rgb), 0.28);
+}
+
+/* Motion is decorative here, never load-bearing for information - honor the OS-level request to
+   turn it off instead of forcing every hover/press transition on everyone. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ============================= LeptonXLite shell ============================= */
@@ -173,6 +195,19 @@ a:hover {
   font-weight: 500;
   padding: 0.45rem 1rem;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Keyboard-only focus ring - :focus-visible so mouse/touch clicks stay clean, but tabbing
+   through the app (a real path here: dense tables, multi-step forms) always shows where you
+   are. Applies to anything a keyboard user can land on that isn't already a text input (those
+   keep their own ring from the Forms section below). */
+.btn:focus-visible,
+a:focus-visible,
+.nav-link:focus-visible,
+.page-link:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--leitor-focus-ring);
 }
 
 .btn-sm {
@@ -369,7 +404,7 @@ dl.row dd {
 .modal-content {
   border: none;
   border-radius: var(--leitor-radius);
-  box-shadow: var(--leitor-shadow);
+  box-shadow: var(--leitor-shadow-floating);
 }
 
 .modal-header,
@@ -380,6 +415,21 @@ dl.row dd {
 
 .modal-body {
   padding: 20px 24px;
+}
+
+/* ============================= Floating layers (dropdowns, dialogs) ============================= */
+/* Same elevation tier as .modal-content - these sit above page content the same way a modal
+   does, so they get the deeper "floating" shadow rather than the flatter "resting" card one. */
+
+.dropdown-menu {
+  border: 1px solid var(--leitor-border-soft);
+  border-radius: var(--leitor-radius-sm);
+  box-shadow: var(--leitor-shadow-floating);
+}
+
+.swal2-popup {
+  border-radius: var(--leitor-radius) !important;
+  box-shadow: var(--leitor-shadow-floating) !important;
 }
 
 /* ============================= Existing ad-hoc badges ============================= */
