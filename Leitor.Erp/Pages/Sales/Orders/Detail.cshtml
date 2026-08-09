@@ -93,7 +93,12 @@
             <form method="post" asp-page-handler="AddLine" class="row g-2 mb-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">@L["Product"]</label>
-                    <select asp-for="NewLine.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
+                    <div class="input-group">
+                        <select asp-for="NewLine.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newProductModal" title="Create new product">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">@L["Description"]</label>
@@ -309,3 +314,115 @@
         }
     </div>
 </div>
+
+<!-- New Product Modal -->
+<div class="modal fade" id="newProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@L["CreateNewProduct"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newProductForm" method="post" asp-page-handler="CreateProduct">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@L["Name"]</label>
+                        <input type="text" class="form-control" id="productName" name="name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Description"]</label>
+                        <textarea class="form-control" id="productDescription" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@L["UnitPrice"]</label>
+                                <input type="number" step="0.01" class="form-control" id="productUnitPrice" name="unitPrice" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@L["Cost"]</label>
+                                <input type="number" step="0.01" class="form-control" id="productCost" name="cost" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["TaxRate"]</label>
+                        <select class="form-select" id="productTaxRateId" name="taxRateId">
+                            <option value="">@L["UseDefaultTaxRate"]</option>
+                            @foreach (var taxRate in Model.TaxRateOptions.Skip(1))
+                            {
+                                <option value="@taxRate.Value">@taxRate.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary">@L["CreateProduct"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const productSelect = document.getElementById('NewLine_ProductId');
+            const newProductForm = document.getElementById('newProductForm');
+            if (!productSelect || !newProductForm) {
+                return;
+            }
+
+            newProductForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const data = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    unitPrice: parseFloat(formData.get('unitPrice')),
+                    cost: parseFloat(formData.get('cost')),
+                    taxRateId: formData.get('taxRateId') || null
+                };
+
+                try {
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (tokenInput) {
+                        headers['RequestVerificationToken'] = tokenInput.value;
+                    }
+
+                    const response = await fetch(`?handler=CreateProduct`, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        bootstrap.Modal.getInstance(document.getElementById('newProductModal')).hide();
+
+                        const option = document.createElement('option');
+                        option.value = result.id;
+                        option.textContent = result.name + ` (${result.unitPrice})`;
+                        productSelect.appendChild(option);
+
+                        productSelect.value = result.id;
+
+                        newProductForm.reset();
+                        alert('Product created successfully');
+                    } else {
+                        const error = await response.json();
+                        alert(`Error creating product: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    alert(`Error creating product: ${error.message}`);
+                }
+            });
+        });
+    </script>
+}
