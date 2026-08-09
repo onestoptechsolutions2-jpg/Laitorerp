@@ -60,19 +60,12 @@
         });
     };
 
-    // Enhanced accessibility
-    const setupAccessibility = function () {
-        // Ensure all interactive elements are focusable
-        const interactiveElements = document.querySelectorAll('button, a, input');
-        interactiveElements.forEach(el => {
-            if (!el.hasAttribute('tabindex') && el.tagName !== 'BUTTON' && el.tagName !== 'A') {
-                el.setAttribute('tabindex', '0');
-            }
-        });
-
-        // Handle Enter key on username field to move to password
-        const userField = document.querySelector('[asp-for="LoginInput.UserNameOrEmailAddress"]');
-        const passwordField = document.querySelector('[asp-for="LoginInput.Password"]');
+    // Handle Enter key on username field to move to password. Note: asp-for is a Razor tag
+    // helper attribute stripped from the rendered HTML - the real selector is the "name"
+    // attribute ASP.NET generates from it.
+    const setupEnterToAdvance = function () {
+        const userField = document.querySelector('[name="LoginInput.UserNameOrEmailAddress"]');
+        const passwordField = document.querySelector('[name="LoginInput.Password"]');
 
         if (userField && passwordField) {
             userField.addEventListener('keypress', function (e) {
@@ -81,41 +74,6 @@
                     passwordField.focus();
                 }
             });
-        }
-    };
-
-    // Animate form on load
-    const setupFormAnimation = function () {
-        const card = document.querySelector('.leitor-login-card');
-        if (card) {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-
-            // Trigger animation after a brief delay to ensure rendering
-            setTimeout(function () {
-                card.style.transition = 'all 0.4s ease-out';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 50);
-        }
-    };
-
-    // Handle social login button styling
-    const setupSocialLogins = function () {
-        const socialButtons = document.querySelectorAll('.leitor-btn-social');
-        socialButtons.forEach(btn => {
-            btn.addEventListener('click', function () {
-                this.disabled = true;
-                this.style.opacity = '0.6';
-            });
-        });
-    };
-
-    // Auto-focus email field on load
-    const autoFocusEmail = function () {
-        const emailField = document.querySelector('[asp-for="LoginInput.UserNameOrEmailAddress"]');
-        if (emailField && !emailField.value) {
-            emailField.focus();
         }
     };
 
@@ -128,10 +86,7 @@
 
         setupPasswordToggle();
         setupFormValidation();
-        setupAccessibility();
-        setupFormAnimation();
-        setupSocialLogins();
-        autoFocusEmail();
+        setupEnterToAdvance();
     };
 
     // Start initialization

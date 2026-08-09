@@ -25,40 +25,6 @@
     padding: 48px 40px;
 }
 
-/* Logo section */
-.leitor-logo-section {
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-.leitor-logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-    border-radius: 8px;
-    margin: 0 auto 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.leitor-logo-text h1 {
-    font-size: 24px;
-    color: #1e293b;
-    margin-bottom: 8px;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-.leitor-logo-text p {
-    font-size: 14px;
-    color: #64748b;
-    margin: 0;
-}
-
 /* Form styling */
 .leitor-login-form {
     margin-bottom: 24px;
@@ -232,89 +198,6 @@
     background: #cbd5e1;
 }
 
-/* Social login section */
-.leitor-divider {
-    display: flex;
-    align-items: center;
-    margin: 28px 0;
-    color: #94a3b8;
-}
-
-.leitor-divider::before,
-.leitor-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e2e8f0;
-}
-
-.leitor-divider span {
-    margin: 0 12px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.leitor-social-login {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 28px;
-}
-
-.leitor-btn-social {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 11px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    background: #ffffff;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    color: #475569;
-    transition: all 0.2s ease;
-    font-family: inherit;
-    gap: 6px;
-}
-
-.leitor-btn-social i {
-    font-size: 16px;
-}
-
-.leitor-btn-social:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
-}
-
-.leitor-btn-social:active {
-    background: #e2e8f0;
-}
-
-/* Sign up section */
-.leitor-signup-section {
-    text-align: center;
-    padding-top: 28px;
-    border-top: 1px solid #e2e8f0;
-}
-
-.leitor-signup-section p {
-    font-size: 14px;
-    color: #475569;
-    margin: 0;
-}
-
-.leitor-signup-section a {
-    color: #0ea5e9;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.leitor-signup-section a:hover {
-    color: #0284c7;
-}
-
 /* Forgot password link */
 .leitor-forgot-password {
     font-size: 13px;
@@ -377,121 +260,15 @@
         padding: 32px 24px;
     }
 
-    .leitor-logo-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-        margin-bottom: 12px;
-    }
-
-    .leitor-logo-text h1 {
-        font-size: 20px;
-        margin-bottom: 6px;
-    }
-
-    .leitor-logo-text p {
-        font-size: 12px;
-    }
-
-    .leitor-social-login {
-        grid-template-columns: 1fr;
-    }
-
     .leitor-form-control {
         font-size: 16px;
         padding: 12px 14px;
     }
 }
 
-/* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
-    .leitor-login-card {
-        background: #1e293b;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    }
-
-    .leitor-logo-text h1 {
-        color: #f1f5f9;
-    }
-
-    .leitor-logo-text p {
-        color: #94a3b8;
-    }
-
-    .leitor-form-label {
-        color: #f1f5f9;
-    }
-
-    .leitor-form-control {
-        background-color: #0f172a;
-        border-color: #334155;
-        color: #f1f5f9;
-    }
-
-    .leitor-form-control:focus {
-        border-color: #0ea5e9;
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-    }
-
-    .leitor-form-control::placeholder {
-        color: #64748b;
-    }
-
-    .leitor-btn-secondary {
-        background: #334155;
-        color: #e2e8f0;
-        border-color: #475569;
-    }
-
-    .leitor-btn-secondary:hover {
-        background: #475569;
-        border-color: #64748b;
-    }
-
-    .leitor-btn-social {
-        background: #0f172a;
-        border-color: #334155;
-        color: #e2e8f0;
-    }
-
-    .leitor-btn-social:hover {
-        background: #1e293b;
-        border-color: #475569;
-    }
-
-    .leitor-divider {
-        color: #64748b;
-    }
-
-    .leitor-divider::before,
-    .leitor-divider::after {
-        background: #334155;
-    }
-
-    .leitor-checkbox-label {
-        color: #cbd5e1;
-    }
-
-    .leitor-signup-section {
-        border-top-color: #334155;
-    }
-
-    .leitor-signup-section p {
-        color: #cbd5e1;
-    }
-}
-
 /* Focus visible for accessibility */
 .leitor-btn:focus-visible,
-.leitor-btn-social:focus-visible,
 .leitor-form-control:focus-visible {
     outline: 2px solid #0ea5e9;
     outline-offset: 2px;
-}
-
-/* Print styles */
-@media print {
-    .leitor-auth-container {
-        display: none;
-    }
 }
