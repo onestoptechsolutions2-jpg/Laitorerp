@@ -24,4 +24,6 @@ public class ProposalDto : FullAuditedEntityDto<Guid>
     public string? Exclusions { get; set; }
     public string? WarrantyAndSupport { get; set; }
     public string? Terms { get; set; }
+    public string? SupersededReason { get; set; }
+    public Guid? SupersedesProposalId { get; set; }
 }

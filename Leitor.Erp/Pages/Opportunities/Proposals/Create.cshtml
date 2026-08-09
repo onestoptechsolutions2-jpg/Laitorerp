@@ -11,6 +11,7 @@
     <div class="card-body">
         <form method="post">
             <input type="hidden" asp-for="Proposal.OpportunityId" value="@Model.OpportunityId" />
+            <input type="hidden" asp-for="Proposal.SupersedesProposalId" value="@Model.SupersedesProposalId" />
             <div asp-validation-summary="All" class="text-danger"></div>
             <abp-input asp-for="Proposal.Title" />
             <abp-input asp-for="Proposal.Status" />

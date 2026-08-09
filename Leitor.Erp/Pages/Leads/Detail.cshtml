@@ -48,6 +48,12 @@
             <dt class="col-sm-2">@L["AssignedTo"]</dt>
             <dd class="col-sm-4">@Model.Lead.AssignedToUserName</dd>
 
+            @if (!string.IsNullOrWhiteSpace(Model.Lead.ReferrerAgentName))
+            {
+                <dt class="col-sm-2">@L["ReferrerAgent"]</dt>
+                <dd class="col-sm-4">@Model.Lead.ReferrerAgentName</dd>
+            }
+
             @if (Model.ChannelStatus.Count > 0)
             {
                 <dt class="col-sm-2">@L["ChannelStatus"]</dt>

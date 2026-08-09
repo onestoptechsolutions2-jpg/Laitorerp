@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Governance;
@@ -22,6 +23,7 @@ public class LeadAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
+    private readonly IRepository<Agent, Guid> _agentRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
 
     public LeadAppService(
@@ -29,12 +31,14 @@ public class LeadAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<Opportunity, Guid> opportunityRepository,
+        IRepository<Agent, Guid> agentRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
         _identityUserRepository = identityUserRepository;
         _opportunityRepository = opportunityRepository;
+        _agentRepository = agentRepository;
         _stageEventRepository = stageEventRepository;
 
         GetPolicyName = ErpPermissions.Leads.Default;
@@ -85,11 +89,25 @@ public class LeadAppService :
             ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
+        var agentIds = leads
+            .Where(x => x.ReferrerAgentId.HasValue)
+            .Select(x => x.ReferrerAgentId!.Value)
+            .Distinct()
+            .ToList();
+        var agentNamesById = agentIds.Count > 0
+            ? (await _agentRepository.GetListAsync(x => agentIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
         foreach (var lead in leads)
         {
             if (lead.AssignedToUserId.HasValue && usersById.TryGetValue(lead.AssignedToUserId.Value, out var userName))
             {
                 lead.AssignedToUserName = userName;
+            }
+
+            if (lead.ReferrerAgentId.HasValue && agentNamesById.TryGetValue(lead.ReferrerAgentId.Value, out var agentName))
+            {
+                lead.ReferrerAgentName = agentName;
             }
         }
     }
@@ -164,6 +182,7 @@ public class LeadAppService :
         entity.AssignedToUserId = input.AssignedToUserId;
         entity.Notes = input.Notes;
         entity.DoNotContact = input.DoNotContact;
+        entity.ReferrerAgentId = input.ReferrerAgentId;
 
         var normalizedPhone = NormalizePhone(input.Phone);
         if (!string.IsNullOrEmpty(normalizedPhone))

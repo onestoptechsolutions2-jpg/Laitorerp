@@ -38,4 +38,9 @@ public class CreateUpdateProposalDto
 
     [StringLength(2000)]
     public string? Terms { get; set; }
+
+    // Set only when this proposal is created as the direct replacement for a Superseded one (see
+    // Pages/Opportunities/Proposals/Create.cshtml.cs, opened via the "Create Replacement" link on
+    // a Superseded proposal's row).
+    public Guid? SupersedesProposalId { get; set; }
 }

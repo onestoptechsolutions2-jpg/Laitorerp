@@ -2,10 +2,14 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
+using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Partners;
+using Leitor.Erp.Services;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
@@ -17,33 +21,42 @@ public class PaymentAppService :
     CrudAppService<Payment, PaymentDto, Guid, GetPaymentListInput, CreateUpdatePaymentDto>
 {
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
+    private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IRepository<Account, Guid> _accountRepository;
     private readonly IRepository<JournalEntry, Guid> _journalEntryRepository;
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
     private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
+    private readonly IRepository<Commission, Guid> _commissionRepository;
+    private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IDataFilter _dataFilter;
 
     public PaymentAppService(
         IRepository<Payment, Guid> repository,
         IRepository<Invoice, Guid> invoiceRepository,
+        IRepository<InvoiceLine, Guid> invoiceLineRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IRepository<Account, Guid> accountRepository,
         IRepository<JournalEntry, Guid> journalEntryRepository,
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
         IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
+        IRepository<Commission, Guid> commissionRepository,
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
         _invoiceRepository = invoiceRepository;
+        _invoiceLineRepository = invoiceLineRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
         _accountRepository = accountRepository;
         _journalEntryRepository = journalEntryRepository;
         _journalEntryLineRepository = journalEntryLineRepository;
         _fiscalPeriodRepository = fiscalPeriodRepository;
+        _commissionRepository = commissionRepository;
+        _stageEventRepository = stageEventRepository;
         _dataFilter = dataFilter;
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -84,6 +97,22 @@ public class PaymentAppService :
             $"Payment received - Invoice {invoice.InvoiceNumber}",
             SystemAccountRole.Cash, SystemAccountRole.AccountsReceivable,
             entity.Amount, entity.CurrencyCode, entity.ExchangeRateToBase);
+
+        // Flips any Pending, OnClientPayment-triggered Commission tied to this Invoice to Payable
+        // (TC-025) - only once the invoice is actually paid in full, not on the first partial
+        // payment, so a partner/agent can never become payable for more than the client has
+        // actually paid. Same Total()/AmountPaid computation InvoiceAppService.ComputePaymentStatus
+        // uses, duplicated here rather than shared since that method is DTO-shaped and private.
+        var invoiceLines = await _invoiceLineRepository.GetListAsync(x => x.InvoiceId == entity.InvoiceId);
+        var invoiceTotal = invoiceLines.Sum(x => x.Total());
+        var existingPayments = await Repository.GetListAsync(x => x.InvoiceId == entity.InvoiceId && x.Id != entity.Id);
+        var amountPaid = existingPayments.Sum(x => x.Amount) + entity.Amount;
+
+        if (amountPaid >= invoiceTotal)
+        {
+            await CommissionAutoPayableService.MarkPayableForInvoiceAsync(
+                _commissionRepository, _stageEventRepository, GuidGenerator, CurrentUser, Clock, entity.InvoiceId);
+        }
 
         return entity;
     }

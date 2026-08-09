@@ -20,6 +20,12 @@ public class Lead : FullAuditedAggregateRoot<Guid>
     public string? Notes { get; set; }
     public Guid? ConvertedCustomerId { get; set; }
 
+    // Set when Source is Referral and the referrer is a tracked Agent (see Entities/Partners/Agent.cs)
+    // - preserves the "who referred this" relationship (e.g. Riffat referring Mnyanga) so a referral
+    // commission can eventually be recorded against it. Null for every other source, and null even
+    // for a referral if the referrer isn't a formally tracked Agent.
+    public Guid? ReferrerAgentId { get; set; }
+
     // Consent/compliance: the system refuses to log further outreach (see
     // LeadTouchAppService.CreateAsync) against a lead flagged Do Not Contact - it can't stop
     // someone messaging on personal WhatsApp, but it won't record or encourage it.

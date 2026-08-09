@@ -26,4 +26,7 @@ public class CreateUpdateOpportunityDto
 
     [StringLength(2000)]
     public string? Notes { get; set; }
+
+    public Guid? PartnerId { get; set; }
+    public Guid? AgentId { get; set; }
 }

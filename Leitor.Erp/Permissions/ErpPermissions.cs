@@ -270,6 +270,18 @@ public static class ErpPermissions
         public const string Manage = Default + ".Manage";
     }
 
+    // Gated behind ErpFeatures.PartnerCommission (see Features/ErpFeatures.cs). Covers Partner,
+    // Agent, and Commission together - same "one group per nav section" convention as Assets
+    // covering ConfigurationItem+Relationship+AssetCredential.
+    public static class Partners
+    {
+        public const string GroupName = "Erp.Partners";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     // Gates the admin screen that edits the business-tunable values in Settings/ErpSettings.cs
     // (Ticket SLA hours per priority, contract expiry alert lead time) - separate from
     // ModuleToggles since it's about tuning always-on behavior, not turning modules on/off.

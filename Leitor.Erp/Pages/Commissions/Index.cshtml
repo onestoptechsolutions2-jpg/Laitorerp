@@ -1,0 +1,57 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Commissions.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Commissions"]</h5>
+        <a asp-page="/Commissions/Create" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-primary">@L["NewCommission"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Opportunity"]</th>
+                        <th>@L["Partner"]</th>
+                        <th>@L["Agent"]</th>
+                        <th>@L["Basis"]</th>
+                        <th>@L["Amount"]</th>
+                        <th>@L["Trigger"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@item.OpportunityName</td>
+                            <td>@item.PartnerName</td>
+                            <td>@item.AgentName</td>
+                            <td>@L[$"Enum:CommissionBasis:{(int)item.Basis}"]</td>
+                            <td>@item.Amount.ToString("N2")</td>
+                            <td>@L[$"Enum:CommissionTrigger:{(int)item.Trigger}"]</td>
+                            <td><span class="pill @StatusPill.For(item.Status)">@L[$"Enum:CommissionStatus:{(int)item.Status}"]</span></td>
+                            <td>
+                                @if (Model.CanEdit && item.Status == Leitor.Erp.Entities.Partners.CommissionStatus.Payable)
+                                {
+                                    <form method="post" asp-page-handler="MarkPaid" asp-route-id="@item.Id" class="d-inline" onsubmit="return confirm('@L["MarkPaid"]?');">
+                                        <button type="submit" class="btn btn-sm btn-success">@L["MarkPaid"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

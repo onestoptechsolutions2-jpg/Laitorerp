@@ -5,6 +5,7 @@ using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.Sales;
@@ -58,6 +59,15 @@ public static class StatusPill
         ProposalStatus.Sent => Info,
         ProposalStatus.Accepted => Success,
         ProposalStatus.Rejected => Danger,
+        ProposalStatus.Superseded => Neutral,
+        _ => Neutral
+    };
+
+    public static string For(CommissionStatus status) => status switch
+    {
+        CommissionStatus.Pending => Neutral,
+        CommissionStatus.Payable => Warning,
+        CommissionStatus.Paid => Success,
         _ => Neutral
     };
 

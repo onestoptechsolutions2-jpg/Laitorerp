@@ -1,0 +1,29 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Commissions.CreateModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NewCommission"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-select asp-for="Commission.OpportunityId" asp-items="Model.OpportunityOptions" label="@L["Opportunity"].Value" />
+            <abp-select asp-for="Commission.PartnerId" asp-items="Model.PartnerOptions" label="@L["Partner"].Value" />
+            <abp-select asp-for="Commission.AgentId" asp-items="Model.AgentOptions" label="@L["Agent"].Value" />
+            <abp-input asp-for="Commission.Basis" />
+            <abp-input asp-for="Commission.Rate" />
+            <abp-input asp-for="Commission.BaseAmount" />
+            <abp-input asp-for="Commission.Trigger" />
+            <abp-input asp-for="Commission.Notes" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="./Index" asp-route-OpportunityId="@Model.OpportunityId" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+    </div>
+</div>

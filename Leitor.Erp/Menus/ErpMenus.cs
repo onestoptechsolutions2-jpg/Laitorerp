@@ -41,6 +41,10 @@ public class ErpMenus
     public const string Pos = Prefix + ".Pos";
     public const string PosRegister = Pos + ".Register";
     public const string PosSales = Pos + ".Sales";
+    public const string Partners = Prefix + ".Partners";
+    public const string PartnersDirectory = Partners + ".Directory";
+    public const string PartnersAgents = Partners + ".Agents";
+    public const string PartnersCommissions = Partners + ".Commissions";
     public const string Portal = Prefix + ".Portal";
     public const string Workspace = Prefix + ".Workspace";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";

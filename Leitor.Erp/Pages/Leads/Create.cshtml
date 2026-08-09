@@ -20,6 +20,10 @@
             <abp-select asp-for="Lead.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"].Value" />
             <abp-input asp-for="Lead.Notes" />
             <abp-input asp-for="Lead.DoNotContact" />
+            @if (Model.ShowReferrerAgent)
+            {
+                <abp-select asp-for="Lead.ReferrerAgentId" asp-items="Model.AgentOptions" label="@L["ReferrerAgent"].Value" />
+            }
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>

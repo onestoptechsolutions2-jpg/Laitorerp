@@ -35,6 +35,15 @@ public class Proposal : FullAuditedAggregateRoot<Guid>
     public string? WarrantyAndSupport { get; set; }
     public string? Terms { get; set; }
 
+    // Set on the OLD proposal by ProposalAppService.SupersedeAsync when a dependency/constraint
+    // makes it unsuitable - the record is never deleted (TC-016).
+    public string? SupersededReason { get; set; }
+
+    // Set on the NEW proposal at creation, pointing back at the one it replaces - lets the UI show
+    // "Original Solution: Odoo (Superseded) -> Replacement: Jipos" as a real link, not just inferred
+    // from timing/text.
+    public Guid? SupersedesProposalId { get; set; }
+
     protected Proposal()
     {
     }

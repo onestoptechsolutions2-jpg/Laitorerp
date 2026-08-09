@@ -14,4 +14,5 @@ public static class ErpFeatures
     public const string AssetManagement = GroupName + ".AssetManagement";
     public const string KnowledgeManagement = GroupName + ".KnowledgeManagement";
     public const string PointOfSale = GroupName + ".PointOfSale";
+    public const string PartnerCommission = GroupName + ".PartnerCommission";
 }

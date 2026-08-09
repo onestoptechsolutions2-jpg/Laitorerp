@@ -59,6 +59,12 @@ public class ErpFeatureDefinitionProvider : FeatureDefinitionProvider
             defaultValue: "false",
             displayName: L("Feature:PointOfSale"),
             valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.PartnerCommission,
+            defaultValue: "false",
+            displayName: L("Feature:PartnerCommission"),
+            valueType: new ToggleStringValueType());
     }
 
     private static LocalizableString L(string name)

@@ -22,17 +22,22 @@ public class CreateModel : AbpPageModel
     [BindProperty(SupportsGet = true)]
     public Guid OpportunityId { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public Guid? SupersedesProposalId { get; set; }
+
     [BindProperty]
     public CreateUpdateProposalDto Proposal { get; set; } = new();
 
     public void OnGet()
     {
         Proposal.OpportunityId = OpportunityId;
+        Proposal.SupersedesProposalId = SupersedesProposalId;
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         Proposal.OpportunityId = OpportunityId;
+        Proposal.SupersedesProposalId = SupersedesProposalId;
 
         if (!ModelState.IsValid)
         {

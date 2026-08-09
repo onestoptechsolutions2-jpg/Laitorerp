@@ -1,6 +1,8 @@
 @page "{id}"
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Opportunities
+@using Leitor.Erp.Entities.Partners
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Opportunities.DetailModel
 
@@ -34,6 +36,14 @@
             {
                 <dt class="col-sm-2">@L["FromLead"]</dt>
                 <dd class="col-sm-4">@Model.Opportunity.LeadDisplayName</dd>
+            }
+
+            @if (Model.ShowPartnerCommission && (!string.IsNullOrWhiteSpace(Model.Opportunity.PartnerName) || !string.IsNullOrWhiteSpace(Model.Opportunity.AgentName)))
+            {
+                <dt class="col-sm-2">@L["Partner"]</dt>
+                <dd class="col-sm-4">@Model.Opportunity.PartnerName</dd>
+                <dt class="col-sm-2">@L["Agent"]</dt>
+                <dd class="col-sm-4">@Model.Opportunity.AgentName</dd>
             }
 
             @if (!string.IsNullOrWhiteSpace(Model.Opportunity.LostReason))
@@ -110,7 +120,13 @@
                     {
                         <tr>
                             <td class="doc-no">@proposal.ProposalNumber</td>
-                            <td>@proposal.Title</td>
+                            <td>
+                                @proposal.Title
+                                @if (proposal.Status == ProposalStatus.Superseded && !string.IsNullOrWhiteSpace(proposal.SupersededReason))
+                                {
+                                    <br /><small class="text-muted">@L["SupersededReason"]: @proposal.SupersededReason</small>
+                                }
+                            </td>
                             <td><span class="pill @StatusPill.For(proposal.Status)">@L[$"Enum:ProposalStatus:{(int)proposal.Status}"]</span></td>
                             <td>@proposal.Version</td>
                             <td>
@@ -126,6 +142,24 @@
                                 {
                                     <a asp-page="/Sales/Quotes/Detail" asp-route-id="@existingQuoteId" class="btn btn-sm btn-outline-success">@L["Quote"]</a>
                                 }
+                                @if (Model.CanEdit && Model.CanSupersedeProposal(proposal))
+                                {
+                                    <form method="post" asp-page-handler="SupersedeProposal" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return promptSupersedeReason(this);">
+                                        <input type="hidden" name="supersedeReason" class="supersede-reason-input" />
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">@L["Supersede"]</button>
+                                    </form>
+                                }
+                                @if (proposal.Status == ProposalStatus.Superseded)
+                                {
+                                    @if (Model.ReplacementProposalIdBySupersededId.TryGetValue(proposal.Id, out var replacementId))
+                                    {
+                                        <a asp-page="/Opportunities/Proposals/Edit" asp-route-id="@replacementId" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-success">@L["Replaces"]</a>
+                                    }
+                                    else if (Model.CanEdit)
+                                    {
+                                        <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" asp-route-supersedesProposalId="@proposal.Id" class="btn btn-sm btn-success">@L["CreateReplacement"]</a>
+                                    }
+                                }
                                 <form method="post" asp-page-handler="DeleteProposal" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
@@ -137,3 +171,71 @@
         </div>
     </div>
 </div>
+
+@if (Model.ShowPartnerCommission)
+{
+    <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">@L["Commissions"]</h5>
+            <a asp-page="/Commissions/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm">@L["NewCommission"]</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["Partner"]</th>
+                            <th>@L["Agent"]</th>
+                            <th>@L["Basis"]</th>
+                            <th>@L["Amount"]</th>
+                            <th>@L["Trigger"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Commissions.Any())
+                        {
+                            <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                        }
+                        @foreach (var commission in Model.Commissions)
+                        {
+                            <tr>
+                                <td>@commission.PartnerName</td>
+                                <td>@commission.AgentName</td>
+                                <td>@L[$"Enum:CommissionBasis:{(int)commission.Basis}"]</td>
+                                <td>@commission.Amount.ToString("N2")</td>
+                                <td>@L[$"Enum:CommissionTrigger:{(int)commission.Trigger}"]</td>
+                                <td><span class="pill @StatusPill.For(commission.Status)">@L[$"Enum:CommissionStatus:{(int)commission.Status}"]</span></td>
+                                <td>
+                                    @if (Model.CanEdit && commission.Status == CommissionStatus.Payable)
+                                    {
+                                        <form method="post" asp-page-handler="MarkCommissionPaid" asp-route-commissionId="@commission.Id" class="d-inline" onsubmit="return confirm('@L["MarkPaid"]?');">
+                                            <button type="submit" class="btn btn-sm btn-success">@L["MarkPaid"]</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Supersede requires a reason (enforced server-side too) - a plain prompt() keeps this
+        // page free of a modal library for one occasional action, same tradeoff as the existing
+        // confirm()-based delete/convert buttons on this page.
+        function promptSupersedeReason(form) {
+            var reason = prompt('@L["SupersedeReasonPrompt"]');
+            if (!reason) {
+                return false;
+            }
+            form.querySelector('.supersede-reason-input').value = reason;
+            return true;
+        }
+    </script>
+}

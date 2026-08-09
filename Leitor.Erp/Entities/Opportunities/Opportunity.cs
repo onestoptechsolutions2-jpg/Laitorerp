@@ -20,6 +20,13 @@ public class Opportunity : FullAuditedAggregateRoot<Guid>
     public string? LostReason { get; set; }
     public string? Notes { get; set; }
 
+    // A Partner and/or Agent involved in delivering/referring this deal (see Entities/Partners/) -
+    // both optional and independent (a deal can involve neither, either, or both at once, e.g. an
+    // Agent-referred lead fulfilled through a delivery Partner). Drives the default Partner/Agent
+    // choice when recording a Commission against this Opportunity.
+    public Guid? PartnerId { get; set; }
+    public Guid? AgentId { get; set; }
+
     // Auto-tracked by OpportunityAppService the moment Status transitions into Won/Lost, cleared
     // if reopened - same pattern as Ticket.ResolvedDate/FieldServiceJob.CompletedDate.
     public DateTime? ClosedDate { get; set; }

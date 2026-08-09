@@ -57,19 +57,40 @@ public class ProposalAppService :
 
     protected override async Task<Proposal> MapToEntityAsync(CreateUpdateProposalDto createInput)
     {
-        // Only one "live" Proposal per Opportunity at a time - a Rejected one doesn't block a
-        // fresh attempt (that's the intended supersede path), but Draft/Sent/Accepted do, so
-        // proposals can't silently accumulate against the same Opportunity.
+        // Only one "live" Proposal per Opportunity at a time - a Rejected or Superseded one
+        // doesn't block a fresh attempt (Superseded is the Zikis-style "dependency killed this
+        // solution" path - see SupersedeAsync), but Draft/Sent/Accepted do, so proposals can't
+        // silently accumulate against the same Opportunity.
         var hasLiveProposal = (await Repository.GetListAsync(x => x.OpportunityId == createInput.OpportunityId))
-            .Any(x => x.Status != ProposalStatus.Rejected);
+            .Any(x => x.Status != ProposalStatus.Rejected && x.Status != ProposalStatus.Superseded);
         if (hasLiveProposal)
         {
-            throw new UserFriendlyException("This opportunity already has an active proposal. Edit or reject the existing one before creating a new one.");
+            throw new UserFriendlyException("This opportunity already has an active proposal. Edit, reject, or supersede the existing one before creating a new one.");
+        }
+
+        // Validated rather than trusted as-is - this comes from a query-string round trip
+        // (Opportunities/Proposals/Create's "supersedesProposalId" param), so a tampered or stale
+        // value must be rejected rather than silently recorded as a nonsensical supersede link.
+        if (createInput.SupersedesProposalId.HasValue)
+        {
+            var supersededProposal = await Repository.GetAsync(createInput.SupersedesProposalId.Value);
+            if (supersededProposal.OpportunityId != createInput.OpportunityId)
+            {
+                throw new UserFriendlyException("The proposal being replaced must belong to the same opportunity.");
+            }
+
+            if (supersededProposal.Status != ProposalStatus.Superseded)
+            {
+                throw new UserFriendlyException("Only a superseded proposal can be replaced.");
+            }
         }
 
         var proposalNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "PROP-");
 
-        var entity = new Proposal(GuidGenerator.Create(), createInput.OpportunityId, proposalNumber, createInput.Title);
+        var entity = new Proposal(GuidGenerator.Create(), createInput.OpportunityId, proposalNumber, createInput.Title)
+        {
+            SupersedesProposalId = createInput.SupersedesProposalId
+        };
         CopyToEntity(createInput, entity);
         return entity;
     }
@@ -158,6 +179,32 @@ public class ProposalAppService :
     public Task<List<WorkflowStageEvent>> GetDeliveryHistoryAsync(Guid id)
     {
         return WorkflowStageLog.GetHistoryAsync(_stageEventRepository, "Proposal", id);
+    }
+
+    // Preserves rather than deletes a proposal that a discovered dependency/constraint made
+    // unsuitable (TC-016, the Zikis Odoo -> Jipos scenario) - the original solution stays on
+    // record with why it didn't work, and the opportunity is freed up for a replacement proposal
+    // (see the updated hasLiveProposal check in MapToEntityAsync above).
+    public async Task SupersedeAsync(Guid id, string reason)
+    {
+        await CheckPolicyAsync(ErpPermissions.Opportunities.Edit);
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new UserFriendlyException("A reason is required to supersede this proposal.");
+        }
+
+        var entity = await Repository.GetAsync(id);
+        if (entity.Status is ProposalStatus.Rejected or ProposalStatus.Superseded)
+        {
+            throw new UserFriendlyException("This proposal is already terminal and can't be superseded.");
+        }
+
+        entity.Status = ProposalStatus.Superseded;
+        entity.SupersededReason = reason;
+        await Repository.UpdateAsync(entity, autoSave: true);
+
+        await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Proposal", entity.Id, WorkflowStage.ProposalSuperseded, notes: reason);
     }
 
     private static void CopyToEntity(CreateUpdateProposalDto input, Proposal entity)

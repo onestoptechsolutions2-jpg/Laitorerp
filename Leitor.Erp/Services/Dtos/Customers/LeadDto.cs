@@ -16,7 +16,9 @@ public class LeadDto : FullAuditedEntityDto<Guid>
     public string? Notes { get; set; }
     public Guid? ConvertedCustomerId { get; set; }
     public bool DoNotContact { get; set; }
+    public Guid? ReferrerAgentId { get; set; }
 
-    // Resolved by LeadAppService from IdentityUser repository - not a stored column.
+    // Resolved by LeadAppService from IdentityUser/Agent repositories - not stored columns.
     public string? AssignedToUserName { get; set; }
+    public string? ReferrerAgentName { get; set; }
 }

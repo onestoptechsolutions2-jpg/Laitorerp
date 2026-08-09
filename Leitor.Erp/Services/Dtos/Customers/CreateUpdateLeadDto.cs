@@ -29,4 +29,6 @@ public class CreateUpdateLeadDto
     public string? Notes { get; set; }
 
     public bool DoNotContact { get; set; }
+
+    public Guid? ReferrerAgentId { get; set; }
 }

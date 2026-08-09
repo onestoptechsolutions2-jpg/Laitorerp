@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Pos;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Projects;
@@ -115,6 +116,10 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<AssetCredential> AssetCredentials { get; set; } = null!;
 
     public DbSet<KnowledgeArticle> KnowledgeArticles { get; set; } = null!;
+
+    public DbSet<Partner> Partners { get; set; } = null!;
+    public DbSet<Agent> Agents { get; set; } = null!;
+    public DbSet<Commission> Commissions { get; set; } = null!;
 
     public ErpDbContext(DbContextOptions<ErpDbContext> options)
         : base(options)
@@ -899,6 +904,44 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Title).IsRequired().HasMaxLength(256);
             b.Property(x => x.Tags).HasMaxLength(512);
             b.HasIndex(x => x.SourceTicketId);
+        });
+
+        builder.Entity<Partner>(b =>
+        {
+            b.ToTable("Partners");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.Phone).HasMaxLength(64);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CommissionRate).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<Agent>(b =>
+        {
+            b.ToTable("Agents");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.Phone).HasMaxLength(64);
+            b.Property(x => x.Territory).HasMaxLength(128);
+            b.Property(x => x.Skills).HasMaxLength(512);
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.Property(x => x.CommissionRate).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<Commission>(b =>
+        {
+            b.ToTable("Commissions");
+            b.ConfigureByConvention();
+            b.Property(x => x.Rate).HasColumnType("decimal(18,2)");
+            b.Property(x => x.BaseAmount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => x.OpportunityId);
+            b.HasIndex(x => x.PartnerId);
+            b.HasIndex(x => x.AgentId);
+            b.HasIndex(x => x.SourceInvoiceId);
         });
 
         builder.Entity<DeletionRequest>(b =>

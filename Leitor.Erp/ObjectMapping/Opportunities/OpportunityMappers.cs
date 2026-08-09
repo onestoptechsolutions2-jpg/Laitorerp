@@ -13,6 +13,8 @@ public partial class OpportunityToOpportunityDtoMapper : MapperBase<Opportunity,
     [MapperIgnoreTarget(nameof(OpportunityDto.CustomerName))]
     [MapperIgnoreTarget(nameof(OpportunityDto.AssignedToUserName))]
     [MapperIgnoreTarget(nameof(OpportunityDto.LeadDisplayName))]
+    [MapperIgnoreTarget(nameof(OpportunityDto.PartnerName))]
+    [MapperIgnoreTarget(nameof(OpportunityDto.AgentName))]
     public override partial OpportunityDto Map(Opportunity source);
 
     [MapperIgnoreSource(nameof(Opportunity.ExtraProperties))]
@@ -20,5 +22,7 @@ public partial class OpportunityToOpportunityDtoMapper : MapperBase<Opportunity,
     [MapperIgnoreTarget(nameof(OpportunityDto.CustomerName))]
     [MapperIgnoreTarget(nameof(OpportunityDto.AssignedToUserName))]
     [MapperIgnoreTarget(nameof(OpportunityDto.LeadDisplayName))]
+    [MapperIgnoreTarget(nameof(OpportunityDto.PartnerName))]
+    [MapperIgnoreTarget(nameof(OpportunityDto.AgentName))]
     public override partial void Map(Opportunity source, OpportunityDto destination);
 }

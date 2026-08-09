@@ -16,9 +16,13 @@ public class OpportunityDto : FullAuditedEntityDto<Guid>
     public string? LostReason { get; set; }
     public string? Notes { get; set; }
     public DateTime? ClosedDate { get; set; }
+    public Guid? PartnerId { get; set; }
+    public Guid? AgentId { get; set; }
 
     // Resolved by OpportunityAppService - not stored columns.
     public string? CustomerName { get; set; }
     public string? AssignedToUserName { get; set; }
     public string? LeadDisplayName { get; set; }
+    public string? PartnerName { get; set; }
+    public string? AgentName { get; set; }
 }

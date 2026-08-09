@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Volo.Abp;
@@ -23,6 +24,8 @@ public class OpportunityAppService :
     private readonly IRepository<NeedsAssessmentAttachment, Guid> _needsAssessmentAttachmentRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IRepository<Lead, Guid> _leadRepository;
+    private readonly IRepository<Partner, Guid> _partnerRepository;
+    private readonly IRepository<Agent, Guid> _agentRepository;
 
     public OpportunityAppService(
         IRepository<Opportunity, Guid> repository,
@@ -31,7 +34,9 @@ public class OpportunityAppService :
         IRepository<NeedsAssessment, Guid> needsAssessmentRepository,
         IRepository<NeedsAssessmentAttachment, Guid> needsAssessmentAttachmentRepository,
         IRepository<Proposal, Guid> proposalRepository,
-        IRepository<Lead, Guid> leadRepository)
+        IRepository<Lead, Guid> leadRepository,
+        IRepository<Partner, Guid> partnerRepository,
+        IRepository<Agent, Guid> agentRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
@@ -40,6 +45,8 @@ public class OpportunityAppService :
         _needsAssessmentAttachmentRepository = needsAssessmentAttachmentRepository;
         _proposalRepository = proposalRepository;
         _leadRepository = leadRepository;
+        _partnerRepository = partnerRepository;
+        _agentRepository = agentRepository;
 
         GetPolicyName = ErpPermissions.Opportunities.Default;
         GetListPolicyName = ErpPermissions.Opportunities.Default;
@@ -122,6 +129,16 @@ public class OpportunityAppService :
             ? (await _leadRepository.GetListAsync(x => leadIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
             : new Dictionary<Guid, string>();
 
+        var partnerIds = opportunities.Where(x => x.PartnerId.HasValue).Select(x => x.PartnerId!.Value).Distinct().ToList();
+        var partnerNamesById = partnerIds.Count > 0
+            ? (await _partnerRepository.GetListAsync(x => partnerIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
+        var agentIds = opportunities.Where(x => x.AgentId.HasValue).Select(x => x.AgentId!.Value).Distinct().ToList();
+        var agentNamesById = agentIds.Count > 0
+            ? (await _agentRepository.GetListAsync(x => agentIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
         foreach (var opportunity in opportunities)
         {
             if (customerNamesById.TryGetValue(opportunity.CustomerId, out var customerName))
@@ -137,6 +154,16 @@ public class OpportunityAppService :
             if (opportunity.LeadId.HasValue && leadNamesById.TryGetValue(opportunity.LeadId.Value, out var leadName))
             {
                 opportunity.LeadDisplayName = leadName;
+            }
+
+            if (opportunity.PartnerId.HasValue && partnerNamesById.TryGetValue(opportunity.PartnerId.Value, out var partnerName))
+            {
+                opportunity.PartnerName = partnerName;
+            }
+
+            if (opportunity.AgentId.HasValue && agentNamesById.TryGetValue(opportunity.AgentId.Value, out var agentName))
+            {
+                opportunity.AgentName = agentName;
             }
         }
     }
@@ -182,5 +209,7 @@ public class OpportunityAppService :
         entity.AssignedToUserId = input.AssignedToUserId;
         entity.LostReason = input.LostReason;
         entity.Notes = input.Notes;
+        entity.PartnerId = input.PartnerId;
+        entity.AgentId = input.AgentId;
     }
 }
