@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "name": "my-app",
+  "name": "leitor-erp",
   "private": true,
   "dependencies": {
     "@abp/aspnetcore.mvc.ui.theme.leptonxlite": "~5.5.0"

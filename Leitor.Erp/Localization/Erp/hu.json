@@ -1,9 +1,8 @@
 {
   "culture": "hu",
   "texts": {
-    "AppName": "Erp",
+    "AppName": "Leitor ERP",
     "Welcome_Title": "Üdvözlöm",
-    "Welcome_Text": "Ez egy minimalista, egyrétegű alkalmazásindítási sablon az ABP-keretrendszerhez.",
     "Menu:Home": "Kezdőlap"
   }
 }

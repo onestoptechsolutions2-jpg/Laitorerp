@@ -329,7 +329,7 @@ public class ErpModule : AbpModule
         services.AddAbpSwaggerGen(
             options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Erp API", Version = "v1" });
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Leitor ERP API", Version = "v1" });
                 options.DocInclusionPredicate((docName, description) => true);
                 options.CustomSchemaIds(type => type.FullName);
             }
@@ -397,7 +397,7 @@ public class ErpModule : AbpModule
         app.UseSwagger();
         app.UseAbpSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Erp API");
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Leitor ERP API");
         });
 
         app.UseAuditing();

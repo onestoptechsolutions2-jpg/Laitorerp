@@ -1,9 +1,8 @@
 {
   "culture": "it",
   "texts": {
-    "AppName": "Erp",
+    "AppName": "Leitor ERP",
     "Welcome_Title": "Benvenuto",
-    "Welcome_Text": "Questo è un modello di avvio dell'applicazione minimalista a livello singolo per ABP Framework.",
     "Menu:Home": "Home"
   }
 }
