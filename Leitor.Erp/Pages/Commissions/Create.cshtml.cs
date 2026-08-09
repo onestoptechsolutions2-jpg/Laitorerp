@@ -22,6 +22,8 @@ namespace Leitor.Erp.Pages.Commissions;
 public class CreateModel : AbpPageModel
 {
     private readonly CommissionAppService _commissionAppService;
+    private readonly PartnerAppService _partnerAppService;
+    private readonly AgentAppService _agentAppService;
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<Partner, Guid> _partnerRepository;
     private readonly IRepository<Agent, Guid> _agentRepository;
@@ -29,12 +31,16 @@ public class CreateModel : AbpPageModel
 
     public CreateModel(
         CommissionAppService commissionAppService,
+        PartnerAppService partnerAppService,
+        AgentAppService agentAppService,
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<Partner, Guid> partnerRepository,
         IRepository<Agent, Guid> agentRepository,
         IFeatureChecker featureChecker)
     {
         _commissionAppService = commissionAppService;
+        _partnerAppService = partnerAppService;
+        _agentAppService = agentAppService;
         _opportunityRepository = opportunityRepository;
         _partnerRepository = partnerRepository;
         _agentRepository = agentRepository;
@@ -113,6 +119,59 @@ public class CreateModel : AbpPageModel
         }
 
         return RedirectToPage("./Index", new { OpportunityId = Commission.OpportunityId });
+    }
+
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> OnPostCreatePartnerAsync([FromBody] CreatePartnerRequest request)
+    {
+        // AJAX handler for creating a new Partner from this form, same shape as the Product/
+        // Vendor/Customer modals elsewhere - a commission with no eligible Partner/Agent to pick
+        // is a dead end otherwise (see ValidateExactlyOnePartyIsSet in CommissionAppService).
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Name))
+            {
+                return new JsonResult(new { error = "Partner name is required" }) { StatusCode = 400 };
+            }
+
+            var partner = await _partnerAppService.CreateAsync(new CreateUpdatePartnerDto
+            {
+                Name = request.Name.Trim(),
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim()
+            });
+
+            return new JsonResult(new { id = partner.Id, name = partner.Name });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { error = $"Error creating partner: {ex.Message}" }) { StatusCode = 400 };
+        }
+    }
+
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> OnPostCreateAgentAsync([FromBody] CreateAgentRequest request)
+    {
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Name))
+            {
+                return new JsonResult(new { error = "Agent name is required" }) { StatusCode = 400 };
+            }
+
+            var agent = await _agentAppService.CreateAsync(new CreateUpdateAgentDto
+            {
+                Name = request.Name.Trim(),
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim()
+            });
+
+            return new JsonResult(new { id = agent.Id, name = agent.Name });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { error = $"Error creating agent: {ex.Message}" }) { StatusCode = 400 };
+        }
     }
 
     private async Task LoadOptionsAsync()

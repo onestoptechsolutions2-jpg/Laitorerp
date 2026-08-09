@@ -8,6 +8,8 @@ using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Customers;
+using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +25,7 @@ namespace Leitor.Erp.Pages.Sales.Orders;
 public class CreateModel : AbpPageModel
 {
     private readonly OrderAppService _orderAppService;
+    private readonly CustomerAppService _customerAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
@@ -31,6 +34,7 @@ public class CreateModel : AbpPageModel
 
     public CreateModel(
         OrderAppService orderAppService,
+        CustomerAppService customerAppService,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<Warehouse, Guid> warehouseRepository,
@@ -38,6 +42,7 @@ public class CreateModel : AbpPageModel
         IFeatureChecker featureChecker)
     {
         _orderAppService = orderAppService;
+        _customerAppService = customerAppService;
         _customerRepository = customerRepository;
         _currencyRepository = currencyRepository;
         _warehouseRepository = warehouseRepository;
@@ -79,6 +84,34 @@ public class CreateModel : AbpPageModel
 
         var order = await _orderAppService.CreateAsync(Order);
         return RedirectToPage("./Detail", new { id = order.Id });
+    }
+
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> OnPostCreateCustomerAsync([FromBody] CreateCustomerRequest request)
+    {
+        // AJAX handler for creating a new customer from this form - same rationale as Sales/
+        // Quotes/Create's identical handler (a brand-new prospect with no Customer record yet is a
+        // common, not edge-case, reason to be starting an Order).
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Name))
+            {
+                return new JsonResult(new { error = "Customer name is required" }) { StatusCode = 400 };
+            }
+
+            var customer = await _customerAppService.CreateAsync(new CreateUpdateCustomerDto
+            {
+                Name = request.Name.Trim(),
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                PhoneNumber = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim()
+            });
+
+            return new JsonResult(new { id = customer.Id, name = customer.Name, defaultCurrencyCode = customer.DefaultCurrencyCode });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { error = $"Error creating customer: {ex.Message}" }) { StatusCode = 400 };
+        }
     }
 
     private async Task LoadCustomerOptionsAsync()

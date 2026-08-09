@@ -11,7 +11,15 @@
     <div class="card-body">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="PurchaseOrder.VendorId" asp-items="Model.VendorOptions" label="@L["Vendor"].Value" />
+            <div class="mb-3">
+                <label class="form-label">@L["Vendor"]</label>
+                <div class="input-group">
+                    <select asp-for="PurchaseOrder.VendorId" asp-items="Model.VendorOptions" class="form-select"></select>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newVendorModal" title="Create new vendor">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </div>
             <abp-input asp-for="PurchaseOrder.Status" />
             <abp-input asp-for="PurchaseOrder.OrderDate" />
             <abp-input asp-for="PurchaseOrder.ExpectedDeliveryDate" />
@@ -25,6 +33,39 @@
                 <a asp-page="./Index" class="btn btn-secondary">@L["Cancel"]</a>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- New Vendor Modal -->
+<div class="modal fade" id="newVendorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@L["CreateNewVendor"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newVendorForm" method="post" asp-page-handler="CreateVendor">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@L["Name"]</label>
+                        <input type="text" class="form-control" name="name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Email"]</label>
+                        <input type="email" class="form-control" name="email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Phone"]</label>
+                        <input type="text" class="form-control" name="phone" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary">@L["CreateVendor"]</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -42,6 +83,59 @@
                 var terms = vendorPaymentTerms[vendorSelect.value];
                 if (terms !== undefined) {
                     paymentTermsSelect.value = terms;
+                }
+            });
+
+            var newVendorForm = document.getElementById('newVendorForm');
+            if (!newVendorForm) {
+                return;
+            }
+
+            newVendorForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+                var data = {
+                    name: formData.get('name'),
+                    email: formData.get('email') || null,
+                    phone: formData.get('phone') || null
+                };
+
+                try {
+                    var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    var headers = { 'Content-Type': 'application/json' };
+                    if (tokenInput) {
+                        headers['RequestVerificationToken'] = tokenInput.value;
+                    }
+
+                    var response = await fetch('?handler=CreateVendor', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        var result = await response.json();
+                        bootstrap.Modal.getInstance(document.getElementById('newVendorModal')).hide();
+
+                        var option = document.createElement('option');
+                        option.value = result.id;
+                        option.textContent = result.name;
+                        vendorSelect.appendChild(option);
+
+                        vendorPaymentTerms[result.id] = result.defaultPaymentTerms;
+
+                        vendorSelect.value = result.id;
+                        vendorSelect.dispatchEvent(new Event('change'));
+
+                        newVendorForm.reset();
+                        alert('Vendor created successfully');
+                    } else {
+                        var error = await response.json();
+                        alert('Error creating vendor: ' + (error.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('Error creating vendor: ' + error.message);
                 }
             });
         })();

@@ -16,8 +16,24 @@
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
             <abp-select asp-for="Commission.OpportunityId" asp-items="Model.OpportunityOptions" label="@L["Opportunity"].Value" />
-            <abp-select asp-for="Commission.PartnerId" asp-items="Model.PartnerOptions" label="@L["Partner"].Value" />
-            <abp-select asp-for="Commission.AgentId" asp-items="Model.AgentOptions" label="@L["Agent"].Value" />
+            <div class="mb-3">
+                <label class="form-label">@L["Partner"]</label>
+                <div class="input-group">
+                    <select asp-for="Commission.PartnerId" asp-items="Model.PartnerOptions" class="form-select"></select>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newPartnerModal" title="Create new partner">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">@L["Agent"]</label>
+                <div class="input-group">
+                    <select asp-for="Commission.AgentId" asp-items="Model.AgentOptions" class="form-select"></select>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newAgentModal" title="Create new agent">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </div>
             <abp-input asp-for="Commission.Basis" />
             <abp-input asp-for="Commission.Rate" />
             <abp-input asp-for="Commission.BaseAmount" />
@@ -31,3 +47,131 @@
         </form>
     </div>
 </div>
+
+<!-- New Partner Modal -->
+<div class="modal fade" id="newPartnerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@L["CreateNewPartner"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newPartnerForm" method="post" asp-page-handler="CreatePartner">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@L["Name"]</label>
+                        <input type="text" class="form-control" name="name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Email"]</label>
+                        <input type="email" class="form-control" name="email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Phone"]</label>
+                        <input type="text" class="form-control" name="phone" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary">@L["CreatePartner"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- New Agent Modal -->
+<div class="modal fade" id="newAgentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@L["CreateNewAgent"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newAgentForm" method="post" asp-page-handler="CreateAgent">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@L["Name"]</label>
+                        <input type="text" class="form-control" name="name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Email"]</label>
+                        <input type="email" class="form-control" name="email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Phone"]</label>
+                        <input type="text" class="form-control" name="phone" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary">@L["CreateAgent"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            function wireCreateModal(formId, modalId, selectId, handler, errorPrefix) {
+                var form = document.getElementById(formId);
+                var select = document.getElementById(selectId);
+                if (!form || !select) {
+                    return;
+                }
+
+                form.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    var formData = new FormData(this);
+                    var data = {
+                        name: formData.get('name'),
+                        email: formData.get('email') || null,
+                        phone: formData.get('phone') || null
+                    };
+
+                    try {
+                        var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                        var headers = { 'Content-Type': 'application/json' };
+                        if (tokenInput) {
+                            headers['RequestVerificationToken'] = tokenInput.value;
+                        }
+
+                        var response = await fetch('?handler=' + handler, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(data)
+                        });
+
+                        if (response.ok) {
+                            var result = await response.json();
+                            bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+
+                            var option = document.createElement('option');
+                            option.value = result.id;
+                            option.textContent = result.name;
+                            select.appendChild(option);
+
+                            select.value = result.id;
+
+                            form.reset();
+                            alert('Created successfully');
+                        } else {
+                            var error = await response.json();
+                            alert(errorPrefix + (error.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert(errorPrefix + error.message);
+                    }
+                });
+            }
+
+            wireCreateModal('newPartnerForm', 'newPartnerModal', 'Commission_PartnerId', 'CreatePartner', 'Error creating partner: ');
+            wireCreateModal('newAgentForm', 'newAgentModal', 'Commission_AgentId', 'CreateAgent', 'Error creating agent: ');
+        })();
+    </script>
+}

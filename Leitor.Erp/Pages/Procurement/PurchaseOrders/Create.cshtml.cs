@@ -20,17 +20,20 @@ namespace Leitor.Erp.Pages.Procurement.PurchaseOrders;
 public class CreateModel : AbpPageModel
 {
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
+    private readonly VendorAppService _vendorAppService;
     private readonly IRepository<Vendor, Guid> _vendorRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
 
     public CreateModel(
         PurchaseOrderAppService purchaseOrderAppService,
+        VendorAppService vendorAppService,
         IRepository<Vendor, Guid> vendorRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<Warehouse, Guid> warehouseRepository)
     {
         _purchaseOrderAppService = purchaseOrderAppService;
+        _vendorAppService = vendorAppService;
         _vendorRepository = vendorRepository;
         _currencyRepository = currencyRepository;
         _warehouseRepository = warehouseRepository;
@@ -70,6 +73,35 @@ public class CreateModel : AbpPageModel
 
         var purchaseOrder = await _purchaseOrderAppService.CreateAsync(PurchaseOrder);
         return RedirectToPage("./Detail", new { id = purchaseOrder.Id });
+    }
+
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> OnPostCreateVendorAsync([FromBody] CreateVendorRequest request)
+    {
+        // AJAX handler for creating a new vendor from this form - same shape as Sales/Quotes/
+        // Detail's OnPostCreateProductAsync. A brand-new deployment has zero vendors and this
+        // dropdown has no "None" fallback, so without this a first-ever Purchase Order is a dead
+        // end: navigate away, create the vendor, come back, start the form over.
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Name))
+            {
+                return new JsonResult(new { error = "Vendor name is required" }) { StatusCode = 400 };
+            }
+
+            var vendor = await _vendorAppService.CreateAsync(new CreateUpdateVendorDto
+            {
+                Name = request.Name.Trim(),
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim()
+            });
+
+            return new JsonResult(new { id = vendor.Id, name = vendor.Name, defaultPaymentTerms = (int)vendor.DefaultPaymentTerms });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { error = $"Error creating vendor: {ex.Message}" }) { StatusCode = 400 };
+        }
     }
 
     private async Task LoadWarehouseOptionsAsync()

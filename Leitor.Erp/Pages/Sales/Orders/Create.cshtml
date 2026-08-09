@@ -13,7 +13,15 @@
     <div class="card-body">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <abp-select asp-for="Order.CustomerId" asp-items="Model.CustomerOptions" label="@L["Customer"].Value" />
+            <div class="mb-3">
+                <label class="form-label">@L["Customer"]</label>
+                <div class="input-group">
+                    <select asp-for="Order.CustomerId" asp-items="Model.CustomerOptions" class="form-select"></select>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newCustomerModal" title="Create new customer">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </div>
             <abp-input asp-for="Order.Status" />
             <abp-input asp-for="Order.OrderDate" />
             <abp-input asp-for="Order.PaymentTerms" />
@@ -33,6 +41,39 @@
     </div>
 </div>
 
+<!-- New Customer Modal -->
+<div class="modal fade" id="newCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@L["CreateNewCustomer"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newCustomerForm" method="post" asp-page-handler="CreateCustomer">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@L["Name"]</label>
+                        <input type="text" class="form-control" name="name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Email"]</label>
+                        <input type="email" class="form-control" name="email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@L["Phone"]</label>
+                        <input type="text" class="form-control" name="phone" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary">@L["CreateCustomer"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         (function () {
@@ -47,6 +88,61 @@
                 var code = customerCurrencies[customerSelect.value];
                 if (code) {
                     currencySelect.value = code;
+                }
+            });
+
+            var newCustomerForm = document.getElementById('newCustomerForm');
+            if (!newCustomerForm) {
+                return;
+            }
+
+            newCustomerForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+                var data = {
+                    name: formData.get('name'),
+                    email: formData.get('email') || null,
+                    phone: formData.get('phone') || null
+                };
+
+                try {
+                    var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    var headers = { 'Content-Type': 'application/json' };
+                    if (tokenInput) {
+                        headers['RequestVerificationToken'] = tokenInput.value;
+                    }
+
+                    var response = await fetch('?handler=CreateCustomer', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        var result = await response.json();
+                        bootstrap.Modal.getInstance(document.getElementById('newCustomerModal')).hide();
+
+                        var option = document.createElement('option');
+                        option.value = result.id;
+                        option.textContent = result.name;
+                        customerSelect.appendChild(option);
+
+                        if (result.defaultCurrencyCode) {
+                            customerCurrencies[result.id] = result.defaultCurrencyCode;
+                        }
+
+                        customerSelect.value = result.id;
+                        customerSelect.dispatchEvent(new Event('change'));
+
+                        newCustomerForm.reset();
+                        alert('Customer created successfully');
+                    } else {
+                        var error = await response.json();
+                        alert('Error creating customer: ' + (error.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('Error creating customer: ' + error.message);
                 }
             });
         })();
