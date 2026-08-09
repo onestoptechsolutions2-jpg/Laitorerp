@@ -3,6 +3,11 @@
   "texts": {
     "AppName": "Leitor ERP",
     "Welcome_Title": "Velkomin",
-    "Menu:Home": "Heim"
+    "Menu:Home": "Heim",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports"
   }
 }

@@ -3,6 +3,11 @@
   "texts": {
     "AppName": "Leitor ERP",
     "Welcome_Title": "Vitajte",
-    "Menu:Home": "Domov"
+    "Menu:Home": "Domov",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports"
   }
 }

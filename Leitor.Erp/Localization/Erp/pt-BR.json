@@ -3,6 +3,11 @@
   "texts": {
     "AppName": "Leitor ERP",
     "Welcome_Title": "Seja bem-vindo!",
-    "Menu:Home": "Principal"
+    "Menu:Home": "Principal",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports"
   }
 }

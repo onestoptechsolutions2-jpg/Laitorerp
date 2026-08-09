@@ -1,8 +1,13 @@
 {
- "culture": "fr",
- "texts": {
+  "culture": "fr",
+  "texts": {
     "AppName": "Leitor ERP",
     "Welcome_Title": "Bienvenue",
-  "Menu:Home": "Accueil"
- }
+    "Menu:Home": "Accueil",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports"
+  }
 }

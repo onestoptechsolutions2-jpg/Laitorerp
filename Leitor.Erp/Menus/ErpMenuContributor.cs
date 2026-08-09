@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Leitor.Erp.Features;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Permissions;
@@ -67,56 +67,43 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
-        if (await context.IsGrantedAsync(ErpPermissions.Leads.Default))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.Leads,
-                    l["Menu:Leads"],
-                    "~/Leads",
-                    icon: "fas fa-user-plus",
-                    order: 1
-                )
-            );
-        }
+        // CRM - Lead -> Opportunity -> Customer is one pipeline; grouped as one funnel instead of
+        // three separate top-level entries.
+        var canViewLeads = await context.IsGrantedAsync(ErpPermissions.Leads.Default);
+        var canViewOpportunities = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
+        var canViewCustomers = await context.IsGrantedAsync(ErpPermissions.Customers.Default);
 
-        if (await context.IsGrantedAsync(ErpPermissions.Customers.Default))
+        if (canViewLeads || canViewOpportunities || canViewCustomers)
         {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.Customers,
-                    l["Menu:Customers"],
-                    "~/Customers",
-                    icon: "fas fa-users",
-                    order: 2
-                )
+            var crmMenu = new ApplicationMenuItem(
+                ErpMenus.Crm,
+                l["Menu:Crm"],
+                icon: "fas fa-address-book",
+                order: 2
             );
-        }
 
-        if (await context.IsGrantedAsync(ErpPermissions.Opportunities.Default))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.Opportunities,
-                    l["Menu:Opportunities"],
-                    "~/Opportunities",
-                    icon: "fas fa-bullseye",
-                    order: 3
-                )
-            );
-        }
+            if (canViewLeads)
+            {
+                crmMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.Leads, l["Menu:Leads"], "~/Leads", order: 1)
+                );
+            }
 
-        if (await context.IsGrantedAsync(ErpPermissions.Catalog.Default))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.Catalog,
-                    l["Menu:Catalog"],
-                    "~/Catalog",
-                    icon: "fas fa-boxes-stacked",
-                    order: 4
-                )
-            );
+            if (canViewOpportunities)
+            {
+                crmMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.Opportunities, l["Menu:Opportunities"], "~/Opportunities", order: 2)
+                );
+            }
+
+            if (canViewCustomers)
+            {
+                crmMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.Customers, l["Menu:Customers"], "~/Customers", order: 3)
+                );
+            }
+
+            context.Menu.Items.Add(crmMenu);
         }
 
         if (await context.IsGrantedAsync(ErpPermissions.Sales.Default))
@@ -125,7 +112,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Sales,
                 l["Menu:Sales"],
                 icon: "fas fa-file-invoice-dollar",
-                order: 5
+                order: 3
             );
 
             salesMenu.AddItem(
@@ -141,39 +128,149 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(salesMenu);
         }
 
-        if (await context.IsGrantedAsync(ErpPermissions.FieldService.Default))
+        // Catalog & Inventory - what you sell plus what you have of it, plus the Catalog-owned
+        // reference data (tax rates/categories/price lists) that used to be stranded under
+        // Administration > Settings.
+        var canViewCatalog = await context.IsGrantedAsync(ErpPermissions.Catalog.Default);
+        var canViewInventory = await context.IsGrantedAsync(ErpPermissions.Inventory.Default);
+
+        if (canViewCatalog || canViewInventory)
         {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.FieldServiceJobs,
-                    l["Menu:FieldService"],
-                    "~/FieldService/Jobs",
-                    icon: "fas fa-truck-fast",
-                    order: 6
-                )
+            var catalogInventoryMenu = new ApplicationMenuItem(
+                ErpMenus.CatalogInventory,
+                l["Menu:CatalogInventory"],
+                icon: "fas fa-boxes-stacked",
+                order: 4
             );
+
+            if (canViewCatalog)
+            {
+                catalogInventoryMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.Catalog, l["Menu:Catalog"], "~/Catalog", order: 1)
+                );
+            }
+
+            if (canViewInventory)
+            {
+                catalogInventoryMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.InventoryWarehouses, l["Menu:Warehouses"], "~/Inventory/Warehouses", order: 2)
+                );
+                catalogInventoryMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.InventoryStockMovements, l["Menu:StockMovements"], "~/Inventory/StockMovements", order: 3)
+                );
+            }
+
+            if (canViewCatalog)
+            {
+                catalogInventoryMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.CatalogTaxRates, l["Menu:TaxRates"], "~/Catalog/TaxRates", order: 4)
+                );
+                catalogInventoryMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.CatalogCategories, l["Menu:Categories"], "~/Catalog/Categories", order: 5)
+                );
+                catalogInventoryMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.CatalogPriceLists, l["Menu:PriceLists"], "~/Catalog/PriceLists", order: 6)
+                );
+            }
+
+            context.Menu.Items.Add(catalogInventoryMenu);
         }
 
-        if (await context.IsGrantedAsync(ErpPermissions.Support.Default))
+        // Operations - post-sale delivery/execution work (Field Service jobs, Projects).
+        var canViewFieldService = await context.IsGrantedAsync(ErpPermissions.FieldService.Default);
+        var canViewProjects = await context.IsGrantedAsync(ErpPermissions.Projects.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement);
+
+        if (canViewFieldService || canViewProjects)
         {
-            var supportMenu = new ApplicationMenuItem(
-                ErpMenus.Support,
-                l["Menu:Support"],
+            var operationsMenu = new ApplicationMenuItem(
+                ErpMenus.Operations,
+                l["Menu:Operations"],
+                icon: "fas fa-truck-fast",
+                order: 5
+            );
+
+            if (canViewFieldService)
+            {
+                operationsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.OperationsFieldServiceJobs, l["Menu:FieldService"], "~/FieldService/Jobs", order: 1)
+                );
+            }
+
+            if (canViewProjects)
+            {
+                operationsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.OperationsProjects, l["Menu:Projects"], "~/Projects", order: 2)
+                );
+            }
+
+            context.Menu.Items.Add(operationsMenu);
+        }
+
+        // Service Management - the ITIL-style process family: Incident/Problem Management
+        // (ex-Support) plus the toggleable Service Catalog/Requests/Assets/Knowledge modules,
+        // unified under one parent instead of five separate top-level entries.
+        var canViewSupport = await context.IsGrantedAsync(ErpPermissions.Support.Default);
+        var canViewServiceCatalog = await context.IsGrantedAsync(ErpPermissions.ServiceCatalog.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.ServiceCatalog);
+        var canViewServiceRequests = await context.IsGrantedAsync(ErpPermissions.ServiceRequests.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.ServiceRequestManagement);
+        var canViewAssets = await context.IsGrantedAsync(ErpPermissions.Assets.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.AssetManagement);
+        var canViewKnowledgeBase = await context.IsGrantedAsync(ErpPermissions.KnowledgeBase.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.KnowledgeManagement);
+
+        if (canViewSupport || canViewServiceCatalog || canViewServiceRequests || canViewAssets || canViewKnowledgeBase)
+        {
+            var serviceManagementMenu = new ApplicationMenuItem(
+                ErpMenus.ServiceManagement,
+                l["Menu:ServiceManagement"],
                 icon: "fas fa-headset",
-                order: 7
+                order: 6
             );
 
-            supportMenu.AddItem(
-                new ApplicationMenuItem(ErpMenus.SupportTickets, l["Menu:Tickets"], "~/Support/Tickets", order: 1)
-            );
-            supportMenu.AddItem(
-                new ApplicationMenuItem(ErpMenus.SupportWarrantyClaims, l["Menu:WarrantyClaims"], "~/Support/WarrantyClaims", order: 2)
-            );
-            supportMenu.AddItem(
-                new ApplicationMenuItem(ErpMenus.SupportProblems, l["Menu:Problems"], "~/Support/Problems", order: 3)
-            );
+            if (canViewSupport)
+            {
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementTickets, l["Menu:Tickets"], "~/Support/Tickets", order: 1)
+                );
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementWarrantyClaims, l["Menu:WarrantyClaims"], "~/Support/WarrantyClaims", order: 2)
+                );
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementProblems, l["Menu:Problems"], "~/Support/Problems", order: 3)
+                );
+            }
 
-            context.Menu.Items.Add(supportMenu);
+            if (canViewServiceCatalog)
+            {
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementServiceCatalog, l["Menu:ServiceCatalog"], "~/ServiceCatalog", order: 4)
+                );
+            }
+
+            if (canViewServiceRequests)
+            {
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementServiceRequests, l["Menu:ServiceRequests"], "~/ServiceRequests", order: 5)
+                );
+            }
+
+            if (canViewAssets)
+            {
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementAssets, l["Menu:Assets"], "~/Assets", order: 6)
+                );
+            }
+
+            if (canViewKnowledgeBase)
+            {
+                serviceManagementMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ServiceManagementKnowledgeBase, l["Menu:KnowledgeBase"], "~/KnowledgeBase", order: 7)
+                );
+            }
+
+            context.Menu.Items.Add(serviceManagementMenu);
         }
 
         var canViewVendors = await context.IsGrantedAsync(ErpPermissions.Vendors.Default);
@@ -185,7 +282,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Procurement,
                 l["Menu:Procurement"],
                 icon: "fas fa-truck-ramp-box",
-                order: 8
+                order: 7
             );
 
             if (canViewVendors)
@@ -208,19 +305,25 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(procurementMenu);
         }
 
+        // Accounting - operational ledger pages plus the Accounting-owned reference data
+        // (currencies/exchange rates/chart of accounts) that used to be stranded under
+        // Administration > Settings, and Tax Compliance (a compliance report, not its own
+        // top-level category). canViewAccounting is reused below for the Financial Reports group.
         var canViewAccounting = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
         var canViewFixedAssets = await context.IsGrantedAsync(ErpPermissions.FixedAssets.Default);
         var canViewBanking = await context.IsGrantedAsync(ErpPermissions.Banking.Default);
         var canViewBudgets = await context.IsGrantedAsync(ErpPermissions.Budgets.Default);
         var canViewFiscalPeriods = await context.IsGrantedAsync(ErpPermissions.FiscalPeriods.Default);
+        var canViewTaxCompliance = await context.IsGrantedAsync(ErpPermissions.TaxCompliance.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.TaxCompliance);
 
-        if (canViewAccounting || canViewFixedAssets || canViewBanking || canViewBudgets || canViewFiscalPeriods)
+        if (canViewAccounting || canViewFixedAssets || canViewBanking || canViewBudgets || canViewFiscalPeriods || canViewTaxCompliance)
         {
             var accountingMenu = new ApplicationMenuItem(
                 ErpMenus.Accounting,
                 l["Menu:Accounting"],
                 icon: "fas fa-scale-balanced",
-                order: 9
+                order: 8
             );
 
             if (canViewAccounting)
@@ -263,120 +366,25 @@ public class ErpMenuContributor : IMenuContributor
                 accountingMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.RecurringJournals, l["Menu:RecurringJournals"], "~/Accounting/RecurringJournals", order: 6)
                 );
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.AccountingCurrencies, l["Menu:Currencies"], "~/Accounting/Currencies", order: 7)
+                );
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.AccountingExchangeRates, l["Menu:ExchangeRates"], "~/Accounting/ExchangeRates", order: 8)
+                );
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.AccountingChartOfAccounts, l["Menu:ChartOfAccounts"], "~/Accounting/ChartOfAccounts", order: 9)
+                );
+            }
+
+            if (canViewTaxCompliance)
+            {
+                accountingMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.AccountingTaxCompliance, l["Menu:TaxCompliance"], "~/Tax/VatReturn", order: 10)
+                );
             }
 
             context.Menu.Items.Add(accountingMenu);
-        }
-
-        if (await context.IsGrantedAsync(ErpPermissions.Inventory.Default))
-        {
-            var inventoryMenu = new ApplicationMenuItem(
-                ErpMenus.Inventory,
-                l["Menu:Inventory"],
-                icon: "fas fa-warehouse",
-                order: 10
-            );
-
-            inventoryMenu.AddItem(
-                new ApplicationMenuItem(ErpMenus.InventoryWarehouses, l["Menu:Warehouses"], "~/Inventory/Warehouses", order: 1)
-            );
-            inventoryMenu.AddItem(
-                new ApplicationMenuItem(ErpMenus.InventoryStockMovements, l["Menu:StockMovements"], "~/Inventory/StockMovements", order: 2)
-            );
-
-            context.Menu.Items.Add(inventoryMenu);
-        }
-
-        // Toggleable module (see Features/ErpFeatures.cs) - gated on both the permission and the
-        // feature being switched on, so an Admin who holds Projects.Default still doesn't see this
-        // while the module is disabled from Administration > Module Toggles.
-        if (await context.IsGrantedAsync(ErpPermissions.Projects.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.Projects,
-                    l["Menu:Projects"],
-                    "~/Projects",
-                    icon: "fas fa-diagram-project",
-                    order: 11
-                )
-            );
-        }
-
-        // Toggleable module (see Features/ErpFeatures.cs).
-        if (await context.IsGrantedAsync(ErpPermissions.TaxCompliance.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.TaxCompliance))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.TaxCompliance,
-                    l["Menu:TaxCompliance"],
-                    "~/Tax/VatReturn",
-                    icon: "fas fa-receipt",
-                    order: 12
-                )
-            );
-        }
-
-        // Toggleable module (see Features/ErpFeatures.cs).
-        if (await context.IsGrantedAsync(ErpPermissions.ServiceCatalog.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.ServiceCatalog))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.ServiceCatalog,
-                    l["Menu:ServiceCatalog"],
-                    "~/ServiceCatalog",
-                    icon: "fas fa-list-check",
-                    order: 13
-                )
-            );
-        }
-
-        // Toggleable module (see Features/ErpFeatures.cs).
-        if (await context.IsGrantedAsync(ErpPermissions.ServiceRequests.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.ServiceRequestManagement))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.ServiceRequests,
-                    l["Menu:ServiceRequests"],
-                    "~/ServiceRequests",
-                    icon: "fas fa-hand-holding-hand",
-                    order: 14
-                )
-            );
-        }
-
-        // Toggleable module (see Features/ErpFeatures.cs).
-        if (await context.IsGrantedAsync(ErpPermissions.Assets.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.AssetManagement))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.Assets,
-                    l["Menu:Assets"],
-                    "~/Assets",
-                    icon: "fas fa-server",
-                    order: 15
-                )
-            );
-        }
-
-        // Toggleable module (see Features/ErpFeatures.cs).
-        if (await context.IsGrantedAsync(ErpPermissions.KnowledgeBase.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.KnowledgeManagement))
-        {
-            context.Menu.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.KnowledgeBase,
-                    l["Menu:KnowledgeBase"],
-                    "~/KnowledgeBase",
-                    icon: "fas fa-book",
-                    order: 16
-                )
-            );
         }
 
         // Toggleable module (see Features/ErpFeatures.cs).
@@ -387,7 +395,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Pos,
                 l["Menu:Pos"],
                 icon: "fas fa-cash-register",
-                order: 17
+                order: 9
             );
             posMenu.AddItem(new ApplicationMenuItem(ErpMenus.PosRegister, l["Menu:PosRegister"], "~/Pos/Register", order: 1));
             posMenu.AddItem(new ApplicationMenuItem(ErpMenus.PosSales, l["Menu:SalesHistory"], "~/Pos/Sales", order: 2));
@@ -402,7 +410,7 @@ public class ErpMenuContributor : IMenuContributor
                 ErpMenus.Partners,
                 l["Menu:Partners"],
                 icon: "fas fa-handshake",
-                order: 18
+                order: 10
             );
             partnersMenu.AddItem(new ApplicationMenuItem(ErpMenus.PartnersDirectory, l["Menu:PartnersDirectory"], "~/Partners", order: 1));
             partnersMenu.AddItem(new ApplicationMenuItem(ErpMenus.PartnersAgents, l["Menu:PartnersAgents"], "~/Agents", order: 2));
@@ -410,18 +418,18 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(partnersMenu);
         }
 
-        // Cross-cutting: every read-only analytics/aggregation page in the app, regardless of
-        // which business module it reports on - lives under Administration (not the main module
-        // area) since it's a cross-module utility area, same reasoning AuditLogs/DeletionApprovals
-        // already follow. Shown if the user can see any one of its children.
+        // Cross-cutting: every read-only analytics/aggregation page that isn't a financial
+        // statement, regardless of which business module it reports on - lives under
+        // Administration (not the main module area) since it's a cross-module utility area, same
+        // reasoning AuditLogs/DeletionApprovals already follow. Shown if the user can see any one
+        // of its children. Financial statements/aging get their own group below.
         var canViewWorkflowMonitor = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
         var canViewSalesAnalytics = await context.IsGrantedAsync(ErpPermissions.Sales.Default);
-        var canViewGeneralLedgerReports = await context.IsGrantedAsync(ErpPermissions.Accounting.Default);
         var canViewAuditLogs = await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default);
         var canViewInventoryReports = await context.IsGrantedAsync(ErpPermissions.Inventory.Default);
         var canViewSupportAnalytics = await context.IsGrantedAsync(ErpPermissions.Support.Default);
 
-        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewGeneralLedgerReports || canViewAuditLogs || canViewInventoryReports || canViewSupportAnalytics)
+        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewAuditLogs || canViewInventoryReports || canViewSupportAnalytics)
         {
             var reportsMenu = new ApplicationMenuItem(
                 ErpMenus.Reports,
@@ -443,74 +451,85 @@ public class ErpMenuContributor : IMenuContributor
                 );
             }
 
-            if (canViewGeneralLedgerReports)
-            {
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsTrialBalance, l["Menu:TrialBalance"], "~/Accounting/Reports/TrialBalance", order: 3)
-                );
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsIncomeStatement, l["Menu:IncomeStatement"], "~/Accounting/Reports/IncomeStatement", order: 4)
-                );
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsBalanceSheet, l["Menu:BalanceSheet"], "~/Accounting/Reports/BalanceSheet", order: 5)
-                );
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsArAging, l["Menu:ArAging"], "~/Accounting/Reports/ArAging", order: 6)
-                );
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsApAging, l["Menu:ApAging"], "~/Accounting/Reports/ApAging", order: 7)
-                );
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsCurrencyRevaluation, l["Menu:CurrencyRevaluation"], "~/Accounting/Reports/CurrencyRevaluation", order: 8)
-                );
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsCashFlow, l["Menu:CashFlow"], "~/Accounting/Reports/CashFlow", order: 9)
-                );
-            }
-
-            if (canViewBudgets)
-            {
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsBudgetVariance, l["Menu:BudgetVariance"], "~/Accounting/Reports/BudgetVariance", order: 10)
-                );
-            }
-
-            if (canViewAuditLogs)
-            {
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 11)
-                );
-            }
-
             if (canViewInventoryReports)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 12)
+                    new ApplicationMenuItem(ErpMenus.ReportsStockOnHand, l["Menu:StockOnHand"], "~/Inventory/Reports/StockOnHand", order: 3)
                 );
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 13)
+                    new ApplicationMenuItem(ErpMenus.ReportsLowStock, l["Menu:LowStock"], "~/Inventory/Reports/LowStock", order: 4)
                 );
             }
 
             if (canViewSupportAnalytics)
             {
                 reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 14)
+                    new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 5)
+                );
+            }
+
+            if (canViewAuditLogs)
+            {
+                reportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 6)
                 );
             }
 
             administration.Items.Add(reportsMenu);
         }
 
-        // Cross-cutting: every rarely-touched reference/configuration page in the app, regardless
-        // of which business module it configures. Rather than adding a second, competing
-        // "Settings" entry, these are appended onto the Settings group the SettingManagement
-        // module already contributes to Administration (Email/Timezone etc.) - one Settings menu
-        // in the whole app, not two.
-        var canViewCatalogSettings = await context.IsGrantedAsync(ErpPermissions.Catalog.Default);
+        // Financial statements/aging - split out from Reports above since these 8 are one
+        // coherent cluster (all gated on the same Accounting permission) rather than a grab-bag
+        // of cross-module analytics.
+        if (canViewAccounting)
+        {
+            var financialReportsMenu = new ApplicationMenuItem(
+                ErpMenus.FinancialReports,
+                l["Menu:FinancialReports"],
+                icon: "fas fa-coins"
+            );
+
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsTrialBalance, l["Menu:TrialBalance"], "~/Accounting/Reports/TrialBalance", order: 1)
+            );
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsIncomeStatement, l["Menu:IncomeStatement"], "~/Accounting/Reports/IncomeStatement", order: 2)
+            );
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsBalanceSheet, l["Menu:BalanceSheet"], "~/Accounting/Reports/BalanceSheet", order: 3)
+            );
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsArAging, l["Menu:ArAging"], "~/Accounting/Reports/ArAging", order: 4)
+            );
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsApAging, l["Menu:ApAging"], "~/Accounting/Reports/ApAging", order: 5)
+            );
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsCurrencyRevaluation, l["Menu:CurrencyRevaluation"], "~/Accounting/Reports/CurrencyRevaluation", order: 6)
+            );
+            financialReportsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.FinancialReportsCashFlow, l["Menu:CashFlow"], "~/Accounting/Reports/CashFlow", order: 7)
+            );
+
+            if (canViewBudgets)
+            {
+                financialReportsMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.FinancialReportsBudgetVariance, l["Menu:BudgetVariance"], "~/Accounting/Reports/BudgetVariance", order: 8)
+                );
+            }
+
+            administration.Items.Add(financialReportsMenu);
+        }
+
+        // Cross-cutting: app-wide config with no single module owner. Module-specific reference
+        // data (Catalog's tax rates/categories/price lists, Accounting's currencies/chart of
+        // accounts) now lives in those modules' own menus instead of here. Rather than adding a
+        // second, competing "Settings" entry, this is appended onto the Settings group the
+        // SettingManagement module already contributes to Administration (Email/Timezone etc.) -
+        // one Settings menu in the whole app, not two.
         var canManageAppSettings = await context.IsGrantedAsync(ErpPermissions.AppSettings.Manage);
 
-        if (canViewCatalogSettings || canViewGeneralLedgerReports || canManageAppSettings)
+        if (canManageAppSettings)
         {
             var nativeSettingsGroup = administration.Items.FirstOrDefault(x => x.Name == SettingManagementMenuNames.GroupName);
 
@@ -522,38 +541,9 @@ public class ErpMenuContributor : IMenuContributor
                 icon: "fas fa-gears"
             );
 
-            if (canViewCatalogSettings)
-            {
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsTaxRates, l["Menu:TaxRates"], "~/Catalog/TaxRates", order: 10)
-                );
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsCategories, l["Menu:Categories"], "~/Catalog/Categories", order: 11)
-                );
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsPriceLists, l["Menu:PriceLists"], "~/Catalog/PriceLists", order: 12)
-                );
-            }
-
-            if (canViewGeneralLedgerReports)
-            {
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsCurrencies, l["Menu:Currencies"], "~/Accounting/Currencies", order: 13)
-                );
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsExchangeRates, l["Menu:ExchangeRates"], "~/Accounting/ExchangeRates", order: 14)
-                );
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsChartOfAccounts, l["Menu:ChartOfAccounts"], "~/Accounting/ChartOfAccounts", order: 15)
-                );
-            }
-
-            if (canManageAppSettings)
-            {
-                settingsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.SettingsAppSettings, l["Menu:AppSettings"], "~/Administration/AppSettings", order: 20)
-                );
-            }
+            settingsMenu.AddItem(
+                new ApplicationMenuItem(ErpMenus.SettingsAppSettings, l["Menu:AppSettings"], "~/Administration/AppSettings", order: 20)
+            );
 
             if (nativeSettingsGroup == null)
             {

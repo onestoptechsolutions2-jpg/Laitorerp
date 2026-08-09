@@ -2,6 +2,11 @@
   "culture": "sv",
   "texts": {
     "AppName": "Leitor ERP",
-    "Menu:Home": "Hem"
+    "Menu:Home": "Hem",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports"
   }
 }

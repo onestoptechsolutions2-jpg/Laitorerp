@@ -3,6 +3,11 @@
   "texts": {
     "AppName": "Leitor ERP",
     "Welcome_Title": "Üdvözlöm",
-    "Menu:Home": "Kezdőlap"
+    "Menu:Home": "Kezdőlap",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports"
   }
 }

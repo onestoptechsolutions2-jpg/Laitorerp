@@ -1,8 +1,13 @@
 {
   "culture": "en",
   "texts": {
-     "AppName": "Leitor ERP",
+    "AppName": "Leitor ERP",
     "Menu:Home": "Home",
+    "Menu:Crm": "CRM",
+    "Menu:CatalogInventory": "Catalog & Inventory",
+    "Menu:Operations": "Operations",
+    "Menu:ServiceManagement": "Service Management",
+    "Menu:FinancialReports": "Financial Reports",
     "Menu:Customers": "Customers",
     "Permission:Customers": "Customer Management",
     "Permission:Create": "Create",
@@ -971,14 +976,12 @@
     "Enum:AssetCredentialType:1": "API Key",
     "Enum:AssetCredentialType:2": "SSH Key",
     "Enum:AssetCredentialType:3": "Other",
-
     "Feature:PartnerCommission": "Partners, Agents & Commission",
     "Permission:Partners": "Partners, Agents & Commission",
     "Menu:Partners": "Partners & Agents",
     "Menu:PartnersDirectory": "Partners",
     "Menu:PartnersAgents": "Agents",
     "Menu:PartnersCommissions": "Commissions",
-
     "Partners": "Partners",
     "NewPartner": "New Partner",
     "EditPartner": "Edit Partner",
@@ -988,7 +991,6 @@
     "Enum:PartnerCategory:3": "Consultant",
     "Enum:PartnerCategory:4": "Contractor",
     "Enum:PartnerCategory:5": "Other",
-
     "Agents": "Agents",
     "NewAgent": "New Agent",
     "EditAgent": "Edit Agent",
@@ -997,7 +999,6 @@
     "Territory": "Territory",
     "Skills": "Skills",
     "ReferrerAgent": "Referred By (Agent)",
-
     "Commissions": "Commissions",
     "NewCommission": "New Commission",
     "Opportunity": "Opportunity",
