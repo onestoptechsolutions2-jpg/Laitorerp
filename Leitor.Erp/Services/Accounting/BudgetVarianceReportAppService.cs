@@ -38,7 +38,11 @@ public class BudgetVarianceReportAppService : ApplicationService
         var fromDate = month.HasValue ? new DateTime(fiscalYear, month.Value, 1) : new DateTime(fiscalYear, 1, 1);
         var toDate = month.HasValue ? fromDate.AddMonths(1).AddDays(-1) : new DateTime(fiscalYear, 12, 31);
 
-        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate >= fromDate && x.EntryDate <= toDate);
+        // EntryDate is a full timestamp (e.g. Clock.Now for same-day POS postings) while fromDate/
+        // toDate are midnight-of-day values - use an exclusive next-day upper bound so entries
+        // posted later on toDate itself aren't silently dropped (see the identical fix in
+        // GeneralLedgerReportAppService).
+        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate >= fromDate && x.EntryDate < toDate.AddDays(1));
         var entryIds = entries.Select(x => x.Id).ToList();
         var lines = entryIds.Count > 0
             ? await _journalEntryLineRepository.GetListAsync(x => entryIds.Contains(x.JournalEntryId))

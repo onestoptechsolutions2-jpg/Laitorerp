@@ -42,7 +42,10 @@ public class CashFlowReportAppService : ApplicationService
 
         var accounts = await _accountRepository.GetListAsync();
 
-        var periodEntries = await _journalEntryRepository.GetListAsync(x => x.EntryDate >= fromDate && x.EntryDate <= toDate);
+        // EntryDate is a full timestamp (e.g. Clock.Now for same-day POS postings) while callers
+        // pass date-only values - use an exclusive next-day upper bound so same-day entries aren't
+        // silently dropped (see the identical fix in GeneralLedgerReportAppService).
+        var periodEntries = await _journalEntryRepository.GetListAsync(x => x.EntryDate >= fromDate.Date && x.EntryDate < toDate.Date.AddDays(1));
         var periodEntryIds = periodEntries.Select(x => x.Id).ToList();
         var periodLines = periodEntryIds.Count > 0
             ? await _journalEntryLineRepository.GetListAsync(x => periodEntryIds.Contains(x.JournalEntryId))
@@ -110,7 +113,7 @@ public class CashFlowReportAppService : ApplicationService
 
     private async Task<decimal> ComputeAccountBalanceAsync(Guid accountId, DateTime asOfDate, bool isAsset)
     {
-        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate <= asOfDate);
+        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate < asOfDate.Date.AddDays(1));
         var entryIds = entries.Select(x => x.Id).ToList();
         if (entryIds.Count == 0)
         {

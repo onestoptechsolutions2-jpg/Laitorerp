@@ -129,7 +129,13 @@ public class GeneralLedgerReportAppService : ApplicationService
     private async Task<(List<IncomeStatementLineDto> revenueLines, List<IncomeStatementLineDto> expenseLines)> ComputeNetIncomeByAccountAsync(
         DateTime fromDate, DateTime toDate)
     {
-        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate >= fromDate && x.EntryDate <= toDate);
+        // Callers (report pages) pass date-only values (e.g. DateTime.Today), but EntryDate is a
+        // full timestamp (Clock.Now for same-day postings like POS sales). A plain `<= toDate`
+        // compares against midnight of that day and silently excludes everything posted later the
+        // same day - use an exclusive upper bound at the start of the next day instead.
+        var inclusiveFromDate = fromDate.Date;
+        var exclusiveToDate = toDate.Date.AddDays(1);
+        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate >= inclusiveFromDate && x.EntryDate < exclusiveToDate);
         var entryIds = entries.Select(x => x.Id).ToList();
         var lines = entryIds.Count > 0
             ? await _journalEntryLineRepository.GetListAsync(x => entryIds.Contains(x.JournalEntryId))
@@ -146,7 +152,11 @@ public class GeneralLedgerReportAppService : ApplicationService
 
     private async Task<(ILookup<Guid, JournalEntryLine> linesByAccountId, Dictionary<Guid, Account> accountsById)> LoadLinesUpToAsync(DateTime asOfDate)
     {
-        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate <= asOfDate);
+        // Same exclusive-next-day-boundary fix as ComputeNetIncomeByAccountAsync above - asOfDate
+        // defaults to DateTime.Today (midnight) on the Trial Balance/Balance Sheet pages, and a
+        // plain `<= asOfDate` would exclude same-day entries posted with a real time-of-day.
+        var exclusiveUpperBound = asOfDate.Date.AddDays(1);
+        var entries = await _journalEntryRepository.GetListAsync(x => x.EntryDate < exclusiveUpperBound);
         var entryIds = entries.Select(x => x.Id).ToList();
         var lines = entryIds.Count > 0
             ? await _journalEntryLineRepository.GetListAsync(x => entryIds.Contains(x.JournalEntryId))
