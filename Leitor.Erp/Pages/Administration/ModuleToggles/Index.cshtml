@@ -36,7 +36,6 @@
                             <td>
                                 <form method="post" asp-page-handler="Toggle" class="d-inline">
                                     <input type="hidden" name="name" value="@module.Name" />
-                                    <input type="hidden" name="enabled" value="@(!module.IsEnabled)" />
                                     <button type="submit" class="btn btn-sm @(module.IsEnabled ? "btn-outline-danger" : "btn-outline-primary")">
                                         @(module.IsEnabled ? L["Disable"] : L["Enable"])
                                     </button>
