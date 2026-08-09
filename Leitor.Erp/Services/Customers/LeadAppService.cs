@@ -146,7 +146,8 @@ public class LeadAppService :
         var opportunity = new Opportunity(GuidGenerator.Create(), customer.Id, opportunityName)
         {
             LeadId = lead.Id,
-            AssignedToUserId = lead.AssignedToUserId
+            AssignedToUserId = lead.AssignedToUserId,
+            AgentId = lead.ReferrerAgentId
         };
         await _opportunityRepository.InsertAsync(opportunity, autoSave: true);
         await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Opportunity", opportunity.Id, WorkflowStage.OpportunityOpened);

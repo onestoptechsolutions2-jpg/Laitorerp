@@ -351,4 +351,33 @@ public class PartnerCommissionAppServiceTests : ErpTestBase
         Assert.Equal(CommissionStatus.Paid, paid.Status);
         Assert.NotNull(paid.PaidDate);
     }
+
+    // Regression for a gap found after shipping: LeadAppService.ConvertToCustomerAsync auto-opens
+    // an Opportunity for the new Customer, but originally never carried Lead.ReferrerAgentId
+    // forward onto it - so the referral relationship (TC-008: "Referral information is
+    // preserved") silently vanished the moment a referred lead converted, even though it was
+    // correctly recorded on the Lead itself.
+    [Fact]
+    public async Task ConvertToCustomerAsync_Propagates_ReferrerAgent_To_The_New_Opportunity()
+    {
+        await EnsureDatabaseCreatedAsync();
+        await EnablePartnerCommissionFeatureAsync();
+
+        var agentAppService = GetRequiredService<AgentAppService>();
+        var leadAppService = GetRequiredService<LeadAppService>();
+        var opportunityAppService = GetRequiredService<OpportunityAppService>();
+
+        var riffat = await agentAppService.CreateAsync(new CreateUpdateAgentDto { Name = "Riffat" });
+        var lead = await leadAppService.CreateAsync(new CreateUpdateLeadDto
+        {
+            Name = "Mnyanga",
+            Source = Leitor.Erp.Entities.Customers.LeadSource.Referral,
+            ReferrerAgentId = riffat.Id
+        });
+
+        var (_, opportunityId) = await leadAppService.ConvertToCustomerAsync(lead.Id);
+
+        var opportunity = await opportunityAppService.GetAsync(opportunityId);
+        Assert.Equal(riffat.Id, opportunity.AgentId);
+    }
 }
