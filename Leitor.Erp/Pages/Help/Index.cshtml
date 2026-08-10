@@ -7,9 +7,10 @@
 @*
     Reference content only, not routed through AppServices, so most of the body copy below is
     static English rather than individually localized like every data-bearing page in this app -
-    section headers use the same localized-string convention as everywhere else, but a dozen
-    paragraphs of internal procedure text didn't seem worth a resource key each. Revisit if this
-    app ever needs a second UI language for real.
+    section headers use the same localized-string convention as everywhere else, and every enum
+    value quoted below reuses its real Enum:X:N localization key (never re-typed), but the
+    explanatory paragraphs didn't seem worth a resource key each. Revisit if this app ever needs a
+    second UI language for real.
 *@
 
 <div class="card mb-3">
@@ -17,253 +18,534 @@
         <h5 class="card-title mb-0">@L["Menu:Help"]</h5>
     </div>
     <div class="card-body">
-        <p class="mb-0">How the support team runs a client issue through this app - from the moment it's logged as a Ticket to the moment it's closed, escalated into a Problem, turned into a Change, or written up in the Knowledge Base.</p>
+        <p class="mb-0">A working reference for every module in this app - what each record is for, the exact status flows, the business rules that aren't obvious from the form, and who's allowed to do what. Organized to match the main menu; jump to a section on the left or just scroll.</p>
     </div>
 </div>
 
-<div class="accordion" id="helpAccordion">
+<div class="row">
+    <div class="col-lg-3 d-none d-lg-block">
+        <nav class="sticky-top" style="top: 1rem;">
+            <div class="list-group list-group-flush small">
+                <a class="list-group-item list-group-item-action" href="#crm">CRM</a>
+                <a class="list-group-item list-group-item-action" href="#sales">Sales</a>
+                <a class="list-group-item list-group-item-action" href="#catalog">Catalog &amp; Inventory</a>
+                <a class="list-group-item list-group-item-action" href="#pos">Point of Sale</a>
+                <a class="list-group-item list-group-item-action" href="#procurement">Procurement</a>
+                <a class="list-group-item list-group-item-action" href="#accounting">Accounting</a>
+                <a class="list-group-item list-group-item-action" href="#operations">Operations</a>
+                <a class="list-group-item list-group-item-action" href="#service">Service Management</a>
+                <a class="list-group-item list-group-item-action" href="#partners">Partners &amp; Commission</a>
+                <a class="list-group-item list-group-item-action" href="#cybersecurity">Cybersecurity</a>
+                <a class="list-group-item list-group-item-action" href="#governance">Governance</a>
+                <a class="list-group-item list-group-item-action" href="#admin">Administration</a>
+                <a class="list-group-item list-group-item-action" href="#reports">Reports &amp; Analytics</a>
+            </div>
+        </nav>
+    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#helpIntake">How a ticket starts</button>
-        </h2>
-        <div id="helpIntake" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>Every support issue begins life as a <strong>Ticket</strong> tied to the client's Customer record, optionally referencing the specific Order, Field Service Job, or Contract it relates to.</p>
-                <p><strong>Type:</strong> General (default/ambiguous), Technical (a system or device isn't working), Billing (invoice/payment/contract-value questions), Complaint (service-quality feedback, tracked separately even if it started as a technical issue), or Security Incident (breach, malware, phishing, unauthorized access - see the Security Incidents section before doing anything else).</p>
-                <p><strong>Priority:</strong> sets the SLA clock the instant the ticket is created - see the next section. Use Urgent only for something actually down or actively unsafe.</p>
-                <div class="alert alert-warning mb-0">
-                    <strong>Before you promise a fix:</strong> open the client's Customer record and check their active Contract's Services Included. The managed-IT retainer covers up to 13 possible services (Network Infrastructure, Wi-Fi, Firewalls, User/Device Support, Backups, Microsoft&nbsp;365&nbsp;/&nbsp;Google&nbsp;Workspace Administration, Endpoint Security, Patch/Update Management, CCTV Oversight, Basic Security Monitoring, IT Policies, Incident Response, Vendor Coordination) and not every contract includes every one. If the issue is outside what's actually checked, that's a scope conversation before it's a ticket resolution.
+    <div class="col-lg-9">
+
+        @* ============================= CRM ============================= *@
+        <div class="card mb-3" id="crm">
+            <div class="card-header"><h5 class="card-title mb-0">CRM</h5></div>
+            <div class="card-body">
+                <p class="text-muted">Lead &rarr; Opportunity &rarr; Customer is one funnel, grouped together in the menu for exactly that reason.</p>
+                <div class="accordion" id="acCrm">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#crmLeads">Leads</button></h2>
+                        <div id="crmLeads" class="accordion-collapse collapse show" data-bs-parent="#acCrm">
+                            <div class="accordion-body">
+                                <p class="mb-2">
+                                    <span class="pill pill-info">@L["Enum:LeadStatus:0"]</span> &rarr;
+                                    <span class="pill pill-info">@L["Enum:LeadStatus:1"]</span> &rarr;
+                                    <span class="pill pill-warning">@L["Enum:LeadStatus:2"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:LeadStatus:3"]</span> /
+                                    <span class="pill pill-neutral">@L["Enum:LeadStatus:4"]</span>
+                                </p>
+                                <p><strong>Source:</strong> @L["Enum:LeadSource:0"], @L["Enum:LeadSource:1"], @L["Enum:LeadSource:2"], @L["Enum:LeadSource:3"]. When Source is Referral and the referrer is a tracked Agent, set <strong>Referrer Agent</strong> - it's what lets a referral commission be recorded later without re-typing who gets credit.</p>
+                                <p><strong>Do Not Contact:</strong> flip this on and the system refuses to log any further outreach against the lead - it can't stop someone messaging on a personal phone, but it won't record or encourage it.</p>
+                                <p><strong>Duplicate phone numbers are blocked</strong>, not just flagged - creating or editing a Lead with a phone number that already belongs to another Lead throws an error naming the existing one.</p>
+                                <p class="mb-0"><strong>Converting to a Customer</strong> creates the Customer, opens an Opportunity for it automatically (carrying over the assigned owner and the Referrer Agent), and marks the Lead Converted with a link to the new Customer. The Lead's own contact-touch history stays where it is, tied to the Lead.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#crmCustomers">Customers</button></h2>
+                        <div id="crmCustomers" class="accordion-collapse collapse" data-bs-parent="#acCrm">
+                            <div class="accordion-body">
+                                <p><span class="pill pill-info">@L["Enum:CustomerStatus:0"]</span> <span class="pill pill-success">@L["Enum:CustomerStatus:1"]</span> <span class="pill pill-neutral">@L["Enum:CustomerStatus:2"]</span> - not a strict flow, set to whatever reflects reality.</p>
+                                <p>A Customer carries an <strong>Account Owner</strong>, a <strong>Credit Limit</strong> (checked when confirming an Order or converting to an Invoice - null means unlimited), a default price list and discount percent that pre-fill new Quote/Order lines, and an optional <strong>Portal</strong> login link - the link itself is the access control for the Client Portal, no separate permission needed.</p>
+                                <p>Child records: <strong>Contacts</strong> (named people at the company, one flagged Primary), <strong>Contracts</strong>, <strong>Notes</strong> (append-only activity log), <strong>Tasks</strong> (follow-ups with due dates), <strong>Attachments</strong>.</p>
+                                <p><strong>Contracts</strong> carry a Type (@L["Enum:CustomerContractType:0"] / @L["Enum:CustomerContractType:1"] / @L["Enum:CustomerContractType:2"] / @L["Enum:CustomerContractType:3"]), a Status (@L["Enum:CustomerContractStatus:0"] / @L["Enum:CustomerContractStatus:1"] / @L["Enum:CustomerContractStatus:2"] / @L["Enum:CustomerContractStatus:3"]), optional per-priority SLA hours that override the app-wide default for this client's Tickets, and <strong>Services Included</strong> - which of the 13 managed-IT-and-cybersecurity retainer services this specific contract actually covers (see Service Management for the full list). A contract nearing its End Date gets one automatic renewal-reminder email to the account owner.</p>
+                                <div class="alert alert-warning mb-0">
+                                    <strong>Erase Customer Data</strong> (a distinct action from Delete) permanently anonymizes the customer's name, email, phone, address, and notes, and revokes their portal login - but keeps the row itself so Orders/Invoices/Payments stay valid for historical reporting. This cannot be undone.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#crmOpps">Opportunities &amp; Proposals</button></h2>
+                        <div id="crmOpps" class="accordion-collapse collapse" data-bs-parent="#acCrm">
+                            <div class="accordion-body">
+                                <p><span class="pill pill-info">@L["Enum:OpportunityStatus:0"]</span> &rarr; <span class="pill pill-success">@L["Enum:OpportunityStatus:1"]</span> / <span class="pill pill-neutral">@L["Enum:OpportunityStatus:2"]</span> (record a Lost Reason). An Opportunity can carry a <strong>Partner</strong> and/or <strong>Agent</strong> - see Partners &amp; Commission - and closing it stamps a Closed Date automatically.</p>
+                                <p><strong>Needs Assessment:</strong> @L["Enum:NeedsAssessmentType:0"], @L["Enum:NeedsAssessmentType:1"], @L["Enum:NeedsAssessmentType:2"], @L["Enum:NeedsAssessmentType:3"], or @L["Enum:NeedsAssessmentType:4"] - Findings, Risks, Recommendations, and Customer Requirements, attachable to the Opportunity.</p>
+                                <p><strong>Proposal</strong> is the technical narrative ahead of a commercial Quote - it deliberately carries no line items of its own.</p>
+                                <p class="mb-2">
+                                    <span class="pill pill-neutral">@L["Enum:ProposalStatus:0"]</span> &rarr;
+                                    <span class="pill pill-info">@L["Enum:ProposalStatus:1"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:ProposalStatus:2"]</span> /
+                                    <span class="pill pill-danger">@L["Enum:ProposalStatus:3"]</span> /
+                                    <span class="pill pill-neutral">@L["Enum:ProposalStatus:4"]</span>
+                                </p>
+                                <p>A Proposal locks the moment it leaves Draft - editing it requires an explicit <strong>Unlock for Revision</strong> (a manager action, mandatory reason, logged), and the unlock is consumed by the very next save. Converting a Proposal to a Quote <em>is</em> the acceptance action.</p>
+                                <p class="mb-0">Only one live Proposal per Opportunity at a time - Rejected and Superseded ones don't block a new attempt, anything else does. <strong>Supersede</strong> preserves a proposal that a discovered dependency made unsuitable (with a mandatory reason) instead of deleting it, and links the replacement back to it - see the Zikis-style "original solution superseded, replacement introduced" case.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpSla">SLA rules</button>
-        </h2>
-        <div id="helpSla" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>The SLA due date is calculated <strong>once</strong>, at creation, from Priority and (if one applies) the client's Contract. Changing Priority or Contract afterward never moves an already-set target.</p>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped mb-2">
-                        <thead>
-                            <tr><th>@L["Priority"]</th><th>Default response window</th></tr>
-                        </thead>
+        @* ============================= SALES ============================= *@
+        <div class="card mb-3" id="sales">
+            <div class="card-header"><h5 class="card-title mb-0">Sales</h5></div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Quote</strong> &rarr; <strong>Order</strong> &rarr; <strong>Invoice</strong> &rarr; <strong>Payment</strong>. Each conversion copies the line items forward (Product, price, quantity, discount, tax all snapshotted at the moment they're added - editing the underlying Product later never rewrites a document that already has the line) and each document locks the moment it leaves its starting status.</p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-striped">
+                        <thead><tr><th>Step</th><th>What it takes</th><th>What it blocks</th></tr></thead>
                         <tbody>
-                            <tr><td><span class="pill pill-danger">@L["Enum:TicketPriority:3"]</span></td><td>4 hours</td></tr>
-                            <tr><td><span class="pill pill-warning">@L["Enum:TicketPriority:2"]</span></td><td>24 hours</td></tr>
-                            <tr><td><span class="pill pill-info">@L["Enum:TicketPriority:1"]</span></td><td>72 hours</td></tr>
-                            <tr><td><span class="pill pill-neutral">@L["Enum:TicketPriority:0"]</span></td><td>168 hours (7 days)</td></tr>
+                            <tr><td>Quote &rarr; Order</td><td>Convert action; sets Quote to Accepted</td><td>A Rejected/Expired Quote, or one already converted</td></tr>
+                            <tr><td>Order &rarr; Invoice</td><td>Order must be Confirmed or Fulfilled</td><td>Milestone-billed orders (use milestones instead), double-invoicing, any linked Field Service Job not yet Completed, exceeding the customer's Credit Limit</td></tr>
+                            <tr><td>Invoice &rarr; Payment</td><td>Any amount, any number of payments</td><td>Nothing - partial and overpayment are both valid states</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <p class="text-muted small mb-2">These defaults are admin-editable under Administration &gt; App Settings. If a client's Contract sets its own hours for a tier (a Platinum-support contract, for example), that number wins instead.</p>
-                <p class="mb-0">A ticket shows as SLA-breached only while it's still open and past its due date - computed live every time it's viewed, never stored. Resolving a ticket late records the fact honestly; it doesn't retroactively fix the breach.</p>
+                <p><strong>Statuses:</strong> Quote (@L["Enum:QuoteStatus:0"]/@L["Enum:QuoteStatus:1"]/@L["Enum:QuoteStatus:2"]/@L["Enum:QuoteStatus:3"]/@L["Enum:QuoteStatus:4"]) &middot; Order (@L["Enum:OrderStatus:0"]/@L["Enum:OrderStatus:1"]/@L["Enum:OrderStatus:2"]/@L["Enum:OrderStatus:3"] - Fulfilled auto-issues stock for every line) &middot; Invoice (@L["Enum:InvoiceStatus:0"]/@L["Enum:InvoiceStatus:1"]/@L["Enum:InvoiceStatus:2"]).</p>
+                <p><strong>Payment status is never set by hand</strong> - it's always computed live from payments received: <span class="pill pill-neutral">@L["Enum:InvoicePaymentStatus:0"]</span> <span class="pill pill-danger">@L["Enum:InvoicePaymentStatus:1"]</span> <span class="pill pill-warning">@L["Enum:InvoicePaymentStatus:2"]</span> <span class="pill pill-success">@L["Enum:InvoicePaymentStatus:3"]</span> <span class="pill pill-info">@L["Enum:InvoicePaymentStatus:4"]</span>.</p>
+                <p><strong>Payment Terms:</strong> @L["Enum:PaymentTerms:0"], @L["Enum:PaymentTerms:1"], @L["Enum:PaymentTerms:2"], @L["Enum:PaymentTerms:3"], @L["Enum:PaymentTerms:4"], or @L["Enum:PaymentTerms:5"] - Milestone orders bill in planned partial invoices instead of one lump sum: a @L["Enum:OrderPaymentMilestoneKind:1"] is auto-created on confirmation, add @L["Enum:OrderPaymentMilestoneKind:0"] milestones as needed, and the closing @L["Enum:OrderPaymentMilestoneKind:2"] milestone (auto-sized to whatever percentage remains) is what finally requires every linked Field Service Job to be Completed before it can be invoiced.</p>
+                <p class="mb-0">A locked Quote/Order can be reopened for editing by anyone holding the <strong>Sales.Unlock</strong> permission - a manager-level action, same shape as Proposal unlocking.</p>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpLifecycle">Ticket lifecycle</button>
-        </h2>
-        <div id="helpLifecycle" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p class="mb-2">
-                    <span class="pill pill-danger">@L["Enum:TicketStatus:0"]</span> &rarr;
-                    <span class="pill pill-warning">@L["Enum:TicketStatus:1"]</span> &rarr;
-                    <span class="pill pill-info">@L["Enum:TicketStatus:2"]</span> &rarr;
-                    <span class="pill pill-success">@L["Enum:TicketStatus:3"]</span> &rarr;
-                    <span class="pill pill-neutral">@L["Enum:TicketStatus:4"]</span>
-                </p>
-                <p>Resolved and Closed are deliberately separate: Resolved means the fix is in and you're waiting on the client to confirm; Closed means it's fully done and archived. Both stop the SLA clock.</p>
-                <p><strong>Reopening:</strong> moving a ticket back out of Resolved/Closed increments its reopen count - not a penalty, the exact signal that flags a candidate for Problem Management below.</p>
-                <p><strong>Messages:</strong> every reply is logged as staff-side or customer-side on an append-only thread. There's no separate internal-notes channel - write anything not meant for the client's eyes as if a teammate is reading over your shoulder.</p>
-                <p class="mb-0"><strong>Closing the loop:</strong> collect a 1-5 satisfaction rating when appropriate - it feeds the team's CSAT trend directly, it isn't decoration.</p>
+        @* ============================= CATALOG & INVENTORY ============================= *@
+        <div class="card mb-3" id="catalog">
+            <div class="card-header"><h5 class="card-title mb-0">Catalog &amp; Inventory</h5></div>
+            <div class="card-body">
+                <p>A Product is either a @L["Enum:ProductType:0"] or a @L["Enum:ProductType:1"] - Services never track inventory. A <strong>Bundle</strong> product explodes into one line per component the moment it's added to a Quote/Order, each carrying its own price/cost/tax - never one opaque bundle line.</p>
+                <p><strong>Price resolution:</strong> a line's Unit Price is always a plain editable value - the customer's default Price List is only consulted automatically when the field is left at zero (the untouched default), and even then it falls back to the Product's own list price if nothing matches.</p>
+                <p><strong>Tax resolution order:</strong> whatever's explicitly set on the line &rarr; the Product's own Tax Rate &rarr; the system default VAT rate. Withholding tax never applies to a sales line - only to Vendor Payments.</p>
+                <p><strong>Stock on hand is never stored</strong> - always summed live from the Stock Movement ledger (Receipt, Issue, Adjustment Increase/Decrease, Transfer Out/In), the same "compute, never store" discipline the accounting side uses for account balances. Selling more than you have doesn't get blocked - it's meant to surface as a negative balance on the Stock on Hand report, not silently prevent a sale.</p>
+                <p class="mb-0">Each Warehouse can be flagged Default (exactly one at a time) - used to resolve a receiving/issuing location when a document doesn't specify one explicitly.</p>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpProblems">Problem management</button>
-        </h2>
-        <div id="helpProblems" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>A <strong>Problem</strong> is the shared root cause behind one or more Tickets - create one the moment you notice the same fault surfacing more than once, so it's diagnosed properly instead of re-investigated from scratch every time.</p>
-                <p class="mb-2">
-                    <span class="pill pill-danger">@L["Enum:ProblemStatus:0"]</span> &rarr;
-                    <span class="pill pill-warning">@L["Enum:ProblemStatus:1"]</span> &rarr;
-                    <span class="pill pill-info">@L["Enum:ProblemStatus:2"]</span> &rarr;
-                    <span class="pill pill-success">@L["Enum:ProblemStatus:3"]</span> &rarr;
-                    <span class="pill pill-neutral">@L["Enum:ProblemStatus:4"]</span>
-                </p>
-                <p class="mb-0"><strong>Known Error</strong> means root cause is identified and a workaround exists, even though the permanent fix hasn't shipped - it's what lets you tell a client "we know what this is and here's the workaround" without over-promising a timeline. Link every Ticket that shares the root cause to the Problem, and record Root Cause / Workaround there once.</p>
+        @* ============================= POS ============================= *@
+        <div class="card mb-3" id="pos">
+            <div class="card-header"><h5 class="card-title mb-0">Point of Sale</h5></div>
+            <div class="card-body">
+                <p>One open till <strong>Session</strong> per Warehouse at a time - open it with a starting cash float, close it against the expected cash total (opening float plus cash tenders); a mismatch is shown, not blocked.</p>
+                <p>A <strong>Sale</strong> is paid in full at the moment it's rung up - there's no separate Invoice/Payment step. Split-tender is supported (multiple payment rows per sale, any mix of methods), and the tendered total must match the sale total to the cent before it completes.</p>
+                <p class="mb-0"><strong>Void</strong> (its own permission, separate from ringing up sales) restocks every tracked-inventory line and posts equal-and-opposite entries reversing both the revenue and the cost of goods sold - a void is a real accounting reversal, not just hiding the sale.</p>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpWarranty">Warranty claims</button>
-        </h2>
-        <div id="helpWarranty" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>Use a <strong>Warranty Claim</strong>, not a regular Ticket, when a client is invoking warranty coverage on equipment Laitor installed or supplied - it has its own approval lifecycle.</p>
-                <p class="mb-2">
-                    <span class="pill pill-danger">@L["Enum:WarrantyClaimStatus:0"]</span> &rarr;
-                    <span class="pill pill-warning">@L["Enum:WarrantyClaimStatus:1"]</span> / <span class="pill pill-warning">@L["Enum:WarrantyClaimStatus:2"]</span> &rarr;
-                    <span class="pill pill-success">@L["Enum:WarrantyClaimStatus:3"]</span>
-                </p>
-                <p class="mb-0">A claim can reference the warranty Contract, the original Field Service Job, and the Ticket the client first raised it through - all optional and independent, so link whichever actually apply.</p>
+        @* ============================= PROCUREMENT ============================= *@
+        <div class="card mb-3" id="procurement">
+            <div class="card-header"><h5 class="card-title mb-0">Procurement</h5></div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Vendor</strong> &rarr; <strong>Purchase Order</strong> &rarr; <strong>Goods Receipt</strong> &rarr; <strong>Supplier Invoice</strong> &rarr; <strong>Vendor Payment</strong>. A PO can carry a Source Order / Ship-to-Customer link for dropshipping straight to a client without the stock ever passing through a Leitor warehouse.</p>
+                <p><span class="pill pill-neutral">@L["Enum:PurchaseOrderStatus:0"]</span> <span class="pill pill-info">@L["Enum:PurchaseOrderStatus:1"]</span> <span class="pill pill-warning">@L["Enum:PurchaseOrderStatus:2"]</span> <span class="pill pill-success">@L["Enum:PurchaseOrderStatus:3"]</span> <span class="pill pill-neutral">@L["Enum:PurchaseOrderStatus:4"]</span></p>
+                <div class="alert alert-warning">
+                    <strong>Three-way match is enforced, not just a suggestion.</strong> A Goods Receipt is hard-blocked from recording more than the ordered quantity for any line - partial shipments are fine, over-receiving is not, and the error names the exact line, ordered quantity, and quantity already received.
+                </div>
+                <p><span class="pill pill-neutral">@L["Enum:SupplierInvoiceStatus:0"]</span> <span class="pill pill-info">@L["Enum:SupplierInvoiceStatus:1"]</span> <span class="pill pill-neutral">@L["Enum:SupplierInvoiceStatus:2"]</span> - amount paid is always computed live from Vendor Payments, never stored.</p>
+                <p class="mb-0"><strong>Withholding tax:</strong> set on the Vendor (not per-payment) - if configured, every payment to that vendor automatically snapshots a withholding amount that reduces cash actually paid out without changing the payable amount cleared.</p>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpChanges">Change enablement</button>
-        </h2>
-        <div id="helpChanges" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>When resolving something means making a planned change to a client's tracked equipment - a firmware upgrade, a network reconfiguration - that's a <strong>Change Request</strong> against the relevant Configuration Item, not just a ticket update.</p>
+        @* ============================= ACCOUNTING ============================= *@
+        <div class="card mb-3" id="accounting">
+            <div class="card-header"><h5 class="card-title mb-0">Accounting</h5></div>
+            <div class="card-body">
+                <p class="text-muted">The most complete module in the app - a real double-entry ledger, not a simplified approximation. Account balances are never stored; always summed live from Journal Entry Lines.</p>
+                <div class="accordion" id="acAccounting">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#acctCoa">Chart of Accounts &amp; Journal Entries</button></h2>
+                        <div id="acctCoa" class="accordion-collapse collapse show" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <p>Every Account has a Type (@L["Enum:AccountType:0"] / @L["Enum:AccountType:1"] / @L["Enum:AccountType:2"] / @L["Enum:AccountType:3"] / @L["Enum:AccountType:4"]) and, optionally, a <strong>System Role</strong> - how the app finds "the" Cash account, "the" Accounts Receivable account, etc. when auto-posting: @L["Enum:SystemAccountRole:1"], @L["Enum:SystemAccountRole:2"], @L["Enum:SystemAccountRole:3"], @L["Enum:SystemAccountRole:4"], @L["Enum:SystemAccountRole:5"], @L["Enum:SystemAccountRole:6"], @L["Enum:SystemAccountRole:7"], @L["Enum:SystemAccountRole:8"]. At most one account may carry a given role.</p>
+                                <p>Most Journal Entries post themselves automatically (Invoices, Payments, Supplier Invoices, Vendor Payments, Order fulfillment COGS, POS sales, depreciation, revaluation) - a <strong>System Generated</strong> entry can never be deleted directly, only reversed. Manual entries are also supported and must balance (debits = credits) before saving.</p>
+                                <p class="mb-0"><strong>Reverse</strong> posts an equal-and-opposite entry rather than editing history - an entry can only be reversed once.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acctFa">Fixed Assets</button></h2>
+                        <div id="acctFa" class="accordion-collapse collapse" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <p>Category: @L["Enum:FixedAssetCategory:0"], @L["Enum:FixedAssetCategory:1"], @L["Enum:FixedAssetCategory:2"], @L["Enum:FixedAssetCategory:3"], @L["Enum:FixedAssetCategory:4"]. Status: @L["Enum:FixedAssetStatus:0"] / @L["Enum:FixedAssetStatus:1"].</p>
+                                <p class="mb-0"><strong>Run Depreciation</strong> posts one straight-line month at a time (cost minus salvage value, spread over the useful-life months) - it refuses to run the same asset twice for the same month, and automatically caps the final month so the total never exceeds the depreciable base.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acctBank">Banking</button></h2>
+                        <div id="acctBank" class="accordion-collapse collapse" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <p class="mb-0">Each Bank Account wraps a linked GL Account. Import a statement by pasting <code>Date,Description,Amount</code> lines (positive = money in, negative = money out), then <strong>Match</strong> each statement line against the corresponding GL line - reconciling is just an ordinary edit action, not a separate permission.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acctBudget">Budgets &amp; Fiscal Periods</button></h2>
+                        <div id="acctBudget" class="accordion-collapse collapse" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <p>Budgets are entered per Account, per Fiscal Year, per Month.</p>
+                                <p class="mb-0"><strong>Locking a period</strong> (a senior/finance-admin-only action) blocks new or edited Journal Entries dated inside it. "Year-End Close" locks all twelve months of a year at once - there's deliberately no traditional GL-zeroing closing entry, since Retained Earnings is always computed live from the ledger's full history.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acctRecurring">Recurring Journals &amp; Currency</button></h2>
+                        <div id="acctRecurring" class="accordion-collapse collapse" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <p>A Recurring Journal Template posts itself on schedule - @L["Enum:RecurringJournalFrequency:0"], @L["Enum:RecurringJournalFrequency:1"], or @L["Enum:RecurringJournalFrequency:2"] - through the normal Journal Entry path, so balance checks and fiscal-period locks still apply.</p>
+                                <p>Exchange rates sync automatically once a day from an external rate provider; a sync failure is logged and skipped, never left half-applied. <strong>Post Revaluation Entry</strong> is a manual, on-demand trigger (like depreciation) that books the period's unrealized FX gain/loss on open foreign-currency receivables and payables.</p>
+                                <p class="mb-0">Exactly one Currency is flagged Base - every other currency and every document's Exchange Rate to Base is relative to it.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acctReports">Financial reports</button></h2>
+                        <div id="acctReports" class="accordion-collapse collapse" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <ul class="mb-0">
+                                    <li><strong>Trial Balance</strong> - every account's debit/credit total as of a date, flags whether it's actually balanced.</li>
+                                    <li><strong>Income Statement</strong> - revenue and expenses over a date range, down to Net Income.</li>
+                                    <li><strong>Balance Sheet</strong> - assets, liabilities, and equity as of a date.</li>
+                                    <li><strong>AR / AP Aging</strong> - outstanding amounts by age bucket (Current, 1-30, 31-60, 61-90, 90+ days).</li>
+                                    <li><strong>Budget Variance</strong> - budgeted vs. actual by fiscal year and, optionally, month.</li>
+                                    <li><strong>Cash Flow</strong> (indirect method) - Net Income plus depreciation add-back, adjusted for AR/AP/Inventory movement.</li>
+                                    <li><strong>Currency Revaluation</strong> - the FX exposure a revaluation entry would settle.</li>
+                                    <li><strong>Customer / Vendor Statement</strong> - a single party's open items over time.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acctTax">Tax compliance</button></h2>
+                        <div id="acctTax" class="accordion-collapse collapse" data-bs-parent="#acAccounting">
+                            <div class="accordion-body">
+                                <p class="mb-0">The VAT Return report computes Output VAT (from issued sales invoice lines) minus Input VAT (from issued supplier invoice lines) over a date range, both taken exactly from each line's own tax rate. It's a read-only calculation aid - <strong>it does not file anything</strong> with any tax authority; submission is still a manual step outside this app.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @* ============================= OPERATIONS ============================= *@
+        <div class="card mb-3" id="operations">
+            <div class="card-header"><h5 class="card-title mb-0">Operations</h5></div>
+            <div class="card-body">
+                <h6>Field Service</h6>
+                <p>Type: @L["Enum:FieldServiceJobType:0"], @L["Enum:FieldServiceJobType:1"], @L["Enum:FieldServiceJobType:2"], @L["Enum:FieldServiceJobType:3"]. Status: <span class="pill pill-info">@L["Enum:FieldServiceJobStatus:0"]</span> <span class="pill pill-warning">@L["Enum:FieldServiceJobStatus:1"]</span> <span class="pill pill-success">@L["Enum:FieldServiceJobStatus:2"]</span> <span class="pill pill-danger">@L["Enum:FieldServiceJobStatus:3"]</span> <span class="pill pill-neutral">@L["Enum:FieldServiceJobStatus:4"]</span> - Completed and Incomplete are both "the visit concluded" outcomes (Incomplete just means it couldn't be finished), distinct from Cancelled meaning it was never attempted.</p>
+                <p>A job can be assigned to internal staff <em>and/or</em> a subcontracted Vendor technician independently, and can optionally reference the specific Configuration Item (CMDB asset) it concerns. Parts consumed on the visit are logged but not yet wired into automatic invoice-line generation.</p>
+                <hr />
+                <h6>Projects</h6>
+                <p>Status: @L["Enum:ProjectStatus:0"], @L["Enum:ProjectStatus:1"], @L["Enum:ProjectStatus:2"], @L["Enum:ProjectStatus:3"], @L["Enum:ProjectStatus:4"].</p>
+                <p class="mb-0">Project accounting rides on the existing ledger rather than a parallel system: tag a Sales Order with a Project, and every Journal Entry that Order's Invoices/Payments generate carries that Project tag too - the Project P&amp;L report is just the same General Ledger math filtered down to one project's tagged lines, computed live, never stored separately.</p>
+            </div>
+        </div>
+
+        @* ============================= SERVICE MANAGEMENT ============================= *@
+        <div class="card mb-3" id="service">
+            <div class="card-header"><h5 class="card-title mb-0">Service Management</h5></div>
+            <div class="card-body">
+                <div class="accordion" id="acService">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#svcIntake">How a ticket starts</button></h2>
+                        <div id="svcIntake" class="accordion-collapse collapse show" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>Every support issue begins as a <strong>Ticket</strong> tied to the client's Customer record, optionally referencing the specific Order, Field Service Job, or Contract it relates to.</p>
+                                <p><strong>Type:</strong> @L["Enum:TicketType:0"] (default/ambiguous), @L["Enum:TicketType:1"] (a system or device isn't working), @L["Enum:TicketType:2"] (invoice/payment/contract-value questions), @L["Enum:TicketType:3"] (service-quality feedback, tracked separately even if it started as a technical issue), or @L["Enum:TicketType:4"] (breach, malware, phishing, unauthorized access - see Cybersecurity before doing anything else).</p>
+                                <p><strong>Priority</strong> sets the SLA clock the instant the ticket is created - see below. Use Urgent only for something actually down or actively unsafe.</p>
+                                <div class="alert alert-warning mb-0">
+                                    <strong>Before you promise a fix:</strong> check the client's active Contract's Services Included. The managed-IT retainer covers up to 13 possible services and not every contract includes every one - see the Contract Service Scope list at the end of this section.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcSla">SLA rules</button></h2>
+                        <div id="svcSla" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>The SLA due date is calculated once, at creation, from Priority and (if one applies) the client's Contract. Changing Priority or Contract afterward never moves an already-set target.</p>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped mb-2">
+                                        <thead><tr><th>@L["Priority"]</th><th>Default response window</th></tr></thead>
+                                        <tbody>
+                                            <tr><td><span class="pill pill-danger">@L["Enum:TicketPriority:3"]</span></td><td>4 hours</td></tr>
+                                            <tr><td><span class="pill pill-warning">@L["Enum:TicketPriority:2"]</span></td><td>24 hours</td></tr>
+                                            <tr><td><span class="pill pill-info">@L["Enum:TicketPriority:1"]</span></td><td>72 hours</td></tr>
+                                            <tr><td><span class="pill pill-neutral">@L["Enum:TicketPriority:0"]</span></td><td>168 hours (7 days)</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-muted small mb-2">Admin-editable under Administration &gt; Operations. A client's Contract can override any tier's hours (a Platinum-support contract, for example) - that number wins instead.</p>
+                                <p class="mb-0">A ticket shows as SLA-breached only while it's still open and past its due date - computed live every time it's viewed, never stored.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcLifecycle">Ticket lifecycle</button></h2>
+                        <div id="svcLifecycle" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p class="mb-2">
+                                    <span class="pill pill-danger">@L["Enum:TicketStatus:0"]</span> &rarr;
+                                    <span class="pill pill-warning">@L["Enum:TicketStatus:1"]</span> &rarr;
+                                    <span class="pill pill-info">@L["Enum:TicketStatus:2"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:TicketStatus:3"]</span> &rarr;
+                                    <span class="pill pill-neutral">@L["Enum:TicketStatus:4"]</span>
+                                </p>
+                                <p>Resolved means the fix is in and you're waiting on the client to confirm; Closed means fully done and archived. Both stop the SLA clock.</p>
+                                <p><strong>Reopening</strong> a ticket out of Resolved/Closed increments its reopen count - the exact signal that flags a candidate for Problem Management.</p>
+                                <p class="mb-0">Every reply is logged as staff-side or customer-side on one append-only thread - there's no separate internal-notes channel.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcProblems">Problem management</button></h2>
+                        <div id="svcProblems" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>A <strong>Problem</strong> is the shared root cause behind one or more Tickets - create one the moment the same fault surfaces more than once.</p>
+                                <p class="mb-2">
+                                    <span class="pill pill-danger">@L["Enum:ProblemStatus:0"]</span> &rarr;
+                                    <span class="pill pill-warning">@L["Enum:ProblemStatus:1"]</span> &rarr;
+                                    <span class="pill pill-info">@L["Enum:ProblemStatus:2"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:ProblemStatus:3"]</span> &rarr;
+                                    <span class="pill pill-neutral">@L["Enum:ProblemStatus:4"]</span>
+                                </p>
+                                <p class="mb-0"><strong>Known Error</strong> means root cause is identified and a workaround exists, even though the permanent fix hasn't shipped - link every Ticket that shares the cause to the Problem, and record Root Cause / Workaround there once.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcWarranty">Warranty claims</button></h2>
+                        <div id="svcWarranty" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>Use a <strong>Warranty Claim</strong>, not a regular Ticket, for equipment Laitor installed or supplied - its own approval lifecycle:</p>
+                                <p class="mb-0">
+                                    <span class="pill pill-danger">@L["Enum:WarrantyClaimStatus:0"]</span> &rarr;
+                                    <span class="pill pill-warning">@L["Enum:WarrantyClaimStatus:1"]</span> / <span class="pill pill-warning">@L["Enum:WarrantyClaimStatus:2"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:WarrantyClaimStatus:3"]</span>
+                                    - can reference the warranty Contract, the original Field Service Job, and the originating Ticket, in any combination.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcChanges">Change enablement</button></h2>
+                        <div id="svcChanges" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>When resolving something means a planned change to a client's tracked equipment, that's a <strong>Change Request</strong> against the relevant Configuration Item, not just a ticket update.</p>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped mb-2">
+                                        <thead><tr><th>Tier</th><th>Who signs off</th><th>When to use it</th></tr></thead>
+                                        <tbody>
+                                            <tr><td><span class="pill pill-info">@L["Enum:ChangeTier:0"]</span></td><td>Pre-authorized - straight to Approved</td><td>Routine, low-risk, already agreed with the client.</td></tr>
+                                            <tr><td><span class="pill pill-warning">@L["Enum:ChangeTier:1"]</span></td><td>Waits for a Changes.Approve holder</td><td>Anything with real risk or blast radius - the only tier that actually queues.</td></tr>
+                                            <tr><td><span class="pill pill-danger">@L["Enum:ChangeTier:2"]</span></td><td>Proceeds immediately, reviewed after</td><td>The incident causing it can't wait. Post-implementation review is mandatory.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="mb-0">A completed change that has to be undone is marked <span class="pill pill-neutral">@L["Enum:ChangeRequestStatus:5"]</span> - a distinct outcome, not a note bolted on, with mandatory notes explaining why.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcRequests">Requests vs. tickets</button></h2>
+                        <div id="svcRequests" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>"Something's wrong, fix it" is a Ticket. "I need something set up or provisioned" is a <strong>Service Request</strong> against the Service Catalog - kept apart deliberately.</p>
+                                <p class="mb-0">
+                                    <span class="pill pill-danger">@L["Enum:ServiceRequestStatus:0"]</span> &rarr;
+                                    <span class="pill pill-warning">@L["Enum:ServiceRequestStatus:1"]</span> &rarr;
+                                    <span class="pill pill-info">@L["Enum:ServiceRequestStatus:2"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:ServiceRequestStatus:3"]</span> /
+                                    <span class="pill pill-neutral">@L["Enum:ServiceRequestStatus:4"]</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcKb">Knowledge base</button></h2>
+                        <div id="svcKb" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>Any Resolved or Closed ticket has a one-click <strong>Promote to Knowledge Base</strong> action that opens a Draft article pre-filled with the ticket's subject.</p>
+                                <p class="mb-0">
+                                    <span class="pill pill-neutral">@L["Enum:KnowledgeArticleStatus:0"]</span> &rarr;
+                                    <span class="pill pill-success">@L["Enum:KnowledgeArticleStatus:1"]</span> &rarr;
+                                    <span class="pill pill-info">@L["Enum:KnowledgeArticleStatus:2"]</span>
+                                    - a Draft is invisible to search until Published.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcAssets">Assets &amp; credentials (CMDB)</button></h2>
+                        <div id="svcAssets" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p>A client's tracked hardware, software, and network gear lives as <strong>Configuration Items</strong>: @L["Enum:ConfigurationItemType:0"], @L["Enum:ConfigurationItemType:1"], @L["Enum:ConfigurationItemType:2"], @L["Enum:ConfigurationItemType:3"] - status @L["Enum:ConfigurationItemStatus:0"] / @L["Enum:ConfigurationItemStatus:1"] / @L["Enum:ConfigurationItemStatus:2"] / @L["Enum:ConfigurationItemStatus:3"]. Items can relate to each other (@L["Enum:ConfigurationItemRelationshipType:0"], @L["Enum:ConfigurationItemRelationshipType:1"], @L["Enum:ConfigurationItemRelationshipType:2"]), and each one tracks its own security posture in plain fields: endpoint protection installed, backed up, last backup verified, last patched, security monitoring enabled - a manual checklist, not a live agent integration.</p>
+                                <div class="alert alert-danger mb-0">
+                                    <strong>Credentials never go in a ticket.</strong> Device logins, API keys, and SSH keys belong in the encrypted credential vault attached to the Configuration Item - never pasted into a Ticket message or note, which are plain text and permanent. Viewing a stored credential's actual value requires the separate Assets.RevealCredentials permission on top of ordinary edit access, and every reveal is logged as its own audited event.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcRoles">Roles &amp; permissions</button></h2>
+                        <div id="svcRoles" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped mb-0">
+                                        <thead><tr><th>Permission group</th><th>Grants</th><th>Extra gate</th></tr></thead>
+                                        <tbody>
+                                            <tr><td><code>Erp.Support</code></td><td>Tickets, Problems, Warranty Claims</td><td>&mdash;</td></tr>
+                                            <tr><td><code>Erp.Changes</code></td><td>Change Requests</td><td><code>Changes.Approve</code> for Normal-tier sign-off</td></tr>
+                                            <tr><td><code>Erp.Assets</code></td><td>Configuration Items and credentials</td><td><code>Assets.RevealCredentials</code> for the plaintext value</td></tr>
+                                            <tr><td><code>Erp.KnowledgeBase</code></td><td>Knowledge Base articles</td><td>&mdash;</td></tr>
+                                            <tr><td><code>Erp.ServiceRequests</code> / <code>Erp.ServiceCatalog</code></td><td>Service Requests / the catalog they're requested against</td><td>&mdash;</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#svcScope">Contract service scope (13 possible)</button></h2>
+                        <div id="svcScope" class="accordion-collapse collapse" data-bs-parent="#acService">
+                            <div class="accordion-body">
+                                <p class="mb-0">
+                                    @L["Enum:ContractServiceScope:NetworkInfrastructure"] &middot;
+                                    @L["Enum:ContractServiceScope:Wifi"] &middot;
+                                    @L["Enum:ContractServiceScope:Firewalls"] &middot;
+                                    @L["Enum:ContractServiceScope:UserDeviceSupport"] &middot;
+                                    @L["Enum:ContractServiceScope:Backups"] &middot;
+                                    @L["Enum:ContractServiceScope:ProductivitySuiteAdmin"] &middot;
+                                    @L["Enum:ContractServiceScope:EndpointSecurity"] &middot;
+                                    @L["Enum:ContractServiceScope:PatchManagement"] &middot;
+                                    @L["Enum:ContractServiceScope:CctvOversight"] &middot;
+                                    @L["Enum:ContractServiceScope:SecurityMonitoring"] &middot;
+                                    @L["Enum:ContractServiceScope:ItPolicies"] &middot;
+                                    @L["Enum:ContractServiceScope:IncidentResponse"] &middot;
+                                    @L["Enum:ContractServiceScope:VendorCoordination"]
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @* ============================= PARTNERS & COMMISSION ============================= *@
+        <div class="card mb-3" id="partners">
+            <div class="card-header"><h5 class="card-title mb-0">Partners &amp; Commission</h5></div>
+            <div class="card-body">
+                <p><strong>Partner</strong> is the delivery side (a company that fulfills work on Laitor's behalf - POS providers, software vendors, freelance outfits); <strong>Agent</strong> is a person who refers business or does field work without being an employee. Both carry a default commission Basis, Rate, and Trigger used to pre-fill a new Commission.</p>
+                <p><strong>Basis:</strong> @L["Enum:CommissionBasis:0"] and @L["Enum:CommissionBasis:2"] apply the rate against revenue you enter as the base amount, @L["Enum:CommissionBasis:1"] against margin, @L["Enum:CommissionBasis:3"] pays the rate itself as a flat amount. <strong>Trigger:</strong> @L["Enum:CommissionTrigger:0"] makes a commission payable the instant it's recorded; @L["Enum:CommissionTrigger:1"] leaves it Pending until the linked Invoice is paid <em>in full</em> - a partial payment never makes a commission payable early.</p>
+                <p class="mb-2"><span class="pill pill-neutral">@L["Enum:CommissionStatus:0"]</span> &rarr; <span class="pill pill-warning">@L["Enum:CommissionStatus:1"]</span> &rarr; <span class="pill pill-success">@L["Enum:CommissionStatus:2"]</span> - the last step is always a manual "Mark Paid," never automatic.</p>
+                <p>Partner categories: @L["Enum:PartnerCategory:0"], @L["Enum:PartnerCategory:1"], @L["Enum:PartnerCategory:2"], @L["Enum:PartnerCategory:3"], @L["Enum:PartnerCategory:4"], @L["Enum:PartnerCategory:5"].</p>
+                <p class="mb-0">A Lead's Referrer Agent carries forward automatically onto the Opportunity opened when that Lead converts to a Customer - the referral relationship survives conversion without re-entering it. A Partner or Agent with any recorded Commission can't be deleted, ever - that's financial history.</p>
+            </div>
+        </div>
+
+        @* ============================= CYBERSECURITY ============================= *@
+        <div class="card mb-3" id="cybersecurity">
+            <div class="card-header"><h5 class="card-title mb-0">Cybersecurity</h5></div>
+            <div class="card-body">
+                <p>A <strong>Security Assessment</strong> is Laitor's cybersecurity upsell line, tracked against a Customer: @L["Enum:SecurityAssessmentType:0"], @L["Enum:SecurityAssessmentType:1"], @L["Enum:SecurityAssessmentType:2"], @L["Enum:SecurityAssessmentType:3"], or @L["Enum:SecurityAssessmentType:4"].</p>
+                <p><span class="pill pill-info">@L["Enum:SecurityAssessmentStatus:0"]</span> &rarr; <span class="pill pill-warning">@L["Enum:SecurityAssessmentStatus:1"]</span> &rarr; <span class="pill pill-success">@L["Enum:SecurityAssessmentStatus:2"]</span></p>
+                <p class="mb-0">Rate the outcome - <span class="pill pill-neutral">@L["Enum:SecurityRiskRating:0"]</span> <span class="pill pill-info">@L["Enum:SecurityRiskRating:1"]</span> <span class="pill pill-warning">@L["Enum:SecurityRiskRating:2"]</span> <span class="pill pill-danger">@L["Enum:SecurityRiskRating:3"]</span> - and set a Follow-Up Date so a Critical finding doesn't quietly fall off anyone's radar. Open a Security Incident Ticket first for anything actively happening; use an Assessment for the planned/follow-up review.</p>
+            </div>
+        </div>
+
+        @* ============================= GOVERNANCE ============================= *@
+        <div class="card mb-3" id="governance">
+            <div class="card-header"><h5 class="card-title mb-0">Governance</h5></div>
+            <div class="card-body">
+                <h6>Workflow Monitor</h6>
+                <p>A read-only sales-pipeline tracker - shows the 100 most recently active Opportunities, one row each, tracing Opportunity &rarr; Proposal &rarr; Quote &rarr; Order &rarr; deposit/final invoice &rarr; installation, with a plain-English Current Stage and Pending Action ("Quote Accepted", "Convert to order", ...) so you can see what's stuck without opening each record.</p>
+                <hr />
+                <h6>Deletion approvals</h6>
+                <p>Deletion on most core records (Customer, Vendor, Order, Invoice, Ticket, Field Service Job, Purchase Order, and more) is permission-based but approval-gated: holders of <strong>Deletion Approvals &gt; Decide</strong> delete immediately, everyone else's delete action files an approval request instead - it never silently disappears, and a duplicate request against the same record is blocked while one's already pending.</p>
+                <hr />
+                <h6>Audit logs</h6>
+                <p class="mb-0">Every request and every entity property change is captured automatically - who, what, when, old value, new value. Read-only, nothing here is ever authored or edited by a user; it exists to answer "what actually happened" independent of any business-level history above.</p>
+            </div>
+        </div>
+
+        @* ============================= ADMINISTRATION ============================= *@
+        <div class="card mb-3" id="admin">
+            <div class="card-header"><h5 class="card-title mb-0">Administration</h5></div>
+            <div class="card-body">
+                <p>Admin configuration lives on one page (Administration &gt; Operations), in four tabs: <strong>Company Profile</strong> (name/address/phone/email shown on generated PDFs), <strong>Email/SMTP</strong>, <strong>Business Settings</strong> (the four SLA-hour defaults, the contract-expiry alert lead time), and <strong>Modules</strong>.</p>
+                <p class="mb-2"><strong>Modules</strong> are switched on or off per deployment - disabling one hides its menu entries and blocks its pages for everyone, regardless of individual permissions:</p>
                 <div class="table-responsive">
-                    <table class="table table-sm table-striped mb-2">
-                        <thead>
-                            <tr><th>Tier</th><th>Who signs off</th><th>When to use it</th></tr>
-                        </thead>
+                    <table class="table table-sm table-striped mb-0">
                         <tbody>
-                            <tr><td><span class="pill pill-info">Standard</span></td><td>Pre-authorized - straight to Approved</td><td>Routine, low-risk, already agreed with the client.</td></tr>
-                            <tr><td><span class="pill pill-warning">Normal</span></td><td>Waits for a Changes.Approve holder</td><td>Anything with real risk or blast radius - the only tier that actually queues.</td></tr>
-                            <tr><td><span class="pill pill-danger">Emergency</span></td><td>Proceeds immediately, reviewed after</td><td>The incident causing it can't wait. Post-implementation review is mandatory.</td></tr>
+                            <tr><td>Project Management</td><td>Point of Sale</td></tr>
+                            <tr><td>Tax Compliance</td><td>Partners, Agents &amp; Commission</td></tr>
+                            <tr><td>Service Catalog</td><td>Cybersecurity</td></tr>
+                            <tr><td>Service Request Management</td><td>Change Enablement</td></tr>
+                            <tr><td>Asset Management (CMDB)</td><td>&nbsp;</td></tr>
+                            <tr><td>Knowledge Management</td><td>&nbsp;</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <p class="mb-0">A completed change that has to be undone is marked <strong>Rolled Back</strong> - a distinct outcome from Completed, not a note bolted on, with mandatory rollback notes explaining why.</p>
+                <p class="text-muted small mt-2 mb-0">Everything else in this page (CRM, Sales, Catalog &amp; Inventory, Procurement, Accounting, Service Management's core Ticket/Problem/Warranty flow) is always on - it's permission-gated, not feature-gated, since it's foundational rather than optional.</p>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpSecurity">Security incidents</button>
-        </h2>
-        <div id="helpSecurity" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>Set Ticket Type to <strong>Security Incident</strong> for a breach, malware infection, phishing attempt, or unauthorized-access event.</p>
-                <p>Two fields track containment separately from resolution, both set by hand since containment often happens before root cause is fully understood: <strong>Is Security Breach</strong> (flip on as soon as confirmed real) and <strong>Contained Date</strong> (the moment the immediate threat was actually stopped).</p>
-                <div class="alert alert-info mb-0">
-                    <strong>Follow-up:</strong> for anything beyond a quick fix, open a linked Security Assessment (Vulnerability Assessment, Cyber Risk Assessment, Security Policy Review, Cyber Awareness Training, or Backup/DR Review). Rate the outcome
-                    <span class="pill pill-neutral">Low</span> <span class="pill pill-info">Medium</span> <span class="pill pill-warning">High</span> <span class="pill pill-danger">Critical</span>
-                    and set a Follow-Up Date so a Critical finding doesn't quietly fall off anyone's radar.
-                </div>
+        @* ============================= REPORTS & ANALYTICS ============================= *@
+        <div class="card mb-3" id="reports">
+            <div class="card-header"><h5 class="card-title mb-0">Reports &amp; Analytics</h5></div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li><strong>Dashboard</strong> (home page) - per-module stat cards, each only showing if you hold that module's permission.</li>
+                    <li><strong>Sales Analytics</strong> - lead funnel, 12-month win-rate trend, open Quote/Order aging.</li>
+                    <li><strong>Support Analytics</strong> - 12-month ticket volume, SLA breach rate, per-customer SLA compliance, CSAT trend, reopen-rate trend.</li>
+                    <li><strong>Workflow Monitor</strong> - see Governance above.</li>
+                    <li><strong>Project P&amp;L</strong> - see Operations above.</li>
+                    <li><strong>Financial reports</strong> - see Accounting above.</li>
+                </ul>
             </div>
         </div>
-    </div>
 
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpRequests">Requests vs. tickets</button>
-        </h2>
-        <div id="helpRequests" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>"Something's wrong, fix it" is a Ticket. "I need something set up or provisioned" is a <strong>Service Request</strong> against the Service Catalog - kept apart deliberately.</p>
-                <p class="mb-2">
-                    <span class="pill pill-danger">@L["Enum:ServiceRequestStatus:0"]</span> &rarr;
-                    <span class="pill pill-warning">@L["Enum:ServiceRequestStatus:1"]</span> &rarr;
-                    <span class="pill pill-info">@L["Enum:ServiceRequestStatus:2"]</span> &rarr;
-                    <span class="pill pill-success">@L["Enum:ServiceRequestStatus:3"]</span> /
-                    <span class="pill pill-neutral">@L["Enum:ServiceRequestStatus:4"]</span>
-                </p>
-                <p class="mb-0">The Service Catalog is the menu of what's requestable - each item can carry a target SLA and an owner. If a client asks for something not in the catalog yet, that's a conversation with whoever owns the catalog before it's a one-off request.</p>
-            </div>
-        </div>
     </div>
-
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpKb">Knowledge base</button>
-        </h2>
-        <div id="helpKb" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>Any Resolved or Closed ticket has a one-click <strong>Promote to Knowledge Base</strong> action that opens a Draft article pre-filled with the ticket's subject. Use it whenever the fix took real effort or you can picture the next client hitting the same issue.</p>
-                <p class="mb-0">
-                    <span class="pill pill-neutral">@L["Enum:KnowledgeArticleStatus:0"]</span> &rarr;
-                    <span class="pill pill-success">@L["Enum:KnowledgeArticleStatus:1"]</span> &rarr;
-                    <span class="pill pill-info">@L["Enum:KnowledgeArticleStatus:2"]</span>
-                    &mdash; a Draft is invisible to search until Published, so promoting one is a prompt to finish writing it up, not the end of the job.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpAssets">Assets &amp; credentials</button>
-        </h2>
-        <div id="helpAssets" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <p>A client's tracked hardware, software, and network gear lives in the CMDB as Configuration Items. Link a Ticket or Field Service Job to the specific one it concerns whenever one exists.</p>
-                <div class="alert alert-danger mb-0">
-                    <strong>Credentials never go in a ticket.</strong> Device logins, API keys, and SSH keys belong in the encrypted credential vault attached to the Configuration Item - never pasted into a Ticket message or note, which are plain text and permanent. Viewing a stored credential's actual value requires the separate Assets.RevealCredentials permission on top of ordinary edit access, and every reveal is logged as its own audited event.
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpRoles">Roles &amp; permissions</button>
-        </h2>
-        <div id="helpRoles" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped mb-2">
-                        <thead>
-                            <tr><th>Permission group</th><th>Grants</th><th>Extra gate</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td><code>Erp.Support</code></td><td>Create/edit/delete Tickets, Problems, Warranty Claims</td><td>&mdash;</td></tr>
-                            <tr><td><code>Erp.Changes</code></td><td>Create/edit Change Requests</td><td><code>Changes.Approve</code> to approve/reject a Normal-tier change</td></tr>
-                            <tr><td><code>Erp.Cybersecurity</code></td><td>Create/edit Security Assessments</td><td>&mdash;</td></tr>
-                            <tr><td><code>Erp.Assets</code></td><td>Manage Configuration Items and credentials</td><td><code>Assets.RevealCredentials</code> to view a stored credential's plaintext value</td></tr>
-                            <tr><td><code>Erp.KnowledgeBase</code></td><td>Create/edit/publish Knowledge Base articles</td><td>&mdash;</td></tr>
-                            <tr><td><code>Erp.ServiceRequests</code> / <code>Erp.ServiceCatalog</code></td><td>Manage Service Requests / the catalog they're requested against</td><td>&mdash;</td></tr>
-                            <tr><td><code>Erp.DeletionApprovals</code></td><td>&mdash;</td><td><code>DeletionApprovals.Decide</code> to delete most support records immediately; everyone else's delete files an approval request</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p class="text-muted small mb-0">Change Enablement, Cybersecurity, Knowledge Management, the Service Catalog/Requests pair, and Asset Management are all optional modules - off by default, switched on per deployment under Administration &gt; Module Toggles. If a section of this page doesn't match what you see in the app, check there first.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpReference">Quick reference</button>
-        </h2>
-        <div id="helpReference" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-            <div class="accordion-body">
-                <h6>Document number prefixes</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped mb-3">
-                        <tbody>
-                            <tr><td>Ticket</td><td><code>TKT-</code></td></tr>
-                            <tr><td>Problem</td><td><code>PRB-</code></td></tr>
-                            <tr><td>Warranty Claim</td><td><code>WC-</code></td></tr>
-                            <tr><td>Service Request</td><td><code>SR-</code></td></tr>
-                            <tr><td>Change Request</td><td><code>CHG-</code></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <h6>Contract service scope (13 possible)</h6>
-                <p>Network Infrastructure &middot; Wi-Fi &middot; Firewalls &middot; User/Device Support &middot; Backups &middot; Microsoft&nbsp;365&nbsp;/&nbsp;Google&nbsp;Workspace Administration &middot; Endpoint Security &middot; Patch/Update Management &middot; CCTV Oversight &middot; Basic Security Monitoring &middot; IT Policies &middot; Incident Response &middot; Vendor Coordination</p>
-                <h6>Where things live in the app</h6>
-                <p class="mb-0">Tickets, Warranty Claims, and Problems sit under Service Management, alongside the Service Catalog, Service Requests, Assets, and Knowledge Base. Change Requests live under Assets (always tied to a Configuration Item). Security Assessments have their own Cybersecurity section. Desk-wide analytics - ticket volume, SLA breach rate, CSAT trend, reopen rate - are under Reports &gt; Support Analytics.</p>
-            </div>
-        </div>
-    </div>
-
 </div>
