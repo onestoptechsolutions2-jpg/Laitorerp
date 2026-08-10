@@ -4,12 +4,14 @@
 
 /* Root container styling - flat warm paper background, matching every other page in the app
    (this was previously the one page with a dramatic dark-navy gradient, unrelated to the rest
-   of the app's understated look). */
+   of the app's understated look). No min-height: this renders inside the LeptonXLite theme's own
+   Account layout, which already puts its own logo/title chrome above this content - claiming a
+   full 100vh for this section on top of that guarantees a scrollbar. Let it size to its content
+   and centering happens naturally in whatever space the theme leaves. */
 .leitor-auth-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
     background: #f6f4f0;
     padding: 20px;
 }
@@ -21,21 +23,22 @@
 
 /* Card styling - same layered shadow language as .card elsewhere in the app (see
    leitor-theme.css's --leitor-shadow), not the heavy single dark shadow a card needs to pop off
-   a dark background. */
+   a dark background. Padding trimmed from the original 48px/20px to keep the whole card compact
+   enough to fit inside a typical viewport without scrolling. */
 .leitor-login-card {
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 1px 2px rgba(35, 36, 31, 0.03), 0 6px 16px rgba(35, 36, 31, 0.06), 0 20px 40px -20px rgba(35, 36, 31, 0.12);
-    padding: 48px 40px;
+    padding: 32px 40px;
 }
 
 /* Form styling */
 .leitor-login-form {
-    margin-bottom: 24px;
+    margin-bottom: 0;
 }
 
 .leitor-form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .leitor-form-label-wrapper {
@@ -142,7 +145,7 @@
 .leitor-remember-me {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .leitor-checkbox {
@@ -185,7 +188,7 @@
 .leitor-btn-primary {
     background-color: #1b6b74;
     color: #ffffff;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .leitor-btn-primary:hover {
@@ -278,6 +281,23 @@
     .leitor-form-control {
         font-size: 16px;
         padding: 12px 14px;
+    }
+}
+
+/* Short viewports (a resized browser window, landscape phone/tablet) - shrink vertical padding
+   further so the card keeps fitting without a scrollbar even when there isn't much height to
+   work with. */
+@media (max-height: 700px) {
+    .leitor-login-card {
+        padding: 20px 40px;
+    }
+
+    .leitor-form-group {
+        margin-bottom: 12px;
+    }
+
+    .leitor-remember-me {
+        margin-bottom: 12px;
     }
 }
 
