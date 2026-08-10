@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
+using Leitor.Erp.Settings;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
@@ -36,7 +36,8 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
     private readonly IEmailSender _emailSender;
-    private readonly ErpCompanyOptions _companyOptions;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private ErpCompanyOptions _companyOptions = null!;
 
     public DetailModel(
         QuoteAppService quoteAppService,
@@ -49,7 +50,7 @@ public class DetailModel : AbpPageModel
         IRepository<Order, Guid> orderRepository,
         IRepository<PriceListItem, Guid> priceListItemRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions)
+        ErpCompanyProfileProvider companyProfileProvider)
     {
         _quoteAppService = quoteAppService;
         _quoteLineAppService = quoteLineAppService;
@@ -61,7 +62,7 @@ public class DetailModel : AbpPageModel
         _orderRepository = orderRepository;
         _priceListItemRepository = priceListItemRepository;
         _emailSender = emailSender;
-        _companyOptions = companyOptions.Value;
+        _companyProfileProvider = companyProfileProvider;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -181,6 +182,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnGetPdfAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
         var pdfBytes = QuotePdfDocument.Generate(Quote, Lines, Customer, _companyOptions);
         return File(pdfBytes, "application/pdf", $"{Quote.QuoteNumber}.pdf");
     }
@@ -188,6 +190,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostEmailAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
 
         if (!string.IsNullOrWhiteSpace(Customer.Email))
         {

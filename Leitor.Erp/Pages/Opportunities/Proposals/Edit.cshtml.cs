@@ -12,7 +12,7 @@ using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Opportunities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using Leitor.Erp.Settings;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
@@ -27,7 +27,8 @@ public class EditModel : AbpPageModel
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
     private readonly IEmailSender _emailSender;
-    private readonly ErpCompanyOptions _companyOptions;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private ErpCompanyOptions _companyOptions = null!;
 
     public EditModel(
         ProposalAppService proposalAppService,
@@ -35,14 +36,14 @@ public class EditModel : AbpPageModel
         IRepository<Customer, Guid> customerRepository,
         IRepository<Quote, Guid> quoteRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions)
+        ErpCompanyProfileProvider companyProfileProvider)
     {
         _proposalAppService = proposalAppService;
         _opportunityRepository = opportunityRepository;
         _customerRepository = customerRepository;
         _quoteRepository = quoteRepository;
         _emailSender = emailSender;
-        _companyOptions = companyOptions.Value;
+        _companyProfileProvider = companyProfileProvider;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -133,6 +134,7 @@ public class EditModel : AbpPageModel
         var proposal = await _proposalAppService.GetAsync(Id);
         var opportunity = await _opportunityRepository.GetAsync(proposal.OpportunityId);
         var customer = await _customerRepository.GetAsync(opportunity.CustomerId);
+        _companyOptions = await _companyProfileProvider.GetAsync();
 
         var pdfBytes = ProposalPdfDocument.Generate(proposal, customer, _companyOptions);
         return File(pdfBytes, "application/pdf", $"{proposal.ProposalNumber}.pdf");
@@ -143,6 +145,7 @@ public class EditModel : AbpPageModel
         var proposal = await _proposalAppService.GetAsync(Id);
         var opportunity = await _opportunityRepository.GetAsync(proposal.OpportunityId);
         var customer = await _customerRepository.GetAsync(opportunity.CustomerId);
+        _companyOptions = await _companyProfileProvider.GetAsync();
 
         if (!string.IsNullOrWhiteSpace(customer.Email))
         {

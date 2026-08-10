@@ -546,13 +546,15 @@ public class ErpMenuContributor : IMenuContributor
 
         // Cross-cutting: app-wide config with no single module owner. Module-specific reference
         // data (Catalog's tax rates/categories/price lists, Accounting's currencies/chart of
-        // accounts) now lives in those modules' own menus instead of here. Rather than adding a
-        // second, competing "Settings" entry, this is appended onto the Settings group the
-        // SettingManagement module already contributes to Administration (Email/Timezone etc.) -
-        // one Settings menu in the whole app, not two.
+        // accounts) now lives in those modules' own menus instead of here. Everything else that
+        // used to be scattered (the old standalone AppSettings + ModuleToggles pages, and ABP's
+        // own buried native "Emailing" settings tab) is now one consolidated Operations page -
+        // still appended onto the Settings group the SettingManagement module already contributes
+        // to Administration, rather than adding a second, competing "Settings" entry.
         var canManageAppSettings = await context.IsGrantedAsync(ErpPermissions.AppSettings.Manage);
+        var canManageModules = await context.IsGrantedAsync(ErpPermissions.ModuleToggles.Manage);
 
-        if (canManageAppSettings)
+        if (canManageAppSettings || canManageModules)
         {
             var nativeSettingsGroup = administration.Items.FirstOrDefault(x => x.Name == SettingManagementMenuNames.GroupName);
 
@@ -565,7 +567,7 @@ public class ErpMenuContributor : IMenuContributor
             );
 
             settingsMenu.AddItem(
-                new ApplicationMenuItem(ErpMenus.SettingsAppSettings, l["Menu:AppSettings"], "~/Administration/AppSettings", order: 20)
+                new ApplicationMenuItem(ErpMenus.SettingsOperationsConfig, l["Menu:OperationsConfig"], "~/Administration/Operations", order: 20)
             );
 
             if (nativeSettingsGroup == null)
@@ -582,18 +584,6 @@ public class ErpMenuContributor : IMenuContributor
                     l["Menu:DeletionApprovals"],
                     "~/Governance/DeletionApprovals",
                     icon: "fas fa-trash-can-arrow-up"
-                )
-            );
-        }
-
-        if (await context.IsGrantedAsync(ErpPermissions.ModuleToggles.Manage))
-        {
-            administration.Items.Add(
-                new ApplicationMenuItem(
-                    ErpMenus.ModuleToggles,
-                    l["Menu:ModuleToggles"],
-                    "~/Administration/ModuleToggles",
-                    icon: "fas fa-toggle-on"
                 )
             );
         }

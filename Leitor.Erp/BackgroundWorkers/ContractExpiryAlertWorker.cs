@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Settings;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
@@ -39,7 +37,8 @@ public class ContractExpiryAlertWorker : AsyncPeriodicBackgroundWorkerBase
         var identityUserRepository = workerContext.ServiceProvider.GetRequiredService<IRepository<IdentityUser, Guid>>();
         var emailSender = workerContext.ServiceProvider.GetRequiredService<IEmailSender>();
         var clock = workerContext.ServiceProvider.GetRequiredService<IClock>();
-        var companyOptions = workerContext.ServiceProvider.GetRequiredService<IOptions<ErpCompanyOptions>>().Value;
+        var companyProfileProvider = workerContext.ServiceProvider.GetRequiredService<ErpCompanyProfileProvider>();
+        var companyOptions = await companyProfileProvider.GetAsync();
         var settingProvider = workerContext.ServiceProvider.GetRequiredService<ISettingProvider>();
 
         var leadDays = double.Parse((await settingProvider.GetOrNullAsync(ErpSettings.ContractExpiryAlertLeadDays))!);

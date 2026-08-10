@@ -112,7 +112,7 @@ public class ErpMenus
     // accounts) now lives in those modules' own menus instead of here - see CatalogInventory
     // and Accounting above.
     public const string Settings = Prefix + ".Settings";
-    public const string SettingsAppSettings = Settings + ".AppSettings";
+    public const string SettingsOperationsConfig = Settings + ".OperationsConfig";
 
     //Add your menu items here...
 

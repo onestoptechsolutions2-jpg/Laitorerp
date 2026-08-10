@@ -17,7 +17,7 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Options;
+using Leitor.Erp.Settings;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
@@ -40,7 +40,8 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<GoodsReceiptLine, Guid> _goodsReceiptLineRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
     private readonly IEmailSender _emailSender;
-    private readonly ErpCompanyOptions _companyOptions;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
@@ -56,7 +57,7 @@ public class DetailModel : AbpPageModel
         IRepository<GoodsReceiptLine, Guid> goodsReceiptLineRepository,
         IRepository<Warehouse, Guid> warehouseRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions,
+        ErpCompanyProfileProvider companyProfileProvider,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _purchaseOrderAppService = purchaseOrderAppService;
@@ -71,7 +72,7 @@ public class DetailModel : AbpPageModel
         _goodsReceiptLineRepository = goodsReceiptLineRepository;
         _warehouseRepository = warehouseRepository;
         _emailSender = emailSender;
-        _companyOptions = companyOptions.Value;
+        _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
     }
 
@@ -202,6 +203,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnGetPdfAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
         var pdfBytes = PurchaseOrderPdfDocument.Generate(PurchaseOrder, Lines, Vendor, _companyOptions, ShipToCustomer);
         return File(pdfBytes, "application/pdf", $"{PurchaseOrder.PONumber}.pdf");
     }
@@ -209,6 +211,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostEmailAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
 
         if (!string.IsNullOrWhiteSpace(Vendor.Email))
         {

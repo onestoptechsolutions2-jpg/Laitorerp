@@ -12,7 +12,7 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Options;
+using Leitor.Erp.Settings;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
@@ -30,7 +30,8 @@ public class DetailModel : AbpPageModel
     private readonly TaxRateAppService _taxRateAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
-    private readonly ErpCompanyOptions _companyOptions;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
@@ -41,7 +42,7 @@ public class DetailModel : AbpPageModel
         TaxRateAppService taxRateAppService,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions,
+        ErpCompanyProfileProvider companyProfileProvider,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _invoiceAppService = invoiceAppService;
@@ -51,7 +52,7 @@ public class DetailModel : AbpPageModel
         _taxRateAppService = taxRateAppService;
         _customerRepository = customerRepository;
         _emailSender = emailSender;
-        _companyOptions = companyOptions.Value;
+        _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
     }
 
@@ -158,6 +159,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnGetPdfAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
         var pdfBytes = InvoicePdfDocument.Generate(Invoice, Lines, Payments, Customer, _companyOptions);
         return File(pdfBytes, "application/pdf", $"{Invoice.InvoiceNumber}.pdf");
     }
@@ -165,6 +167,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostEmailAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
 
         if (!string.IsNullOrWhiteSpace(Customer.Email))
         {

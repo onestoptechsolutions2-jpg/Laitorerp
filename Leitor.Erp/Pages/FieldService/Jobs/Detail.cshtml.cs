@@ -11,7 +11,7 @@ using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using Leitor.Erp.Settings;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
@@ -26,7 +26,8 @@ public class DetailModel : AbpPageModel
     private readonly FieldServiceJobPartAppService _fieldServiceJobPartAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IEmailSender _emailSender;
-    private readonly ErpCompanyOptions _companyOptions;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public DetailModel(
@@ -35,7 +36,7 @@ public class DetailModel : AbpPageModel
         FieldServiceJobPartAppService fieldServiceJobPartAppService,
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
-        IOptions<ErpCompanyOptions> companyOptions,
+        ErpCompanyProfileProvider companyProfileProvider,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
     {
         _fieldServiceJobAppService = fieldServiceJobAppService;
@@ -43,7 +44,7 @@ public class DetailModel : AbpPageModel
         _fieldServiceJobPartAppService = fieldServiceJobPartAppService;
         _customerRepository = customerRepository;
         _emailSender = emailSender;
-        _companyOptions = companyOptions.Value;
+        _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
     }
 
@@ -147,6 +148,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnGetPdfAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
         var pdfBytes = FieldServiceJobPdfDocument.Generate(Job, Parts, Notes, Customer, _companyOptions);
         return File(pdfBytes, "application/pdf", $"JobSheet-{Job.ScheduledDate:yyyyMMdd}-{Job.Id.ToString()[..8]}.pdf");
     }
@@ -154,6 +156,7 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnPostEmailAsync()
     {
         await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
 
         if (!string.IsNullOrWhiteSpace(Customer.Email))
         {

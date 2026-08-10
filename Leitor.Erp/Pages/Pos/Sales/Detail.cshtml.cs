@@ -6,7 +6,7 @@ using Leitor.Erp.Services.Dtos.Pos;
 using Leitor.Erp.Services.Pos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using Leitor.Erp.Settings;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 
 namespace Leitor.Erp.Pages.Pos.Sales;
@@ -15,12 +15,12 @@ namespace Leitor.Erp.Pages.Pos.Sales;
 public class DetailModel : AbpPageModel
 {
     private readonly PosSaleAppService _posSaleAppService;
-    private readonly ErpCompanyOptions _companyOptions;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
 
-    public DetailModel(PosSaleAppService posSaleAppService, IOptions<ErpCompanyOptions> companyOptions)
+    public DetailModel(PosSaleAppService posSaleAppService, ErpCompanyProfileProvider companyProfileProvider)
     {
         _posSaleAppService = posSaleAppService;
-        _companyOptions = companyOptions.Value;
+        _companyProfileProvider = companyProfileProvider;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -44,7 +44,8 @@ public class DetailModel : AbpPageModel
     public async Task<IActionResult> OnGetPdfAsync()
     {
         Sale = await _posSaleAppService.GetAsync(Id);
-        var pdfBytes = PosReceiptPdfDocument.Generate(Sale, _companyOptions);
+        var companyOptions = await _companyProfileProvider.GetAsync();
+        var pdfBytes = PosReceiptPdfDocument.Generate(Sale, companyOptions);
         return File(pdfBytes, "application/pdf", $"{Sale.SaleNumber}.pdf");
     }
 }

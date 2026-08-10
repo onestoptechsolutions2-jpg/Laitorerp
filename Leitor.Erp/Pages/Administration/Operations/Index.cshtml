@@ -1,0 +1,157 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Administration.Operations.IndexModel
+
+@{
+    var activeTab = Request.Query["tab"].FirstOrDefault() ?? "company";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["OperationsConfig"]</h5>
+        <p class="text-muted small mb-0">@L["OperationsConfigHint"]</p>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            @if (Model.CanManageAppSettings)
+            {
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "company" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-company" type="button">@L["CompanyProfile"]</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "email" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-email" type="button">@L["Email"]</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "business" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-business" type="button">@L["BusinessSettings"]</button>
+                </li>
+            }
+            @if (Model.CanManageModules)
+            {
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "modules" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-modules" type="button">@L["Modules"]</button>
+                </li>
+            }
+        </ul>
+
+        <div class="tab-content">
+            @if (Model.CanManageAppSettings)
+            {
+                <div class="tab-pane fade @(activeTab == "company" ? "show active" : "")" id="tab-company">
+                    <p class="text-muted small">@L["CompanyProfileHint"]</p>
+                    <form method="post" asp-page-handler="SaveCompany">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <abp-input asp-for="Company.Name" />
+                        <abp-input asp-for="Company.AddressLine" />
+                        <div class="row">
+                            <div class="col-md-4"><abp-input asp-for="Company.City" /></div>
+                            <div class="col-md-4"><abp-input asp-for="Company.State" /></div>
+                            <div class="col-md-4"><abp-input asp-for="Company.PostalCode" /></div>
+                        </div>
+                        <abp-input asp-for="Company.Country" />
+                        <div class="row">
+                            <div class="col-md-6"><abp-input asp-for="Company.Phone" /></div>
+                            <div class="col-md-6"><abp-input asp-for="Company.Email" /></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">@L["Save"]</button>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade @(activeTab == "email" ? "show active" : "")" id="tab-email">
+                    <p class="text-muted small">@L["EmailHint"]</p>
+                    <form method="post" asp-page-handler="SaveEmail">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <div class="row">
+                            <div class="col-md-8"><abp-input asp-for="Email.SmtpHost" /></div>
+                            <div class="col-md-4"><abp-input asp-for="Email.SmtpPort" /></div>
+                        </div>
+                        <abp-input asp-for="Email.SmtpUserName" />
+                        <abp-input asp-for="Email.SmtpPassword" autocomplete="new-password" placeholder="@(Model.Email.HasStoredPassword ? L["PasswordUnchangedPlaceholder"].Value : "")" />
+                        <abp-input asp-for="Email.EnableSsl" />
+                        <abp-input asp-for="Email.UseDefaultCredentials" />
+                        <div class="row">
+                            <div class="col-md-6"><abp-input asp-for="Email.DefaultFromAddress" /></div>
+                            <div class="col-md-6"><abp-input asp-for="Email.DefaultFromDisplayName" /></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">@L["Save"]</button>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade @(activeTab == "business" ? "show active" : "")" id="tab-business">
+                    <p class="text-muted small">@L["AppSettingsHint"]</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>@L["Setting"]</th>
+                                    <th>@L["Value"]</th>
+                                    <th>@L["Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model.BusinessSettings)
+                                {
+                                    <tr>
+                                        <td>@row.DisplayName</td>
+                                        <td>
+                                            <form method="post" asp-page-handler="SaveBusiness" class="d-flex gap-2">
+                                                <input type="hidden" name="name" value="@row.Name" />
+                                                <input type="number" name="value" value="@row.Value" step="0.01" min="0" class="form-control form-control-sm" style="max-width: 8rem;" />
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">@L["Save"]</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            @if (Model.CanManageModules)
+            {
+                <div class="tab-pane fade @(activeTab == "modules" ? "show active" : "")" id="tab-modules">
+                    <p class="text-muted small">@L["ModuleTogglesHint"]</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>@L["Module"]</th>
+                                    <th>@L["Status"]</th>
+                                    <th>@L["Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var module in Model.Modules)
+                                {
+                                    <tr>
+                                        <td>@module.DisplayName</td>
+                                        <td>
+                                            <span class="pill @(module.IsEnabled ? "pill-success" : "pill-neutral")">
+                                                @(module.IsEnabled ? L["Enabled"] : L["Disabled"])
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <form method="post" asp-page-handler="ToggleModule" class="d-inline">
+                                                <input type="hidden" name="name" value="@module.Name" />
+                                                <button type="submit" class="btn btn-sm @(module.IsEnabled ? "btn-outline-danger" : "btn-outline-primary")">
+                                                    @(module.IsEnabled ? L["Disable"] : L["Enable"])
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
