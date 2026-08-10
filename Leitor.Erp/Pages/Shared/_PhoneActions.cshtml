@@ -1,0 +1,11 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model string
+
+@if (!string.IsNullOrWhiteSpace(Model))
+{
+    <a href="@PhoneLinks.Tel(Model)" class="text-muted ms-1" title="@L["Call"]" aria-label="@L["Call"] @Model"><i class="fas fa-phone"></i></a>
+    <a href="@PhoneLinks.Sms(Model)" class="text-muted ms-1" title="@L["Message"]" aria-label="@L["Message"] @Model"><i class="fas fa-sms"></i></a>
+    <a href="@PhoneLinks.WhatsApp(Model)" class="text-muted ms-1" target="_blank" rel="noopener" title="@L["WhatsApp"]" aria-label="@L["WhatsApp"] @Model"><i class="fab fa-whatsapp"></i></a>
+}

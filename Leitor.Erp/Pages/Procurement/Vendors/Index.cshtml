@@ -42,7 +42,7 @@
                         <tr>
                             <td><a class="doc-no" asp-page="./Detail" asp-route-id="@vendor.Id">@vendor.Name</a></td>
                             <td>@vendor.Email</td>
-                            <td>@vendor.Phone</td>
+                            <td>@vendor.Phone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="vendor.Phone" /></td>
                             <td>@vendor.Country</td>
                             <td>
                                 <a asp-page="/Accounting/Reports/VendorStatement/Index" asp-route-VendorId="@vendor.Id" class="btn btn-sm btn-outline-secondary">@L["Statement"]</a>
