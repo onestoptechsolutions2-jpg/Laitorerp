@@ -39,6 +39,7 @@ public class DetailModel : AbpPageModel
     private readonly PriceListAppService _priceListAppService;
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly TicketAppService _ticketAppService;
+    private readonly SupportAnalyticsAppService _supportAnalyticsAppService;
     private readonly OpportunityAppService _opportunityAppService;
     private readonly QuoteAppService _quoteAppService;
     private readonly OrderAppService _orderAppService;
@@ -59,6 +60,7 @@ public class DetailModel : AbpPageModel
         PriceListAppService priceListAppService,
         FieldServiceJobAppService fieldServiceJobAppService,
         TicketAppService ticketAppService,
+        SupportAnalyticsAppService supportAnalyticsAppService,
         OpportunityAppService opportunityAppService,
         QuoteAppService quoteAppService,
         OrderAppService orderAppService,
@@ -78,6 +80,7 @@ public class DetailModel : AbpPageModel
         _priceListAppService = priceListAppService;
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _ticketAppService = ticketAppService;
+        _supportAnalyticsAppService = supportAnalyticsAppService;
         _opportunityAppService = opportunityAppService;
         _quoteAppService = quoteAppService;
         _orderAppService = orderAppService;
@@ -99,6 +102,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<CustomerAttachmentDto> Attachments { get; set; } = Array.Empty<CustomerAttachmentDto>();
     public IReadOnlyList<FieldServiceJobDto> FieldServiceJobs { get; set; } = Array.Empty<FieldServiceJobDto>();
     public IReadOnlyList<TicketDto> Tickets { get; set; } = Array.Empty<TicketDto>();
+    public CustomerSlaPerformanceDto? SlaPerformance { get; set; }
 
     // 360 pipeline/finance view - the Quote/Order/Invoice repositories already existed in
     // CustomerAppService for cascade-delete; this surfaces the same data for display instead.
@@ -208,6 +212,7 @@ public class DetailModel : AbpPageModel
                 MaxResultCount = 1000
             });
             Tickets = tickets.Items;
+            SlaPerformance = await _supportAnalyticsAppService.GetCustomerSlaPerformanceAsync(Id);
         }
 
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Default))

@@ -1096,6 +1096,9 @@
     "Enum:ChangeRequestStatus:2": "Approved",
     "Enum:ChangeRequestStatus:3": "Rejected",
     "Enum:ChangeRequestStatus:4": "Completed",
-    "Enum:ChangeRequestStatus:5": "Rolled Back"
+    "Enum:ChangeRequestStatus:5": "Rolled Back",
+    "SlaPerformance": "SLA Performance",
+    "Of": "of",
+    "TicketsMetSla": "tickets met SLA"
   }
 }

@@ -52,11 +52,6 @@ public class SupportAnalyticsAppService : ApplicationService
 
         var since = Clock.Now.AddMonths(-11);
         var tickets = await _ticketRepository.GetListAsync(x => x.CreationTime >= since && x.SlaDueDate != null);
-        var now = Clock.Now;
-
-        bool WasBreached(Ticket ticket) => ticket.ResolvedDate.HasValue
-            ? ticket.ResolvedDate.Value > ticket.SlaDueDate!.Value
-            : now > ticket.SlaDueDate!.Value;
 
         var byMonth = tickets
             .GroupBy(x => (x.CreationTime.Year, x.CreationTime.Month))
@@ -74,6 +69,31 @@ public class SupportAnalyticsAppService : ApplicationService
             };
         });
     }
+
+    // Per-customer counterpart - the number an account manager hands a retainer client as their
+    // own Experience Level Agreement performance (see CustomerSlaPerformanceDto). All-time, same
+    // WasBreached definition as the org-wide trend above so the two numbers are never computed two
+    // different ways.
+    public async Task<CustomerSlaPerformanceDto> GetCustomerSlaPerformanceAsync(Guid customerId)
+    {
+        await CheckPolicyAsync(ErpPermissions.Support.Default);
+
+        var tickets = await _ticketRepository.GetListAsync(x => x.CustomerId == customerId && x.SlaDueDate != null);
+        var breached = tickets.Count(WasBreached);
+        var total = tickets.Count;
+
+        return new CustomerSlaPerformanceDto
+        {
+            TotalCount = total,
+            BreachedCount = breached,
+            MetCount = total - breached,
+            CompliancePercent = total > 0 ? Math.Round((decimal)(total - breached) / total * 100, 1) : null
+        };
+    }
+
+    private bool WasBreached(Ticket ticket) => ticket.ResolvedDate.HasValue
+        ? ticket.ResolvedDate.Value > ticket.SlaDueDate!.Value
+        : Clock.Now > ticket.SlaDueDate!.Value;
 
     public async Task<List<CsatMonthDto>> GetCsatTrendAsync()
     {

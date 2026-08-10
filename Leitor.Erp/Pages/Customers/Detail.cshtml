@@ -607,6 +607,16 @@
         </div>
     </div>
     <div class="card-body">
+        @if (Model.SlaPerformance is { TotalCount: > 0 })
+        {
+            <p class="text-muted mb-3">
+                @L["SlaPerformance"]:
+                <span class="pill @(Model.SlaPerformance.CompliancePercent >= 90 ? "pill-success" : Model.SlaPerformance.CompliancePercent >= 75 ? "pill-warning" : "pill-danger")">
+                    @Model.SlaPerformance.CompliancePercent.Value.ToString("N1")%
+                </span>
+                (@Model.SlaPerformance.MetCount @L["Of"] @Model.SlaPerformance.TotalCount @L["TicketsMetSla"])
+            </p>
+        }
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
