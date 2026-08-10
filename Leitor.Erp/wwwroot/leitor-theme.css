@@ -241,6 +241,45 @@ a:focus-visible,
   border-color: var(--leitor-success);
 }
 
+/* Solid danger/warning/info buttons (Reject, MarkIncomplete, status-transition actions, etc.) -
+   Bootstrap's compiled classes hard-code its own red/yellow/cyan rather than referencing a CSS
+   variable, so (same as .btn-primary/.btn-success above) these need an explicit override rather
+   than a root-level --bs-* variable change. warning/info get white text because our darker,
+   muted tones (unlike Bootstrap's light default yellow/cyan) need it for contrast. */
+.btn-danger {
+  background-color: var(--leitor-danger);
+  border-color: var(--leitor-danger);
+}
+.btn-danger:hover,
+.btn-danger:focus {
+  background-color: #872c26;
+  border-color: #872c26;
+}
+
+.btn-warning {
+  background-color: var(--leitor-warning);
+  border-color: var(--leitor-warning);
+  color: #fff;
+}
+.btn-warning:hover,
+.btn-warning:focus {
+  background-color: #66450c;
+  border-color: #66450c;
+  color: #fff;
+}
+
+.btn-info {
+  background-color: var(--leitor-info);
+  border-color: var(--leitor-info);
+  color: #fff;
+}
+.btn-info:hover,
+.btn-info:focus {
+  background-color: #2f516f;
+  border-color: #2f516f;
+  color: #fff;
+}
+
 .btn-outline-primary {
   color: var(--leitor-primary);
   border-color: var(--leitor-primary);
@@ -289,6 +328,12 @@ a:focus-visible,
   font-weight: 500;
   color: var(--leitor-ink-soft);
   margin-bottom: 4px;
+}
+
+/* asp-validation-summary="All" class="text-danger" is the standard pattern on every Create/Edit
+   page in the app - Bootstrap's utility itself is !important, so this needs to match. */
+.text-danger {
+  color: var(--leitor-danger) !important;
 }
 
 /* ============================= Detail pages (dl/dt/dd key-value grid) ============================= */
@@ -397,6 +442,11 @@ dl.row dd {
   background: var(--leitor-success-bg);
   border-color: var(--leitor-success-bg);
   color: var(--leitor-success);
+}
+.alert-info {
+  background: var(--leitor-info-bg);
+  border-color: var(--leitor-info-bg);
+  color: var(--leitor-info);
 }
 
 /* ============================= Modals ============================= */
