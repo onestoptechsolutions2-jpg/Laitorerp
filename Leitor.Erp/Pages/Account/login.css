@@ -2,13 +2,15 @@
    Leitor ERP - Modern Login Page Styles
    ======================================== */
 
-/* Root container styling */
+/* Root container styling - flat warm paper background, matching every other page in the app
+   (this was previously the one page with a dramatic dark-navy gradient, unrelated to the rest
+   of the app's understated look). */
 .leitor-auth-container {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: #f6f4f0;
     padding: 20px;
 }
 
@@ -17,11 +19,13 @@
     max-width: 420px;
 }
 
-/* Card styling */
+/* Card styling - same layered shadow language as .card elsewhere in the app (see
+   leitor-theme.css's --leitor-shadow), not the heavy single dark shadow a card needs to pop off
+   a dark background. */
 .leitor-login-card {
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 2px rgba(35, 36, 31, 0.03), 0 6px 16px rgba(35, 36, 31, 0.06), 0 20px 40px -20px rgba(35, 36, 31, 0.12);
     padding: 48px 40px;
 }
 
@@ -45,14 +49,14 @@
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: #1e293b;
+    color: #23241f;
     margin: 0;
 }
 
 .leitor-form-control {
     width: 100%;
     padding: 12px 14px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e1ddd2;
     border-radius: 6px;
     font-size: 14px;
     font-family: inherit;
@@ -61,17 +65,17 @@
 }
 
 .leitor-form-control:hover {
-    border-color: #cbd5e1;
+    border-color: #c9c2b0;
 }
 
 .leitor-form-control:focus {
     outline: none;
-    border-color: #0ea5e9;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    border-color: #1b6b74;
+    box-shadow: 0 0 0 3px rgba(27, 107, 116, 0.14);
 }
 
 .leitor-form-control::placeholder {
-    color: #94a3b8;
+    color: #6b6b62;
 }
 
 .leitor-form-error {
@@ -79,6 +83,22 @@
     font-size: 12px;
     color: #dc2626;
     margin-top: 6px;
+}
+
+/* Page-level errors (e.g. "invalid username or password") - ASP.NET's validation summary tag
+   helper, distinct from the per-field .leitor-form-error spans above. Visibility (hidden until
+   there's actually an error) comes from the theme's own .validation-summary-valid rule, same as
+   every asp-validation-summary usage elsewhere in this app - only the "has errors" look is
+   defined here. */
+.leitor-form-summary-error ul {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    background-color: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #7f1d1d;
+    font-size: 13px;
 }
 
 /* Password wrapper with toggle button */
@@ -99,7 +119,7 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #94a3b8;
+    color: #6b6b62;
     cursor: pointer;
     font-size: 16px;
     padding: 8px;
@@ -110,12 +130,12 @@
 }
 
 .leitor-password-toggle:hover {
-    color: #64748b;
+    color: #23241f;
 }
 
 .leitor-password-toggle:focus {
     outline: none;
-    color: #0ea5e9;
+    color: #1b6b74;
 }
 
 /* Remember me checkbox */
@@ -130,13 +150,13 @@
     height: 18px;
     margin-right: 8px;
     cursor: pointer;
-    accent-color: #0ea5e9;
+    accent-color: #1b6b74;
     border-radius: 4px;
 }
 
 .leitor-checkbox-label {
     font-size: 14px;
-    color: #475569;
+    color: #6b6b62;
     cursor: pointer;
     margin: 0;
     user-select: none;
@@ -160,54 +180,49 @@
     gap: 8px;
 }
 
-/* Primary button (Sign In) */
+/* Primary button (Sign In) - flat fill, same hover convention as .btn-primary elsewhere in the
+   app (background darkens, no lift/transform). */
 .leitor-btn-primary {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    background-color: #1b6b74;
     color: #ffffff;
     margin-bottom: 16px;
 }
 
 .leitor-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
-}
-
-.leitor-btn-primary:active {
-    transform: translateY(0);
+    background-color: #14525a;
 }
 
 .leitor-btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
 }
 
 /* Secondary button (Cancel) */
 .leitor-btn-secondary {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
+    background: #ece9e1;
+    color: #5f5f57;
+    border: 1px solid #e1ddd2;
 }
 
 .leitor-btn-secondary:hover {
-    background: #e2e8f0;
-    border-color: #cbd5e1;
+    background: #e1ddd2;
+    border-color: #c9c2b0;
 }
 
 .leitor-btn-secondary:active {
-    background: #cbd5e1;
+    background: #ddd8ca;
 }
 
 /* Forgot password link */
 .leitor-forgot-password {
     font-size: 13px;
-    color: #0ea5e9;
+    color: #1b6b74;
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .leitor-forgot-password:hover {
-    color: #0284c7;
+    color: #14525a;
 }
 
 /* Alert styling */
@@ -269,6 +284,6 @@
 /* Focus visible for accessibility */
 .leitor-btn:focus-visible,
 .leitor-form-control:focus-visible {
-    outline: 2px solid #0ea5e9;
+    outline: 2px solid #1b6b74;
     outline-offset: 2px;
 }

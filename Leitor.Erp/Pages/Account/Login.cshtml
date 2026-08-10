@@ -42,6 +42,8 @@
             {
                 <form method="post" class="leitor-login-form">
 
+                    <div asp-validation-summary="ModelOnly" class="leitor-form-summary-error"></div>
+
                     <!-- Email/Username Field -->
                     <div class="leitor-form-group">
                         <label asp-for="LoginInput.UserNameOrEmailAddress" class="leitor-form-label">
@@ -51,6 +53,7 @@
                             asp-for="LoginInput.UserNameOrEmailAddress"
                             class="leitor-form-control"
                             placeholder="name@company.com"
+                            autocomplete="username"
                             autofocus="autofocus"
                         />
                         <span asp-validation-for="LoginInput.UserNameOrEmailAddress" class="leitor-form-error"></span>
@@ -70,7 +73,7 @@
                             <input
                                 type="password"
                                 class="leitor-form-control"
-                                autocomplete="new-password"
+                                autocomplete="current-password"
                                 maxlength="@IdentityUserConsts.MaxPasswordLength"
                                 asp-for="LoginInput.Password"
                                 placeholder="@L["EnterPassword"]"

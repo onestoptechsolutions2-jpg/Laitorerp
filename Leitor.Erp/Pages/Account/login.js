@@ -56,6 +56,15 @@
                     errorField.focus();
                     errorField.closest('.leitor-form-group')?.classList.add('has-error');
                 }
+                return;
+            }
+
+            // Disable the submit button once the form is actually going to POST, so a slow
+            // connection or double-click can't fire a second login attempt. No need to
+            // re-enable it - the page either navigates away or reloads fresh with an error.
+            const submitButton = form.querySelector('.leitor-btn-primary');
+            if (submitButton) {
+                submitButton.disabled = true;
             }
         });
     };
