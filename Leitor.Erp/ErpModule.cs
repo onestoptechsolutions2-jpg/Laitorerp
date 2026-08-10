@@ -10,6 +10,7 @@ using Leitor.Erp.Data;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
+using Leitor.Erp.Pages.Shared.Components.MyActionItems;
 using QuestPDF.Infrastructure;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
@@ -54,6 +55,8 @@ using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement.Web;
 using Volo.Abp.OpenIddict;
 using Volo.Abp.Security.Claims;
+using Volo.Abp.AspNetCore.Mvc.UI.Theming;
+using Volo.Abp.Ui.LayoutHooks;
 using Volo.Abp.UI.Navigation;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.Validation.Localization;
@@ -189,6 +192,7 @@ public class ErpModule : AbpModule
         ConfigureMultiTenancy();
         ConfigureUrls(configuration);
         ConfigureBundles();
+        ConfigureLayoutHooks();
         ConfigureMapperly(context);
         ConfigureSwagger(context.Services);
         ConfigureNavigationServices();
@@ -253,6 +257,31 @@ public class ErpModule : AbpModule
                     bundle.AddFiles("/global-styles.css", "/leitor-theme.css");
                 }
             );
+
+            options.ScriptBundles.Configure(
+                LeptonXLiteThemeBundles.Scripts.Global,
+                bundle =>
+                {
+                    bundle.AddFiles("/leitor-layout.js");
+                }
+            );
+        });
+    }
+
+    // Renders MyActionItemsViewComponent (the right-hand "action items" rail) at the end of
+    // every page's <body> - LeptonXLite's own layout is a precompiled Razor Class Library with
+    // no source to safely override, so LayoutHooks is the supported extension point for adding
+    // new UI without touching it. StandardLayouts.Application excludes the Account (login) layout,
+    // so no anonymous-user handling is needed here (MyActionItemsViewComponent still checks
+    // authentication defensively - see its own comment).
+    private void ConfigureLayoutHooks()
+    {
+        Configure<AbpLayoutHookOptions>(options =>
+        {
+            options.Add(
+                LayoutHooks.Body.Last,
+                typeof(MyActionItemsViewComponent),
+                layout: StandardLayouts.Application);
         });
     }
 

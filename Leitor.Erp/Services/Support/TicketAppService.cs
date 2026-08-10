@@ -182,7 +182,7 @@ public class TicketAppService :
         return await DefaultSlaWindowAsync(priority);
     }
 
-    // Reads from Settings/ErpSettings.cs (admin-editable via Pages/Administration/AppSettings) -
+    // Reads from Settings/ErpSettings.cs (admin-editable via Pages/Administration/Operations) -
     // falls back to the setting definition's own default if unset, same 4/24/72/168-hour table
     // this used to hardcode directly.
     private async Task<TimeSpan> DefaultSlaWindowAsync(TicketPriority priority)

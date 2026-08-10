@@ -24,17 +24,20 @@ public class MyWorkspaceAppService : ApplicationService
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<ChangeRequest, Guid> _changeRequestRepository;
 
     public MyWorkspaceAppService(
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<ChangeRequest, Guid> changeRequestRepository)
     {
         _ticketRepository = ticketRepository;
         _customerRepository = customerRepository;
         _jobRepository = jobRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _changeRequestRepository = changeRequestRepository;
     }
 
     public async Task<MyWorkspaceDto> GetAsync()
@@ -93,6 +96,12 @@ public class MyWorkspaceAppService : ApplicationService
         {
             var pending = await _deletionRequestRepository.GetListAsync(x => x.Status == DeletionRequestStatus.Pending);
             dto.PendingDeletionRequestCount = pending.Count;
+        }
+
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Changes.Approve))
+        {
+            var pendingChanges = await _changeRequestRepository.GetListAsync(x => x.Status == ChangeRequestStatus.PendingApproval);
+            dto.PendingChangeRequestCount = pendingChanges.Count;
         }
 
         return dto;

@@ -13,6 +13,10 @@ public class MyWorkspaceDto
     // Null when the current user doesn't hold DeletionApprovals.Decide - distinct from a genuine
     // zero, same "section only appears if you can see it" convention as DashboardAppService.
     public int? PendingDeletionRequestCount { get; set; }
+
+    // Null when the current user doesn't hold Changes.Approve - same convention as
+    // PendingDeletionRequestCount above.
+    public int? PendingChangeRequestCount { get; set; }
 }
 
 public class MyTicketDto

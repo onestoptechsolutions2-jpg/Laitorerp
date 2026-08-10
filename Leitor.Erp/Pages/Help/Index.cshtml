@@ -1,0 +1,269 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Help.IndexModel
+
+@*
+    Reference content only, not routed through AppServices, so most of the body copy below is
+    static English rather than individually localized like every data-bearing page in this app -
+    section headers use the same localized-string convention as everywhere else, but a dozen
+    paragraphs of internal procedure text didn't seem worth a resource key each. Revisit if this
+    app ever needs a second UI language for real.
+*@
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Menu:Help"]</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-0">How the support team runs a client issue through this app - from the moment it's logged as a Ticket to the moment it's closed, escalated into a Problem, turned into a Change, or written up in the Knowledge Base.</p>
+    </div>
+</div>
+
+<div class="accordion" id="helpAccordion">
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#helpIntake">How a ticket starts</button>
+        </h2>
+        <div id="helpIntake" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>Every support issue begins life as a <strong>Ticket</strong> tied to the client's Customer record, optionally referencing the specific Order, Field Service Job, or Contract it relates to.</p>
+                <p><strong>Type:</strong> General (default/ambiguous), Technical (a system or device isn't working), Billing (invoice/payment/contract-value questions), Complaint (service-quality feedback, tracked separately even if it started as a technical issue), or Security Incident (breach, malware, phishing, unauthorized access - see the Security Incidents section before doing anything else).</p>
+                <p><strong>Priority:</strong> sets the SLA clock the instant the ticket is created - see the next section. Use Urgent only for something actually down or actively unsafe.</p>
+                <div class="alert alert-warning mb-0">
+                    <strong>Before you promise a fix:</strong> open the client's Customer record and check their active Contract's Services Included. The managed-IT retainer covers up to 13 possible services (Network Infrastructure, Wi-Fi, Firewalls, User/Device Support, Backups, Microsoft&nbsp;365&nbsp;/&nbsp;Google&nbsp;Workspace Administration, Endpoint Security, Patch/Update Management, CCTV Oversight, Basic Security Monitoring, IT Policies, Incident Response, Vendor Coordination) and not every contract includes every one. If the issue is outside what's actually checked, that's a scope conversation before it's a ticket resolution.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpSla">SLA rules</button>
+        </h2>
+        <div id="helpSla" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>The SLA due date is calculated <strong>once</strong>, at creation, from Priority and (if one applies) the client's Contract. Changing Priority or Contract afterward never moves an already-set target.</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-2">
+                        <thead>
+                            <tr><th>@L["Priority"]</th><th>Default response window</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><span class="pill pill-danger">@L["Enum:TicketPriority:3"]</span></td><td>4 hours</td></tr>
+                            <tr><td><span class="pill pill-warning">@L["Enum:TicketPriority:2"]</span></td><td>24 hours</td></tr>
+                            <tr><td><span class="pill pill-info">@L["Enum:TicketPriority:1"]</span></td><td>72 hours</td></tr>
+                            <tr><td><span class="pill pill-neutral">@L["Enum:TicketPriority:0"]</span></td><td>168 hours (7 days)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-2">These defaults are admin-editable under Administration &gt; App Settings. If a client's Contract sets its own hours for a tier (a Platinum-support contract, for example), that number wins instead.</p>
+                <p class="mb-0">A ticket shows as SLA-breached only while it's still open and past its due date - computed live every time it's viewed, never stored. Resolving a ticket late records the fact honestly; it doesn't retroactively fix the breach.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpLifecycle">Ticket lifecycle</button>
+        </h2>
+        <div id="helpLifecycle" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p class="mb-2">
+                    <span class="pill pill-danger">@L["Enum:TicketStatus:0"]</span> &rarr;
+                    <span class="pill pill-warning">@L["Enum:TicketStatus:1"]</span> &rarr;
+                    <span class="pill pill-info">@L["Enum:TicketStatus:2"]</span> &rarr;
+                    <span class="pill pill-success">@L["Enum:TicketStatus:3"]</span> &rarr;
+                    <span class="pill pill-neutral">@L["Enum:TicketStatus:4"]</span>
+                </p>
+                <p>Resolved and Closed are deliberately separate: Resolved means the fix is in and you're waiting on the client to confirm; Closed means it's fully done and archived. Both stop the SLA clock.</p>
+                <p><strong>Reopening:</strong> moving a ticket back out of Resolved/Closed increments its reopen count - not a penalty, the exact signal that flags a candidate for Problem Management below.</p>
+                <p><strong>Messages:</strong> every reply is logged as staff-side or customer-side on an append-only thread. There's no separate internal-notes channel - write anything not meant for the client's eyes as if a teammate is reading over your shoulder.</p>
+                <p class="mb-0"><strong>Closing the loop:</strong> collect a 1-5 satisfaction rating when appropriate - it feeds the team's CSAT trend directly, it isn't decoration.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpProblems">Problem management</button>
+        </h2>
+        <div id="helpProblems" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>A <strong>Problem</strong> is the shared root cause behind one or more Tickets - create one the moment you notice the same fault surfacing more than once, so it's diagnosed properly instead of re-investigated from scratch every time.</p>
+                <p class="mb-2">
+                    <span class="pill pill-danger">@L["Enum:ProblemStatus:0"]</span> &rarr;
+                    <span class="pill pill-warning">@L["Enum:ProblemStatus:1"]</span> &rarr;
+                    <span class="pill pill-info">@L["Enum:ProblemStatus:2"]</span> &rarr;
+                    <span class="pill pill-success">@L["Enum:ProblemStatus:3"]</span> &rarr;
+                    <span class="pill pill-neutral">@L["Enum:ProblemStatus:4"]</span>
+                </p>
+                <p class="mb-0"><strong>Known Error</strong> means root cause is identified and a workaround exists, even though the permanent fix hasn't shipped - it's what lets you tell a client "we know what this is and here's the workaround" without over-promising a timeline. Link every Ticket that shares the root cause to the Problem, and record Root Cause / Workaround there once.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpWarranty">Warranty claims</button>
+        </h2>
+        <div id="helpWarranty" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>Use a <strong>Warranty Claim</strong>, not a regular Ticket, when a client is invoking warranty coverage on equipment Laitor installed or supplied - it has its own approval lifecycle.</p>
+                <p class="mb-2">
+                    <span class="pill pill-danger">@L["Enum:WarrantyClaimStatus:0"]</span> &rarr;
+                    <span class="pill pill-warning">@L["Enum:WarrantyClaimStatus:1"]</span> / <span class="pill pill-warning">@L["Enum:WarrantyClaimStatus:2"]</span> &rarr;
+                    <span class="pill pill-success">@L["Enum:WarrantyClaimStatus:3"]</span>
+                </p>
+                <p class="mb-0">A claim can reference the warranty Contract, the original Field Service Job, and the Ticket the client first raised it through - all optional and independent, so link whichever actually apply.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpChanges">Change enablement</button>
+        </h2>
+        <div id="helpChanges" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>When resolving something means making a planned change to a client's tracked equipment - a firmware upgrade, a network reconfiguration - that's a <strong>Change Request</strong> against the relevant Configuration Item, not just a ticket update.</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-2">
+                        <thead>
+                            <tr><th>Tier</th><th>Who signs off</th><th>When to use it</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><span class="pill pill-info">Standard</span></td><td>Pre-authorized - straight to Approved</td><td>Routine, low-risk, already agreed with the client.</td></tr>
+                            <tr><td><span class="pill pill-warning">Normal</span></td><td>Waits for a Changes.Approve holder</td><td>Anything with real risk or blast radius - the only tier that actually queues.</td></tr>
+                            <tr><td><span class="pill pill-danger">Emergency</span></td><td>Proceeds immediately, reviewed after</td><td>The incident causing it can't wait. Post-implementation review is mandatory.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mb-0">A completed change that has to be undone is marked <strong>Rolled Back</strong> - a distinct outcome from Completed, not a note bolted on, with mandatory rollback notes explaining why.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpSecurity">Security incidents</button>
+        </h2>
+        <div id="helpSecurity" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>Set Ticket Type to <strong>Security Incident</strong> for a breach, malware infection, phishing attempt, or unauthorized-access event.</p>
+                <p>Two fields track containment separately from resolution, both set by hand since containment often happens before root cause is fully understood: <strong>Is Security Breach</strong> (flip on as soon as confirmed real) and <strong>Contained Date</strong> (the moment the immediate threat was actually stopped).</p>
+                <div class="alert alert-info mb-0">
+                    <strong>Follow-up:</strong> for anything beyond a quick fix, open a linked Security Assessment (Vulnerability Assessment, Cyber Risk Assessment, Security Policy Review, Cyber Awareness Training, or Backup/DR Review). Rate the outcome
+                    <span class="pill pill-neutral">Low</span> <span class="pill pill-info">Medium</span> <span class="pill pill-warning">High</span> <span class="pill pill-danger">Critical</span>
+                    and set a Follow-Up Date so a Critical finding doesn't quietly fall off anyone's radar.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpRequests">Requests vs. tickets</button>
+        </h2>
+        <div id="helpRequests" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>"Something's wrong, fix it" is a Ticket. "I need something set up or provisioned" is a <strong>Service Request</strong> against the Service Catalog - kept apart deliberately.</p>
+                <p class="mb-2">
+                    <span class="pill pill-danger">@L["Enum:ServiceRequestStatus:0"]</span> &rarr;
+                    <span class="pill pill-warning">@L["Enum:ServiceRequestStatus:1"]</span> &rarr;
+                    <span class="pill pill-info">@L["Enum:ServiceRequestStatus:2"]</span> &rarr;
+                    <span class="pill pill-success">@L["Enum:ServiceRequestStatus:3"]</span> /
+                    <span class="pill pill-neutral">@L["Enum:ServiceRequestStatus:4"]</span>
+                </p>
+                <p class="mb-0">The Service Catalog is the menu of what's requestable - each item can carry a target SLA and an owner. If a client asks for something not in the catalog yet, that's a conversation with whoever owns the catalog before it's a one-off request.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpKb">Knowledge base</button>
+        </h2>
+        <div id="helpKb" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>Any Resolved or Closed ticket has a one-click <strong>Promote to Knowledge Base</strong> action that opens a Draft article pre-filled with the ticket's subject. Use it whenever the fix took real effort or you can picture the next client hitting the same issue.</p>
+                <p class="mb-0">
+                    <span class="pill pill-neutral">@L["Enum:KnowledgeArticleStatus:0"]</span> &rarr;
+                    <span class="pill pill-success">@L["Enum:KnowledgeArticleStatus:1"]</span> &rarr;
+                    <span class="pill pill-info">@L["Enum:KnowledgeArticleStatus:2"]</span>
+                    &mdash; a Draft is invisible to search until Published, so promoting one is a prompt to finish writing it up, not the end of the job.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpAssets">Assets &amp; credentials</button>
+        </h2>
+        <div id="helpAssets" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <p>A client's tracked hardware, software, and network gear lives in the CMDB as Configuration Items. Link a Ticket or Field Service Job to the specific one it concerns whenever one exists.</p>
+                <div class="alert alert-danger mb-0">
+                    <strong>Credentials never go in a ticket.</strong> Device logins, API keys, and SSH keys belong in the encrypted credential vault attached to the Configuration Item - never pasted into a Ticket message or note, which are plain text and permanent. Viewing a stored credential's actual value requires the separate Assets.RevealCredentials permission on top of ordinary edit access, and every reveal is logged as its own audited event.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpRoles">Roles &amp; permissions</button>
+        </h2>
+        <div id="helpRoles" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-2">
+                        <thead>
+                            <tr><th>Permission group</th><th>Grants</th><th>Extra gate</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>Erp.Support</code></td><td>Create/edit/delete Tickets, Problems, Warranty Claims</td><td>&mdash;</td></tr>
+                            <tr><td><code>Erp.Changes</code></td><td>Create/edit Change Requests</td><td><code>Changes.Approve</code> to approve/reject a Normal-tier change</td></tr>
+                            <tr><td><code>Erp.Cybersecurity</code></td><td>Create/edit Security Assessments</td><td>&mdash;</td></tr>
+                            <tr><td><code>Erp.Assets</code></td><td>Manage Configuration Items and credentials</td><td><code>Assets.RevealCredentials</code> to view a stored credential's plaintext value</td></tr>
+                            <tr><td><code>Erp.KnowledgeBase</code></td><td>Create/edit/publish Knowledge Base articles</td><td>&mdash;</td></tr>
+                            <tr><td><code>Erp.ServiceRequests</code> / <code>Erp.ServiceCatalog</code></td><td>Manage Service Requests / the catalog they're requested against</td><td>&mdash;</td></tr>
+                            <tr><td><code>Erp.DeletionApprovals</code></td><td>&mdash;</td><td><code>DeletionApprovals.Decide</code> to delete most support records immediately; everyone else's delete files an approval request</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">Change Enablement, Cybersecurity, Knowledge Management, the Service Catalog/Requests pair, and Asset Management are all optional modules - off by default, switched on per deployment under Administration &gt; Module Toggles. If a section of this page doesn't match what you see in the app, check there first.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpReference">Quick reference</button>
+        </h2>
+        <div id="helpReference" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div class="accordion-body">
+                <h6>Document number prefixes</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-3">
+                        <tbody>
+                            <tr><td>Ticket</td><td><code>TKT-</code></td></tr>
+                            <tr><td>Problem</td><td><code>PRB-</code></td></tr>
+                            <tr><td>Warranty Claim</td><td><code>WC-</code></td></tr>
+                            <tr><td>Service Request</td><td><code>SR-</code></td></tr>
+                            <tr><td>Change Request</td><td><code>CHG-</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h6>Contract service scope (13 possible)</h6>
+                <p>Network Infrastructure &middot; Wi-Fi &middot; Firewalls &middot; User/Device Support &middot; Backups &middot; Microsoft&nbsp;365&nbsp;/&nbsp;Google&nbsp;Workspace Administration &middot; Endpoint Security &middot; Patch/Update Management &middot; CCTV Oversight &middot; Basic Security Monitoring &middot; IT Policies &middot; Incident Response &middot; Vendor Coordination</p>
+                <h6>Where things live in the app</h6>
+                <p class="mb-0">Tickets, Warranty Claims, and Problems sit under Service Management, alongside the Service Catalog, Service Requests, Assets, and Knowledge Base. Change Requests live under Assets (always tied to a Configuration Item). Security Assessments have their own Cybersecurity section. Desk-wide analytics - ticket volume, SLA breach rate, CSAT trend, reopen rate - are under Reports &gt; Support Analytics.</p>
+            </div>
+        </div>
+    </div>
+
+</div>

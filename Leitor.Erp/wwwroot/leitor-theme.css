@@ -624,3 +624,207 @@ img, svg {
     width: 100%;
   }
 }
+
+/* ============================= Right-hand action rail ============================= */
+/* Injected on every page via LayoutHooks.Body.Last (Pages/Shared/Components/MyActionItems) - the
+   left sidebar's own collapse/expand mechanics are entirely the shipped theme's own
+   (layout-bundle.css, untouched here); this block only styles the new right panel and gives main
+   content room once a third column exists. Below 1400px the panel is a floating overlay so it
+   never competes with an already-narrow centre column for space; at 1400px+ it earns a real
+   column since there's room for three. */
+
+:root {
+  --leitor-right-panel-width: 320px;
+  /* Sits below Bootstrap's own modal tier (1050) and above the shipped .lpx-sidebar-container
+     (z-index: 1000), so an opened panel always reads above the nav rail but a
+     SweetAlert2/Bootstrap modal still wins. */
+  --leitor-z-panel-backdrop: 1035;
+  --leitor-z-panel: 1040;
+}
+
+/* Keeps main content from stretching edge-to-edge once a third column exists -
+   .lpx-content-container already centers itself under the theme's own rules, this just caps it
+   so a two-panel-open page doesn't read as content awkwardly hugging the left. */
+.lpx-content-container .lpx-content {
+  max-width: 1400px;
+}
+
+.leitor-action-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: var(--leitor-right-panel-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--leitor-surface);
+  border-left: 1px solid var(--leitor-border);
+  box-shadow: var(--leitor-shadow-floating);
+  z-index: var(--leitor-z-panel);
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+.leitor-action-panel.is-open {
+  transform: translateX(0);
+}
+
+.leitor-action-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--leitor-border-soft);
+  flex: none;
+}
+
+.leitor-action-panel-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.leitor-action-panel-footer {
+  flex: none;
+  padding: 14px 20px;
+  border-top: 1px solid var(--leitor-border-soft);
+}
+
+.leitor-action-panel-counts {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leitor-action-panel-count-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--leitor-radius-sm);
+  background: var(--leitor-surface-sunken);
+  font-size: 13.5px;
+  color: var(--leitor-ink);
+}
+.leitor-action-panel-count-row:hover {
+  background: var(--leitor-primary-soft);
+}
+
+.leitor-action-panel-section + .leitor-action-panel-section {
+  margin-top: 22px;
+}
+
+.leitor-action-panel-section-title {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--leitor-ink-soft);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.leitor-action-panel-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--leitor-border-soft);
+}
+.leitor-action-panel-item:last-child {
+  border-bottom: none;
+}
+
+.leitor-action-panel-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--leitor-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leitor-action-panel-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--leitor-ink-soft);
+}
+
+.leitor-action-panel-more {
+  display: block;
+  padding-top: 8px;
+  font-size: 12px;
+  color: var(--leitor-ink-soft);
+}
+
+.leitor-action-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 36, 31, 0.35);
+  z-index: var(--leitor-z-panel-backdrop);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.leitor-action-panel-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Floating edge tab - the toggle for the panel. Can't live in the theme's own topbar (compiled,
+   off-limits), so it's a fixed handle on the right edge instead. Hides while the panel itself is
+   open since the panel's own close button/backdrop/Escape cover that case. */
+.leitor-action-panel-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: calc(var(--leitor-z-panel) - 1);
+  width: 36px;
+  height: 48px;
+  border: 1px solid var(--leitor-border);
+  border-right: none;
+  border-radius: var(--leitor-radius-sm) 0 0 var(--leitor-radius-sm);
+  background: var(--leitor-surface);
+  color: var(--leitor-primary);
+  box-shadow: var(--leitor-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.leitor-action-panel-tab:hover {
+  background: var(--leitor-primary-soft);
+}
+body.leitor-panel-open .leitor-action-panel-tab {
+  display: none;
+}
+
+/* >=1400px: the right panel stops reading as an overlay - no backdrop, and content gives it
+   permanent room via margin-right instead of the panel floating over content. It's still
+   `position: fixed` under the hood (it's injected at the end of <body> via LayoutHooks.Body.Last,
+   outside .lpx-content-container's flow, so `position: sticky` can't make it a real grid/flex
+   column here - fixed + margin-right on the content is what actually reads as "docked column"
+   without needing to be in the same flow). The reopen tab stays available at every breakpoint
+   (see the base `body.leitor-panel-open .leitor-action-panel-tab` rule above) so closing the
+   panel here doesn't strand the user with no way back in. */
+@media (min-width: 1400px) {
+  .leitor-action-panel {
+    box-shadow: none;
+  }
+  .leitor-action-panel-backdrop {
+    display: none;
+  }
+  body.leitor-panel-open .lpx-content-container {
+    margin-right: var(--leitor-right-panel-width);
+  }
+}
+
+/* <=767.98px: match the framework's own mobile left-menu pattern - full takeover rather than a
+   partial-width drawer, since a 320px drawer on a 360-400px phone viewport leaves almost no
+   usable width anyway. */
+@media (max-width: 767.98px) {
+  .leitor-action-panel {
+    width: 100%;
+  }
+}

@@ -82,6 +82,7 @@ public class ErpMenus
 
     public const string Portal = Prefix + ".Portal";
     public const string Workspace = Prefix + ".Workspace";
+    public const string Help = Prefix + ".Help";
     public const string DeletionApprovals = Prefix + ".DeletionApprovals";
     public const string ModuleToggles = Prefix + ".ModuleToggles";
 

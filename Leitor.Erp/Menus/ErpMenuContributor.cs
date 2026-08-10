@@ -52,6 +52,19 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
+        // Static reference content (SLA rules, ticket/problem/change/warranty lifecycles,
+        // permissions) - no permission gate, same reasoning as Workspace: every logged-in staff
+        // account can read it, it doesn't expose or let anyone act on any business data.
+        context.Menu.Items.Add(
+            new ApplicationMenuItem(
+                ErpMenus.Help,
+                l["Menu:Help"],
+                "~/Help",
+                icon: "fas fa-circle-question",
+                order: 101
+            )
+        );
+
         // A staff member's own "what's on my plate" view (open Tickets/FieldServiceJobs assigned
         // to them, plus a pending-DeletionRequests count if they can act on those) - distinct from
         // the customer/vendor-facing "My Portal" link above, which routes external accounts to

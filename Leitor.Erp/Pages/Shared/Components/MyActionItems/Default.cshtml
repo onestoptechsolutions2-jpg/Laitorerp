@@ -1,0 +1,107 @@
+@using System.Linq
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Pages.Shared
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Services.Dtos.Workspace.MyWorkspaceDto
+
+@{
+    // A 320px rail has no room for a full table - cap each list so it stays scannable; the
+    // "view full workspace" link is the way out to the real Pages/Workspace/Index page.
+    const int MaxRows = 5;
+    var visibleTickets = Model.Tickets.Take(MaxRows).ToList();
+    var visibleJobs = Model.Jobs.Take(MaxRows).ToList();
+    var hasPendingCounts = Model.PendingDeletionRequestCount.HasValue || Model.PendingChangeRequestCount.HasValue;
+}
+
+<div class="leitor-action-panel-backdrop" data-leitor-panel-backdrop></div>
+
+<button type="button" class="leitor-action-panel-tab" data-leitor-panel-toggle aria-controls="leitor-action-panel" aria-expanded="false">
+    <i class="fas fa-list-check" aria-hidden="true"></i>
+</button>
+
+<aside class="leitor-action-panel" id="leitor-action-panel" aria-hidden="true" aria-label="@L["MyActionItems"]">
+    <div class="leitor-action-panel-header">
+        <h6 class="mb-0">@L["MyActionItems"]</h6>
+        <button type="button" class="btn-close" data-leitor-panel-close aria-label="@L["Close"]"></button>
+    </div>
+
+    <div class="leitor-action-panel-body">
+        @if (hasPendingCounts)
+        {
+            <div class="leitor-action-panel-counts">
+                @if (Model.PendingDeletionRequestCount.HasValue)
+                {
+                    <a asp-page="/Governance/DeletionApprovals/Index" class="leitor-action-panel-count-row">
+                        <span>@L["PendingDeletionRequests"]</span>
+                        <span class="pill @(Model.PendingDeletionRequestCount > 0 ? "pill-warning" : "pill-neutral")">@Model.PendingDeletionRequestCount</span>
+                    </a>
+                }
+                @if (Model.PendingChangeRequestCount.HasValue)
+                {
+                    <a asp-page="/Changes/Index" class="leitor-action-panel-count-row">
+                        <span>@L["PendingChangeRequests"]</span>
+                        <span class="pill @(Model.PendingChangeRequestCount > 0 ? "pill-warning" : "pill-neutral")">@Model.PendingChangeRequestCount</span>
+                    </a>
+                }
+            </div>
+        }
+
+        <div class="leitor-action-panel-section">
+            <h6 class="leitor-action-panel-section-title">@L["MyOpenTickets"]</h6>
+            @if (visibleTickets.Count == 0)
+            {
+                <p class="text-muted small mb-0">@L["NoneYet"]</p>
+            }
+            else
+            {
+                @foreach (var ticket in visibleTickets)
+                {
+                    <a asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id" class="leitor-action-panel-item">
+                        <span class="leitor-action-panel-item-title">@ticket.TicketNumber - @ticket.Subject</span>
+                        <span class="leitor-action-panel-item-meta">
+                            <span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span>
+                            @if (ticket.SlaDueDate.HasValue)
+                            {
+                                <span>@ticket.SlaDueDate.Value.ToString("g")</span>
+                            }
+                        </span>
+                    </a>
+                }
+                @if (Model.Tickets.Count > MaxRows)
+                {
+                    <span class="leitor-action-panel-more">+@(Model.Tickets.Count - MaxRows)</span>
+                }
+            }
+        </div>
+
+        <div class="leitor-action-panel-section">
+            <h6 class="leitor-action-panel-section-title">@L["MyUpcomingJobs"]</h6>
+            @if (visibleJobs.Count == 0)
+            {
+                <p class="text-muted small mb-0">@L["NoneYet"]</p>
+            }
+            else
+            {
+                @foreach (var job in visibleJobs)
+                {
+                    <a asp-page="/FieldService/Jobs/Detail" asp-route-id="@job.Id" class="leitor-action-panel-item">
+                        <span class="leitor-action-panel-item-title">@job.CustomerName</span>
+                        <span class="leitor-action-panel-item-meta">
+                            <span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span>
+                            <span>@job.ScheduledDate.ToString("g")</span>
+                        </span>
+                    </a>
+                }
+                @if (Model.Jobs.Count > MaxRows)
+                {
+                    <span class="leitor-action-panel-more">+@(Model.Jobs.Count - MaxRows)</span>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="leitor-action-panel-footer">
+        <a asp-page="/Workspace/Index" class="btn btn-outline-primary btn-sm w-100">@L["ViewFullWorkspace"]</a>
+    </div>
+</aside>
