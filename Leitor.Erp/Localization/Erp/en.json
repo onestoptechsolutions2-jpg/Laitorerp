@@ -25,6 +25,7 @@
     "Name": "Name",
     "Email": "Email",
     "PhoneNumber": "Phone Number",
+    "CustomerPhone": "Customer Phone",
     "AddressLine": "Address",
     "City": "City",
     "State": "State/Province",

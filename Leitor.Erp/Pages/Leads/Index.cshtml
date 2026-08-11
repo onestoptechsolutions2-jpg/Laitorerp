@@ -51,6 +51,8 @@
                     <tr>
                         <th>@L["Name"]</th>
                         <th>@L["CompanyName"]</th>
+                        <th>@L["PhoneNumber"]</th>
+                        <th>@L["Territory"]</th>
                         <th>@L["Source"]</th>
                         <th>@L["Status"]</th>
                         <th>@L["AssignedTo"]</th>
@@ -60,7 +62,7 @@
                 <tbody>
                     @if (!Model.Leads.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var lead in Model.Leads)
                     {
@@ -73,6 +75,8 @@
                                 }
                             </td>
                             <td>@lead.CompanyName</td>
+                            <td>@lead.Phone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="lead.Phone" /></td>
+                            <td>@lead.Territory</td>
                             <td>@L[$"Enum:LeadSource:{(int)lead.Source}"]</td>
                             <td><span class="pill @StatusPill.For(lead.Status)">@L[$"Enum:LeadStatus:{(int)lead.Status}"]</span></td>
                             <td>@lead.AssignedToUserName</td>

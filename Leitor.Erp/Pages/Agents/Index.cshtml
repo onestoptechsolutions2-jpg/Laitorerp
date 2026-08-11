@@ -26,6 +26,7 @@
                 <thead>
                     <tr>
                         <th>@L["Name"]</th>
+                        <th>@L["PhoneNumber"]</th>
                         <th>@L["Territory"]</th>
                         <th>@L["CommissionBasis"]</th>
                         <th>@L["CommissionRate"]</th>
@@ -35,12 +36,13 @@
                 <tbody>
                     @if (!Model.Items.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var item in Model.Items)
                     {
                         <tr>
                             <td>@item.Name</td>
+                            <td>@item.Phone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="item.Phone" /></td>
                             <td>@item.Territory</td>
                             <td>@L[$"Enum:CommissionBasis:{(int)item.CommissionBasis}"]</td>
                             <td>@item.CommissionRate.ToString("N2")</td>

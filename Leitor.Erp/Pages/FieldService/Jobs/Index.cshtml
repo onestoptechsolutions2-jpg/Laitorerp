@@ -37,6 +37,7 @@
                 <thead>
                     <tr>
                         <th>@L["Customer"]</th>
+                        <th>@L["CustomerPhone"]</th>
                         <th>@L["Type"]</th>
                         <th>@L["Status"]</th>
                         <th>@L["ScheduledDate"]</th>
@@ -47,12 +48,13 @@
                 <tbody>
                     @if (!Model.Jobs.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var job in Model.Jobs)
                     {
                         <tr>
                             <td><a asp-page="./Detail" asp-route-id="@job.Id">@job.CustomerName</a></td>
+                            <td>@job.CustomerPhone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="job.CustomerPhone" /></td>
                             <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
                             <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
                             <td>@job.ScheduledDate.ToShortDateString()</td>

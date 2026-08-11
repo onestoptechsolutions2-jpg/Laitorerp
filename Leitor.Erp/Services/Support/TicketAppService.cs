@@ -123,6 +123,7 @@ public class TicketAppService :
         var customerIds = tickets.Select(x => x.CustomerId).Distinct().ToList();
         var customers = await _customerRepository.GetListAsync(x => customerIds.Contains(x.Id));
         var customerNamesById = customers.ToDictionary(x => x.Id, x => x.Name);
+        var customerPhonesById = customers.ToDictionary(x => x.Id, x => x.PhoneNumber);
 
         var userIds = tickets
             .Where(x => x.AssignedToUserId.HasValue)
@@ -149,6 +150,11 @@ public class TicketAppService :
             if (customerNamesById.TryGetValue(ticket.CustomerId, out var customerName))
             {
                 ticket.CustomerName = customerName;
+            }
+
+            if (customerPhonesById.TryGetValue(ticket.CustomerId, out var customerPhone))
+            {
+                ticket.CustomerPhone = customerPhone;
             }
 
             if (ticket.AssignedToUserId.HasValue && usersById.TryGetValue(ticket.AssignedToUserId.Value, out var userName))

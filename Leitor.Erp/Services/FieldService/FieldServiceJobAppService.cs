@@ -133,6 +133,7 @@ public class FieldServiceJobAppService :
         var customerIds = jobs.Select(x => x.CustomerId).Distinct().ToList();
         var customers = await _customerRepository.GetListAsync(x => customerIds.Contains(x.Id));
         var customerNamesById = customers.ToDictionary(x => x.Id, x => x.Name);
+        var customerPhonesById = customers.ToDictionary(x => x.Id, x => x.PhoneNumber);
 
         var userIds = jobs
             .Where(x => x.AssignedToUserId.HasValue)
@@ -166,6 +167,11 @@ public class FieldServiceJobAppService :
             if (customerNamesById.TryGetValue(job.CustomerId, out var customerName))
             {
                 job.CustomerName = customerName;
+            }
+
+            if (customerPhonesById.TryGetValue(job.CustomerId, out var customerPhone))
+            {
+                job.CustomerPhone = customerPhone;
             }
 
             if (job.AssignedToUserId.HasValue && usersById.TryGetValue(job.AssignedToUserId.Value, out var userName))

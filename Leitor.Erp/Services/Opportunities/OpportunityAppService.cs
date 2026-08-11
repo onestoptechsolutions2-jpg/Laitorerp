@@ -119,6 +119,7 @@ public class OpportunityAppService :
         var customerIds = opportunities.Select(x => x.CustomerId).Distinct().ToList();
         var customers = await _customerRepository.GetListAsync(x => customerIds.Contains(x.Id));
         var customerNamesById = customers.ToDictionary(x => x.Id, x => x.Name);
+        var customerPhonesById = customers.ToDictionary(x => x.Id, x => x.PhoneNumber);
 
         var userIds = opportunities
             .Where(x => x.AssignedToUserId.HasValue)
@@ -153,6 +154,11 @@ public class OpportunityAppService :
             if (customerNamesById.TryGetValue(opportunity.CustomerId, out var customerName))
             {
                 opportunity.CustomerName = customerName;
+            }
+
+            if (customerPhonesById.TryGetValue(opportunity.CustomerId, out var customerPhone))
+            {
+                opportunity.CustomerPhone = customerPhone;
             }
 
             if (opportunity.AssignedToUserId.HasValue && usersById.TryGetValue(opportunity.AssignedToUserId.Value, out var userName))

@@ -21,6 +21,7 @@ public class OpportunityDto : FullAuditedEntityDto<Guid>
 
     // Resolved by OpportunityAppService - not stored columns.
     public string? CustomerName { get; set; }
+    public string? CustomerPhone { get; set; }
     public string? AssignedToUserName { get; set; }
     public string? LeadDisplayName { get; set; }
     public string? PartnerName { get; set; }

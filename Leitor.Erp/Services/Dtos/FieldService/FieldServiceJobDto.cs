@@ -22,6 +22,7 @@ public class FieldServiceJobDto : FullAuditedEntityDto<Guid>
     // Resolved by FieldServiceJobAppService from Customer/IdentityUser/Vendor/ConfigurationItem
     // repositories - not stored columns, Mapperly won't map them.
     public string? CustomerName { get; set; }
+    public string? CustomerPhone { get; set; }
     public string? AssignedToUserName { get; set; }
     public string? VendorName { get; set; }
     public string? ConfigurationItemName { get; set; }

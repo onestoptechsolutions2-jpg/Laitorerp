@@ -26,6 +26,7 @@ public class TicketDto : FullAuditedEntityDto<Guid>
 
     // Resolved by TicketAppService from Customer/IdentityUser/Problem repositories - not stored columns.
     public string? CustomerName { get; set; }
+    public string? CustomerPhone { get; set; }
     public string? AssignedToUserName { get; set; }
     public string? ProblemNumber { get; set; }
 
