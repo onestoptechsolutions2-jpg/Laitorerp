@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -395,6 +396,23 @@ public class ErpModule : AbpModule
     {
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
+
+        // Coolify/Traefik terminates TLS and proxies to this container over plain HTTP on its
+        // internal docker network - without this, ASP.NET Core (and ABP's antiforgery cookie)
+        // thinks every request is HTTP, which makes it emit "SameSite=None" without "Secure" on
+        // the XSRF-TOKEN cookie and browsers silently drop it. KnownNetworks/KnownProxies are
+        // cleared because the proxy's container IP isn't fixed/known in advance; safe here since
+        // only the reverse proxy - not this container - is exposed to the internet.
+        if (!env.IsDevelopment())
+        {
+            var forwardedHeadersOptions = new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            };
+            forwardedHeadersOptions.KnownIPNetworks.Clear();
+            forwardedHeadersOptions.KnownProxies.Clear();
+            app.UseForwardedHeaders(forwardedHeadersOptions);
+        }
 
         if (env.IsDevelopment())
         {
