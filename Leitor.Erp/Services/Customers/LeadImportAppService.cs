@@ -15,27 +15,29 @@ namespace Leitor.Erp.Services.Customers;
 
 // Extract-transform-load for the .xlsx field-ticket exports sales agents produce: every row is a
 // prospect (per the business call), so there's no filtering step - just column mapping, agent
-// master resolution, and dedup. Goes through LeadAppService.CreateAsync per row rather than the
-// repository directly so it inherits the existing phone-normalization/duplicate-phone check
-// (LeadAppService.CopyToEntityAsync) instead of re-implementing it here.
+// master resolution, and dedup. Originally went through LeadAppService.CreateAsync per row, but on
+// a real multi-thousand-row export that meant one AppService call (full interceptor stack) + one
+// duplicate-phone query + one SaveChanges per row, which took 90+ seconds in production and got
+// killed by the reverse proxy (499) before finishing. Now dedup is batched up front (one query for
+// existing tickets, one for existing phones) and inserts are batched via InsertManyAsync, so the
+// whole file is a handful of round-trips instead of thousands. Phone normalization still reuses
+// LeadAppService.NormalizePhone (internal) rather than duplicating that logic.
 public class LeadImportAppService : ErpAppService
 {
     public const long MaxFileSizeBytes = 20 * 1024 * 1024; // 20 MB
+    private const int InsertBatchSize = 500;
 
     private static readonly string[] RequiredColumns = { "Customer", "Mobile phone" };
 
     private readonly IRepository<Lead, Guid> _leadRepository;
     private readonly IRepository<Agent, Guid> _agentRepository;
-    private readonly LeadAppService _leadAppService;
 
     public LeadImportAppService(
         IRepository<Lead, Guid> leadRepository,
-        IRepository<Agent, Guid> agentRepository,
-        LeadAppService leadAppService)
+        IRepository<Agent, Guid> agentRepository)
     {
         _leadRepository = leadRepository;
         _agentRepository = agentRepository;
-        _leadAppService = leadAppService;
     }
 
     public async Task<LeadImportResultDto> ImportAsync(byte[] fileContent)
@@ -84,7 +86,12 @@ public class LeadImportAppService : ErpAppService
             .GroupBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
+        var existingPhones = (await _leadRepository.GetListAsync(x => x.NormalizedPhone != null))
+            .Select(x => x.NormalizedPhone!)
+            .ToHashSet(StringComparer.Ordinal);
+
         var seenTicketsThisRun = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var pendingInserts = new List<Lead>(InsertBatchSize);
 
         foreach (var row in dataRows)
         {
@@ -109,6 +116,13 @@ public class LeadImportAppService : ErpAppService
                 continue;
             }
 
+            var normalizedPhone = LeadAppService.NormalizePhone(phone);
+            if (normalizedPhone != null && !existingPhones.Add(normalizedPhone))
+            {
+                result.SkippedDuplicatePhone++;
+                continue;
+            }
+
             var territory = GetValue(row, columnMap, "Territories");
             var agentName = GetValue(row, columnMap, "Assigned to") ?? GetValue(row, columnMap, "Updated by");
             Guid? referrerAgentId = null;
@@ -125,10 +139,10 @@ public class LeadImportAppService : ErpAppService
                 referrerAgentId = agent.Id;
             }
 
-            var dto = new CreateUpdateLeadDto
+            var lead = new Lead(GuidGenerator.Create(), customerName)
             {
-                Name = customerName,
                 Phone = phone,
+                NormalizedPhone = normalizedPhone,
                 Source = LeadSource.Import,
                 ReferrerAgentId = referrerAgentId,
                 Territory = territory,
@@ -140,15 +154,19 @@ public class LeadImportAppService : ErpAppService
                 Notes = BuildNote(ticketNumber, GetValue(row, columnMap, "Service"), GetValue(row, columnMap, "Issue type"))
             };
 
-            try
+            pendingInserts.Add(lead);
+            result.ImportedCount++;
+
+            if (pendingInserts.Count >= InsertBatchSize)
             {
-                await _leadAppService.CreateAsync(dto);
-                result.ImportedCount++;
+                await _leadRepository.InsertManyAsync(pendingInserts, autoSave: true);
+                pendingInserts.Clear();
             }
-            catch (UserFriendlyException)
-            {
-                result.SkippedDuplicatePhone++;
-            }
+        }
+
+        if (pendingInserts.Count > 0)
+        {
+            await _leadRepository.InsertManyAsync(pendingInserts, autoSave: true);
         }
 
         return result;

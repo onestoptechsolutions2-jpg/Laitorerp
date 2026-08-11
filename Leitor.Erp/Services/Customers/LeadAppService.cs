@@ -232,7 +232,12 @@ public class LeadAppService :
         entity.NormalizedPhone = normalizedPhone;
     }
 
-    private static string? NormalizePhone(string? phone)
+    // Internal (not private) so LeadImportAppService can reuse the exact same normalization
+    // instead of duplicating it - the import path can't go through CreateAsync per row (see
+    // LeadImportAppService for why: one AppService call + one query + one SaveChanges per row
+    // timed out in production on a multi-thousand-row file), so it does its own batched dedup
+    // using this.
+    internal static string? NormalizePhone(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone))
         {
