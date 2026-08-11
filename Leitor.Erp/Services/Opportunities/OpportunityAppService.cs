@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -26,6 +27,7 @@ public class OpportunityAppService :
     private readonly IRepository<Lead, Guid> _leadRepository;
     private readonly IRepository<Partner, Guid> _partnerRepository;
     private readonly IRepository<Agent, Guid> _agentRepository;
+    private readonly IRepository<Commission, Guid> _commissionRepository;
 
     public OpportunityAppService(
         IRepository<Opportunity, Guid> repository,
@@ -36,7 +38,8 @@ public class OpportunityAppService :
         IRepository<Proposal, Guid> proposalRepository,
         IRepository<Lead, Guid> leadRepository,
         IRepository<Partner, Guid> partnerRepository,
-        IRepository<Agent, Guid> agentRepository)
+        IRepository<Agent, Guid> agentRepository,
+        IRepository<Commission, Guid> commissionRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
@@ -47,6 +50,7 @@ public class OpportunityAppService :
         _leadRepository = leadRepository;
         _partnerRepository = partnerRepository;
         _agentRepository = agentRepository;
+        _commissionRepository = commissionRepository;
 
         GetPolicyName = ErpPermissions.Opportunities.Default;
         GetListPolicyName = ErpPermissions.Opportunities.Default;
@@ -59,10 +63,15 @@ public class OpportunityAppService :
     // configured, so deleting an Opportunity doesn't cascade automatically - same pattern as
     // CustomerAppService.DeleteAsync. Not gated by DeletionGate - pre-commitment pipeline
     // documents (Opportunity/NeedsAssessment/Proposal) follow the same precedent as Quote, which
-    // also isn't approval-gated.
+    // also isn't approval-gated. Blocked instead if a Commission references this Opportunity -
+    // same system-wide "block deletion if dependents exist" policy as everywhere else.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _commissionRepository.GetListAsync(x => x.OpportunityId == id)).Count, "Commission")
+        );
 
         var assessments = await _needsAssessmentRepository.GetListAsync(x => x.OpportunityId == id);
         if (assessments.Count > 0)

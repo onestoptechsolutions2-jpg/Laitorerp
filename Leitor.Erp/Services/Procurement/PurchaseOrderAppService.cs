@@ -29,8 +29,6 @@ public class PurchaseOrderAppService :
     private readonly IRepository<GoodsReceipt, Guid> _goodsReceiptRepository;
     private readonly IRepository<GoodsReceiptLine, Guid> _goodsReceiptLineRepository;
     private readonly IRepository<SupplierInvoice, Guid> _supplierInvoiceRepository;
-    private readonly IRepository<SupplierInvoiceLine, Guid> _supplierInvoiceLineRepository;
-    private readonly IRepository<VendorPayment, Guid> _vendorPaymentRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<ExchangeRate, Guid> _exchangeRateRepository;
     private readonly IRepository<Warehouse, Guid> _warehouseRepository;
@@ -45,8 +43,6 @@ public class PurchaseOrderAppService :
         IRepository<GoodsReceipt, Guid> goodsReceiptRepository,
         IRepository<GoodsReceiptLine, Guid> goodsReceiptLineRepository,
         IRepository<SupplierInvoice, Guid> supplierInvoiceRepository,
-        IRepository<SupplierInvoiceLine, Guid> supplierInvoiceLineRepository,
-        IRepository<VendorPayment, Guid> vendorPaymentRepository,
         IRepository<Currency, Guid> currencyRepository,
         IRepository<ExchangeRate, Guid> exchangeRateRepository,
         IRepository<Warehouse, Guid> warehouseRepository,
@@ -60,8 +56,6 @@ public class PurchaseOrderAppService :
         _goodsReceiptRepository = goodsReceiptRepository;
         _goodsReceiptLineRepository = goodsReceiptLineRepository;
         _supplierInvoiceRepository = supplierInvoiceRepository;
-        _supplierInvoiceLineRepository = supplierInvoiceLineRepository;
-        _vendorPaymentRepository = vendorPaymentRepository;
         _currencyRepository = currencyRepository;
         _exchangeRateRepository = exchangeRateRepository;
         _warehouseRepository = warehouseRepository;
@@ -75,13 +69,19 @@ public class PurchaseOrderAppService :
         DeletePolicyName = ErpPermissions.Procurement.Delete;
     }
 
-    // PurchaseOrderLines/GoodsReceipts/SupplierInvoices are independent aggregate roots with no FK
-    // relationship configured, so deleting a PO doesn't cascade automatically - same pattern as
-    // OrderAppService.DeleteAsync/InvoiceAppService.DeleteAsync.
+    // PurchaseOrderLines/GoodsReceipts(+their lines) have no independent identity of their own (no
+    // separate Delete action anywhere), so they're still cascaded. SupplierInvoice is its own
+    // independent top-level aggregate with its own Delete action - blocked rather than
+    // cascade-deleted (system-wide "block deletion if dependents exist" policy, see
+    // DependencyGuard), same as CustomerAppService's Quotes/Orders/Invoices.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "PurchaseOrder", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _supplierInvoiceRepository.GetListAsync(x => x.PurchaseOrderId == id)).Count, "Supplier Invoice")
+        );
 
         var lines = await _lineRepository.GetListAsync(x => x.PurchaseOrderId == id);
         await _lineRepository.DeleteManyAsync(lines);
@@ -92,15 +92,6 @@ public class PurchaseOrderAppService :
             var receiptIds = receipts.Select(x => x.Id).ToList();
             await _goodsReceiptLineRepository.DeleteManyAsync(await _goodsReceiptLineRepository.GetListAsync(x => receiptIds.Contains(x.GoodsReceiptId)));
             await _goodsReceiptRepository.DeleteManyAsync(receipts);
-        }
-
-        var supplierInvoices = await _supplierInvoiceRepository.GetListAsync(x => x.PurchaseOrderId == id);
-        if (supplierInvoices.Count > 0)
-        {
-            var supplierInvoiceIds = supplierInvoices.Select(x => x.Id).ToList();
-            await _supplierInvoiceLineRepository.DeleteManyAsync(await _supplierInvoiceLineRepository.GetListAsync(x => supplierInvoiceIds.Contains(x.SupplierInvoiceId)));
-            await _vendorPaymentRepository.DeleteManyAsync(await _vendorPaymentRepository.GetListAsync(x => supplierInvoiceIds.Contains(x.SupplierInvoiceId)));
-            await _supplierInvoiceRepository.DeleteManyAsync(supplierInvoices);
         }
 
         await Repository.DeleteAsync(id);

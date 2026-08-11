@@ -21,8 +21,9 @@ public class VendorAppService :
     CrudAppService<Vendor, VendorDto, Guid, GetVendorListInput, CreateUpdateVendorDto>
 {
     private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
-    private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
     private readonly IRepository<ProductVendor, Guid> _productVendorRepository;
+    private readonly IRepository<VendorContact, Guid> _contactRepository;
+    private readonly IRepository<SupplierInvoice, Guid> _supplierInvoiceRepository;
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
@@ -31,8 +32,9 @@ public class VendorAppService :
     public VendorAppService(
         IRepository<Vendor, Guid> repository,
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
-        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
         IRepository<ProductVendor, Guid> productVendorRepository,
+        IRepository<VendorContact, Guid> contactRepository,
+        IRepository<SupplierInvoice, Guid> supplierInvoiceRepository,
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<TaxRate, Guid> taxRateRepository,
@@ -40,8 +42,9 @@ public class VendorAppService :
         : base(repository)
     {
         _purchaseOrderRepository = purchaseOrderRepository;
-        _purchaseOrderLineRepository = purchaseOrderLineRepository;
         _productVendorRepository = productVendorRepository;
+        _contactRepository = contactRepository;
+        _supplierInvoiceRepository = supplierInvoiceRepository;
         _fieldServiceJobRepository = fieldServiceJobRepository;
         _identityUserRepository = identityUserRepository;
         _taxRateRepository = taxRateRepository;
@@ -54,26 +57,27 @@ public class VendorAppService :
         DeletePolicyName = ErpPermissions.Vendors.Delete;
     }
 
-    // PurchaseOrders and ProductVendor sourcing rows are independent aggregate roots with no FK
-    // relationship configured, so deleting a vendor doesn't cascade automatically - same pattern
-    // as CustomerAppService.DeleteAsync. FieldServiceJob.VendorId is nullable (a subcontracted
-    // visit is still a real work record without its vendor), so it's cleared, not cascade-deleted.
+    // PurchaseOrder and SupplierInvoice are independent top-level aggregates with their own
+    // Delete actions - blocked rather than cascade-deleted (system-wide "block deletion if
+    // dependents exist" policy, see DependencyGuard), same as CustomerAppService's Quotes/Orders/
+    // Invoices. ProductVendor sourcing rows and VendorContact have no independent identity of
+    // their own, so they're still cascaded. FieldServiceJob.VendorId is nullable (a subcontracted
+    // visit is still a real work record without its vendor), so it's cleared, not blocked on.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Vendor", id);
 
-        var purchaseOrders = await _purchaseOrderRepository.GetListAsync(x => x.VendorId == id);
-        if (purchaseOrders.Count > 0)
-        {
-            var purchaseOrderIds = purchaseOrders.Select(x => x.Id).ToList();
-            await _purchaseOrderLineRepository.DeleteManyAsync(
-                await _purchaseOrderLineRepository.GetListAsync(x => purchaseOrderIds.Contains(x.PurchaseOrderId)));
-            await _purchaseOrderRepository.DeleteManyAsync(purchaseOrders);
-        }
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _purchaseOrderRepository.GetListAsync(x => x.VendorId == id)).Count, "Purchase Order"),
+            (async () => (await _supplierInvoiceRepository.GetListAsync(x => x.VendorId == id)).Count, "Supplier Invoice")
+        );
 
         var productVendors = await _productVendorRepository.GetListAsync(x => x.VendorId == id);
         await _productVendorRepository.DeleteManyAsync(productVendors);
+
+        var contacts = await _contactRepository.GetListAsync(x => x.VendorId == id);
+        await _contactRepository.DeleteManyAsync(contacts);
 
         var jobs = await _fieldServiceJobRepository.GetListAsync(x => x.VendorId == id);
         if (jobs.Count > 0)

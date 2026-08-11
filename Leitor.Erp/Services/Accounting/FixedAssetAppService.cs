@@ -38,6 +38,19 @@ public class FixedAssetAppService :
         DeletePolicyName = ErpPermissions.FixedAssets.Delete;
     }
 
+    // DepreciationEntries have no independent identity of their own (no delete route anywhere
+    // else), so they're cascaded here - previously missing entirely (no DeleteAsync override at
+    // all), meaning a deleted FixedAsset left its depreciation history orphaned.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        var depreciationEntries = await _depreciationEntryRepository.GetListAsync(x => x.FixedAssetId == id);
+        await _depreciationEntryRepository.DeleteManyAsync(depreciationEntries);
+
+        await Repository.DeleteAsync(id);
+    }
+
     public override async Task<FixedAssetDto> GetAsync(Guid id)
     {
         var dto = await base.GetAsync(id);

@@ -50,6 +50,19 @@ public class BankAccountAppService :
         return result;
     }
 
+    // BankStatementLines have no independent identity of their own (no separate Delete action
+    // anywhere), so they're cascaded here - previously missing, meaning a deleted BankAccount left
+    // its imported statement lines orphaned.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        var statementLines = await _bankStatementLineRepository.GetListAsync(x => x.BankAccountId == id);
+        await _bankStatementLineRepository.DeleteManyAsync(statementLines);
+
+        await Repository.DeleteAsync(id);
+    }
+
     protected override async Task<IQueryable<BankAccount>> CreateFilteredQueryAsync(GetBankAccountListInput input)
     {
         var query = await base.CreateFilteredQueryAsync(input);

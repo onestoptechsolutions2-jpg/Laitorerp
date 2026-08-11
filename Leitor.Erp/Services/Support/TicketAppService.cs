@@ -28,6 +28,8 @@ public class TicketAppService :
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<Problem, Guid> _problemRepository;
     private readonly IRepository<CustomerContract, Guid> _contractRepository;
+    private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
+    private readonly IRepository<ChangeRequest, Guid> _changeRequestRepository;
     private readonly IClock _clock;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -40,6 +42,8 @@ public class TicketAppService :
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<Problem, Guid> problemRepository,
         IRepository<CustomerContract, Guid> contractRepository,
+        IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
+        IRepository<ChangeRequest, Guid> changeRequestRepository,
         IClock clock,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
@@ -51,6 +55,8 @@ public class TicketAppService :
         _identityUserRepository = identityUserRepository;
         _problemRepository = problemRepository;
         _contractRepository = contractRepository;
+        _warrantyClaimRepository = warrantyClaimRepository;
+        _changeRequestRepository = changeRequestRepository;
         _clock = clock;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
@@ -70,6 +76,11 @@ public class TicketAppService :
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Ticket", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _warrantyClaimRepository.GetListAsync(x => x.TicketId == id)).Count, "Warranty Claim"),
+            (async () => (await _changeRequestRepository.GetListAsync(x => x.TicketId == id)).Count, "Change Request")
+        );
 
         var messages = await _messageRepository.GetListAsync(x => x.TicketId == id);
         await _messageRepository.DeleteManyAsync(messages);

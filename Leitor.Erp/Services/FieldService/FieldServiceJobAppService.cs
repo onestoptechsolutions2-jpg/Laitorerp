@@ -8,6 +8,7 @@ using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Governance;
@@ -32,6 +33,8 @@ public class FieldServiceJobAppService :
     private readonly IRepository<OrderPaymentMilestone, Guid> _milestoneRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IRepository<ConfigurationItem, Guid> _configurationItemRepository;
+    private readonly IRepository<Ticket, Guid> _ticketRepository;
+    private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
     private readonly IClock _clock;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -46,6 +49,8 @@ public class FieldServiceJobAppService :
         IRepository<OrderPaymentMilestone, Guid> milestoneRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IRepository<ConfigurationItem, Guid> configurationItemRepository,
+        IRepository<Ticket, Guid> ticketRepository,
+        IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
         IClock clock,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -59,6 +64,8 @@ public class FieldServiceJobAppService :
         _milestoneRepository = milestoneRepository;
         _stageEventRepository = stageEventRepository;
         _configurationItemRepository = configurationItemRepository;
+        _ticketRepository = ticketRepository;
+        _warrantyClaimRepository = warrantyClaimRepository;
         _clock = clock;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -76,6 +83,11 @@ public class FieldServiceJobAppService :
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "FieldServiceJob", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _ticketRepository.GetListAsync(x => x.JobId == id)).Count, "Ticket"),
+            (async () => (await _warrantyClaimRepository.GetListAsync(x => x.JobId == id)).Count, "Warranty Claim")
+        );
 
         var notes = await _noteRepository.GetListAsync(x => x.JobId == id);
         await _noteRepository.DeleteManyAsync(notes);

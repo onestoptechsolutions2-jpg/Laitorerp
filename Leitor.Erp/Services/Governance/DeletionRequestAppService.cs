@@ -35,6 +35,7 @@ public class DeletionRequestAppService : ApplicationService
     private readonly TicketAppService _ticketAppService;
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
+    private readonly LeadAppService _leadAppService;
 
     public DeletionRequestAppService(
         IRepository<DeletionRequest, Guid> repository,
@@ -45,7 +46,8 @@ public class DeletionRequestAppService : ApplicationService
         InvoiceAppService invoiceAppService,
         TicketAppService ticketAppService,
         FieldServiceJobAppService fieldServiceJobAppService,
-        PurchaseOrderAppService purchaseOrderAppService)
+        PurchaseOrderAppService purchaseOrderAppService,
+        LeadAppService leadAppService)
     {
         _repository = repository;
         _identityUserRepository = identityUserRepository;
@@ -56,6 +58,7 @@ public class DeletionRequestAppService : ApplicationService
         _ticketAppService = ticketAppService;
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _purchaseOrderAppService = purchaseOrderAppService;
+        _leadAppService = leadAppService;
     }
 
     public virtual async Task<PagedResultDto<DeletionRequestDto>> GetListAsync(GetDeletionRequestListInput input)
@@ -147,6 +150,7 @@ public class DeletionRequestAppService : ApplicationService
             "Ticket" => _ticketAppService.DeleteAsync(entityId),
             "FieldServiceJob" => _fieldServiceJobAppService.DeleteAsync(entityId),
             "PurchaseOrder" => _purchaseOrderAppService.DeleteAsync(entityId),
+            "Lead" => _leadAppService.DeleteAsync(entityId),
             _ => throw new UserFriendlyException($"Unknown entity type: {entityType}")
         };
     }

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.ServiceCatalog;
+using Leitor.Erp.Entities.ServiceRequests;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.ServiceCatalog;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -19,19 +21,33 @@ public class ServiceCatalogItemAppService :
     CrudAppService<ServiceCatalogItem, ServiceCatalogItemDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateServiceCatalogItemDto>
 {
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<ServiceRequest, Guid> _serviceRequestRepository;
 
     public ServiceCatalogItemAppService(
         IRepository<ServiceCatalogItem, Guid> repository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<ServiceRequest, Guid> serviceRequestRepository)
         : base(repository)
     {
         _identityUserRepository = identityUserRepository;
+        _serviceRequestRepository = serviceRequestRepository;
 
         GetPolicyName = ErpPermissions.ServiceCatalog.Default;
         GetListPolicyName = ErpPermissions.ServiceCatalog.Default;
         CreatePolicyName = ErpPermissions.ServiceCatalog.Edit;
         UpdatePolicyName = ErpPermissions.ServiceCatalog.Edit;
         DeletePolicyName = ErpPermissions.ServiceCatalog.Edit;
+    }
+
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _serviceRequestRepository.GetListAsync(x => x.ServiceCatalogItemId == id)).Count, "Service Request")
+        );
+
+        await Repository.DeleteAsync(id);
     }
 
     public override async Task<ServiceCatalogItemDto> GetAsync(Guid id)

@@ -31,6 +31,7 @@ public class JournalEntryAppService : ApplicationService
     private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
+    private readonly IRepository<BankStatementLine, Guid> _bankStatementLineRepository;
     private readonly IDataFilter _dataFilter;
 
     public JournalEntryAppService(
@@ -42,6 +43,7 @@ public class JournalEntryAppService : ApplicationService
         IRepository<Project, Guid> projectRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
+        IRepository<BankStatementLine, Guid> bankStatementLineRepository,
         IDataFilter dataFilter)
     {
         _repository = repository;
@@ -52,6 +54,7 @@ public class JournalEntryAppService : ApplicationService
         _projectRepository = projectRepository;
         _deletionRequestRepository = deletionRequestRepository;
         _fiscalPeriodRepository = fiscalPeriodRepository;
+        _bankStatementLineRepository = bankStatementLineRepository;
         _dataFilter = dataFilter;
     }
 
@@ -273,6 +276,12 @@ public class JournalEntryAppService : ApplicationService
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "JournalEntry", id);
 
         var lines = await _lineRepository.GetListAsync(x => x.JournalEntryId == id);
+        var lineIds = lines.Select(x => x.Id).ToList();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _bankStatementLineRepository.GetListAsync(x => x.MatchedJournalEntryLineId.HasValue && lineIds.Contains(x.MatchedJournalEntryLineId.Value))).Count, "reconciled Bank Statement Line")
+        );
+
         await _lineRepository.DeleteManyAsync(lines);
 
         await _repository.DeleteAsync(id);

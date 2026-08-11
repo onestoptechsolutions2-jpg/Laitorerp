@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Cybersecurity;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Pos;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.ServiceRequests;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -26,20 +31,19 @@ public class CustomerAppService :
     private readonly IRepository<CustomerNote, Guid> _noteRepository;
     private readonly IRepository<CustomerTask, Guid> _taskRepository;
     private readonly IRepository<CustomerAttachment, Guid> _attachmentRepository;
+    private readonly IRepository<CustomerPriceList, Guid> _customerPriceListRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
-    private readonly IRepository<QuoteLine, Guid> _quoteLineRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
-    private readonly IRepository<OrderLine, Guid> _orderLineRepository;
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
-    private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
-    private readonly IRepository<Payment, Guid> _paymentRepository;
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
-    private readonly IRepository<FieldServiceJobNote, Guid> _jobNoteRepository;
-    private readonly IRepository<FieldServiceJobPart, Guid> _jobPartRepository;
     private readonly IRepository<Ticket, Guid> _ticketRepository;
-    private readonly IRepository<TicketMessage, Guid> _ticketMessageRepository;
     private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
+    private readonly IRepository<Opportunity, Guid> _opportunityRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
+    private readonly IRepository<SecurityAssessment, Guid> _securityAssessmentRepository;
+    private readonly IRepository<ServiceRequest, Guid> _serviceRequestRepository;
+    private readonly IRepository<PosSale, Guid> _posSaleRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
 
@@ -50,20 +54,19 @@ public class CustomerAppService :
         IRepository<CustomerNote, Guid> noteRepository,
         IRepository<CustomerTask, Guid> taskRepository,
         IRepository<CustomerAttachment, Guid> attachmentRepository,
+        IRepository<CustomerPriceList, Guid> customerPriceListRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<Quote, Guid> quoteRepository,
-        IRepository<QuoteLine, Guid> quoteLineRepository,
         IRepository<Order, Guid> orderRepository,
-        IRepository<OrderLine, Guid> orderLineRepository,
         IRepository<Invoice, Guid> invoiceRepository,
-        IRepository<InvoiceLine, Guid> invoiceLineRepository,
-        IRepository<Payment, Guid> paymentRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
-        IRepository<FieldServiceJobNote, Guid> jobNoteRepository,
-        IRepository<FieldServiceJobPart, Guid> jobPartRepository,
         IRepository<Ticket, Guid> ticketRepository,
-        IRepository<TicketMessage, Guid> ticketMessageRepository,
         IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
+        IRepository<Opportunity, Guid> opportunityRepository,
+        IRepository<Project, Guid> projectRepository,
+        IRepository<SecurityAssessment, Guid> securityAssessmentRepository,
+        IRepository<ServiceRequest, Guid> serviceRequestRepository,
+        IRepository<PosSale, Guid> posSaleRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository)
         : base(repository)
@@ -73,20 +76,19 @@ public class CustomerAppService :
         _noteRepository = noteRepository;
         _taskRepository = taskRepository;
         _attachmentRepository = attachmentRepository;
+        _customerPriceListRepository = customerPriceListRepository;
         _identityUserRepository = identityUserRepository;
         _quoteRepository = quoteRepository;
-        _quoteLineRepository = quoteLineRepository;
         _orderRepository = orderRepository;
-        _orderLineRepository = orderLineRepository;
         _invoiceRepository = invoiceRepository;
-        _invoiceLineRepository = invoiceLineRepository;
-        _paymentRepository = paymentRepository;
         _jobRepository = jobRepository;
-        _jobNoteRepository = jobNoteRepository;
-        _jobPartRepository = jobPartRepository;
         _ticketRepository = ticketRepository;
-        _ticketMessageRepository = ticketMessageRepository;
         _warrantyClaimRepository = warrantyClaimRepository;
+        _opportunityRepository = opportunityRepository;
+        _projectRepository = projectRepository;
+        _securityAssessmentRepository = securityAssessmentRepository;
+        _serviceRequestRepository = serviceRequestRepository;
+        _posSaleRepository = posSaleRepository;
         _deletionRequestRepository = deletionRequestRepository;
         _stageEventRepository = stageEventRepository;
 
@@ -97,15 +99,32 @@ public class CustomerAppService :
         DeletePolicyName = ErpPermissions.Customers.Delete;
     }
 
-    // Contacts, contracts, notes, tasks, attachments, and every other module's records that
-    // reference this customer (Quotes, Orders, Invoices, FieldServiceJobs, Tickets - all via a
-    // non-nullable CustomerId) are independent aggregate roots with no FK relationship configured
-    // in ErpDbContext, just an index on CustomerId. Cascade explicitly here so nothing is left
-    // with a dangling required CustomerId pointing at a deleted customer.
+    // Contacts/contracts/notes/tasks/attachments/price-list-overrides have no independent identity
+    // of their own (no separate Detail page, never referenced from anywhere else) - true owned
+    // children, cascaded here same as always. Everything else that references this customer
+    // (Quotes, Orders, Invoices, FieldServiceJobs, Tickets, WarrantyClaims, Opportunities,
+    // Projects, SecurityAssessments, ServiceRequests, POS Sales) is its own independent top-level
+    // aggregate with its own Delete action - deleting the Customer used to cascade-delete those
+    // too, but that's a real business-document loss an ERP shouldn't do silently. Blocked instead
+    // (see DependencyGuard) - the operator has to clear or reassign that history first.
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Customer", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _quoteRepository.GetListAsync(x => x.CustomerId == id)).Count, "Quote"),
+            (async () => (await _orderRepository.GetListAsync(x => x.CustomerId == id)).Count, "Order"),
+            (async () => (await _invoiceRepository.GetListAsync(x => x.CustomerId == id)).Count, "Invoice"),
+            (async () => (await _jobRepository.GetListAsync(x => x.CustomerId == id)).Count, "Field Service Job"),
+            (async () => (await _ticketRepository.GetListAsync(x => x.CustomerId == id)).Count, "Ticket"),
+            (async () => (await _warrantyClaimRepository.GetListAsync(x => x.CustomerId == id)).Count, "Warranty Claim"),
+            (async () => (await _opportunityRepository.GetListAsync(x => x.CustomerId == id)).Count, "Opportunity"),
+            (async () => (await _projectRepository.GetListAsync(x => x.CustomerId == id)).Count, "Project"),
+            (async () => (await _securityAssessmentRepository.GetListAsync(x => x.CustomerId == id)).Count, "Security Assessment"),
+            (async () => (await _serviceRequestRepository.GetListAsync(x => x.CustomerId == id)).Count, "Service Request"),
+            (async () => (await _posSaleRepository.GetListAsync(x => x.CustomerId == id)).Count, "POS Sale")
+        );
 
         var contacts = await _contactRepository.GetListAsync(x => x.CustomerId == id);
         await _contactRepository.DeleteManyAsync(contacts);
@@ -122,50 +141,8 @@ public class CustomerAppService :
         var attachments = await _attachmentRepository.GetListAsync(x => x.CustomerId == id);
         await _attachmentRepository.DeleteManyAsync(attachments);
 
-        var quotes = await _quoteRepository.GetListAsync(x => x.CustomerId == id);
-        if (quotes.Count > 0)
-        {
-            var quoteIds = quotes.Select(x => x.Id).ToList();
-            await _quoteLineRepository.DeleteManyAsync(await _quoteLineRepository.GetListAsync(x => quoteIds.Contains(x.QuoteId)));
-            await _quoteRepository.DeleteManyAsync(quotes);
-        }
-
-        var orders = await _orderRepository.GetListAsync(x => x.CustomerId == id);
-        if (orders.Count > 0)
-        {
-            var orderIds = orders.Select(x => x.Id).ToList();
-            await _orderLineRepository.DeleteManyAsync(await _orderLineRepository.GetListAsync(x => orderIds.Contains(x.OrderId)));
-            await _orderRepository.DeleteManyAsync(orders);
-        }
-
-        var invoices = await _invoiceRepository.GetListAsync(x => x.CustomerId == id);
-        if (invoices.Count > 0)
-        {
-            var invoiceIds = invoices.Select(x => x.Id).ToList();
-            await _invoiceLineRepository.DeleteManyAsync(await _invoiceLineRepository.GetListAsync(x => invoiceIds.Contains(x.InvoiceId)));
-            await _paymentRepository.DeleteManyAsync(await _paymentRepository.GetListAsync(x => invoiceIds.Contains(x.InvoiceId)));
-            await _invoiceRepository.DeleteManyAsync(invoices);
-        }
-
-        var jobs = await _jobRepository.GetListAsync(x => x.CustomerId == id);
-        if (jobs.Count > 0)
-        {
-            var jobIds = jobs.Select(x => x.Id).ToList();
-            await _jobNoteRepository.DeleteManyAsync(await _jobNoteRepository.GetListAsync(x => jobIds.Contains(x.JobId)));
-            await _jobPartRepository.DeleteManyAsync(await _jobPartRepository.GetListAsync(x => jobIds.Contains(x.JobId)));
-            await _jobRepository.DeleteManyAsync(jobs);
-        }
-
-        var tickets = await _ticketRepository.GetListAsync(x => x.CustomerId == id);
-        if (tickets.Count > 0)
-        {
-            var ticketIds = tickets.Select(x => x.Id).ToList();
-            await _ticketMessageRepository.DeleteManyAsync(await _ticketMessageRepository.GetListAsync(x => ticketIds.Contains(x.TicketId)));
-            await _ticketRepository.DeleteManyAsync(tickets);
-        }
-
-        var warrantyClaims = await _warrantyClaimRepository.GetListAsync(x => x.CustomerId == id);
-        await _warrantyClaimRepository.DeleteManyAsync(warrantyClaims);
+        var priceListOverrides = await _customerPriceListRepository.GetListAsync(x => x.CustomerId == id);
+        await _customerPriceListRepository.DeleteManyAsync(priceListOverrides);
 
         await Repository.DeleteAsync(id);
     }

@@ -7,7 +7,9 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Inventory;
+using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -47,6 +49,8 @@ public class OrderAppService :
     private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
     private readonly IRepository<Payment, Guid> _paymentRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<PurchaseOrder, Guid> _purchaseOrderRepository;
+    private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -73,6 +77,8 @@ public class OrderAppService :
         IRepository<PriceListItem, Guid> priceListItemRepository,
         IRepository<Payment, Guid> paymentRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
+        IRepository<Ticket, Guid> ticketRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -98,6 +104,8 @@ public class OrderAppService :
         _priceListItemRepository = priceListItemRepository;
         _paymentRepository = paymentRepository;
         _identityUserRepository = identityUserRepository;
+        _purchaseOrderRepository = purchaseOrderRepository;
+        _ticketRepository = ticketRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -108,13 +116,27 @@ public class OrderAppService :
         DeletePolicyName = ErpPermissions.Sales.Delete;
     }
 
+    // OrderLine/OrderPaymentMilestone have no independent identity of their own, so they're still
+    // cascaded. Invoice/FieldServiceJob/PurchaseOrder/Ticket are independent top-level aggregates
+    // that can reference this Order - blocked instead (system-wide "block deletion if dependents
+    // exist" policy, see DependencyGuard).
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Order", id);
 
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _invoiceRepository.GetListAsync(x => x.OrderId == id)).Count, "Invoice"),
+            (async () => (await _fieldServiceJobRepository.GetListAsync(x => x.OrderId == id)).Count, "Field Service Job"),
+            (async () => (await _purchaseOrderRepository.GetListAsync(x => x.SourceOrderId == id)).Count, "Purchase Order"),
+            (async () => (await _ticketRepository.GetListAsync(x => x.OrderId == id)).Count, "Ticket")
+        );
+
         var lines = await _lineRepository.GetListAsync(x => x.OrderId == id);
         await _lineRepository.DeleteManyAsync(lines);
+
+        var milestones = await _milestoneRepository.GetListAsync(x => x.OrderId == id);
+        await _milestoneRepository.DeleteManyAsync(milestones);
 
         await Repository.DeleteAsync(id);
     }

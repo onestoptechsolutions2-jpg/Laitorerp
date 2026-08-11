@@ -78,10 +78,15 @@ public class QuoteAppService :
 
     // QuoteLines are an independent aggregate root (see QuoteLine.cs) with no FK relationship
     // configured, so deleting a quote doesn't cascade automatically - same pattern as
-    // CustomerAppService.DeleteAsync.
+    // CustomerAppService.DeleteAsync. Blocked instead if an Order was already converted from this
+    // Quote (system-wide "block deletion if dependents exist" policy, see DependencyGuard).
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _orderRepository.GetListAsync(x => x.QuoteId == id)).Count, "Order")
+        );
 
         var lines = await _lineRepository.GetListAsync(x => x.QuoteId == id);
         await _lineRepository.DeleteManyAsync(lines);

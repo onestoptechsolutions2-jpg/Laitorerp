@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
@@ -34,6 +35,8 @@ public class InvoiceAppService :
     private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Commission, Guid> _commissionRepository;
+    private readonly IRepository<OrderPaymentMilestone, Guid> _milestoneRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
@@ -50,6 +53,8 @@ public class InvoiceAppService :
         IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IRepository<Order, Guid> orderRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Commission, Guid> commissionRepository,
+        IRepository<OrderPaymentMilestone, Guid> milestoneRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
@@ -65,6 +70,8 @@ public class InvoiceAppService :
         _fiscalPeriodRepository = fiscalPeriodRepository;
         _orderRepository = orderRepository;
         _identityUserRepository = identityUserRepository;
+        _commissionRepository = commissionRepository;
+        _milestoneRepository = milestoneRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
 
@@ -75,12 +82,19 @@ public class InvoiceAppService :
         DeletePolicyName = ErpPermissions.Sales.Delete;
     }
 
-    // Lines and payments are independent aggregate roots with no FK relationship configured -
-    // same cascade pattern as CustomerAppService.DeleteAsync.
+    // Lines and payments have no independent identity of their own, so they're still cascaded.
+    // Commission.SourceInvoiceId/OrderPaymentMilestone.InvoiceId are independent records that can
+    // reference this Invoice - blocked instead (system-wide "block deletion if dependents exist"
+    // policy, see DependencyGuard).
     public override async Task DeleteAsync(Guid id)
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Invoice", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _commissionRepository.GetListAsync(x => x.SourceInvoiceId == id)).Count, "Commission"),
+            (async () => (await _milestoneRepository.GetListAsync(x => x.InvoiceId == id)).Count, "Order Payment Milestone")
+        );
 
         var lines = await _lineRepository.GetListAsync(x => x.InvoiceId == id);
         await _lineRepository.DeleteManyAsync(lines);

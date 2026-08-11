@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Projects;
@@ -24,6 +25,7 @@ public class ProjectAppService :
 {
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<ProjectTask, Guid> _taskRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IDataFilter _dataFilter;
 
@@ -31,12 +33,14 @@ public class ProjectAppService :
         IRepository<Project, Guid> repository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<ProjectTask, Guid> taskRepository,
+        IRepository<Order, Guid> orderRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IDataFilter dataFilter)
         : base(repository)
     {
         _customerRepository = customerRepository;
         _taskRepository = taskRepository;
+        _orderRepository = orderRepository;
         _deletionRequestRepository = deletionRequestRepository;
         _dataFilter = dataFilter;
 
@@ -54,6 +58,10 @@ public class ProjectAppService :
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Project", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _orderRepository.GetListAsync(x => x.ProjectId == id)).Count, "Order")
+        );
 
         var tasks = await _taskRepository.GetListAsync(x => x.ProjectId == id);
         await _taskRepository.DeleteManyAsync(tasks);

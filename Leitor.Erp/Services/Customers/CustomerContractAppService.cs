@@ -2,8 +2,12 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.FieldService;
+using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -13,14 +17,46 @@ namespace Leitor.Erp.Services.Customers;
 public class CustomerContractAppService :
     CrudAppService<CustomerContract, CustomerContractDto, Guid, GetCustomerContractListInput, CreateUpdateCustomerContractDto>
 {
-    public CustomerContractAppService(IRepository<CustomerContract, Guid> repository)
+    private readonly IRepository<Ticket, Guid> _ticketRepository;
+    private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
+    private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
+
+    public CustomerContractAppService(
+        IRepository<CustomerContract, Guid> repository,
+        IRepository<Ticket, Guid> ticketRepository,
+        IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
+        IRepository<FieldServiceJob, Guid> jobRepository,
+        IRepository<Project, Guid> projectRepository)
         : base(repository)
     {
+        _ticketRepository = ticketRepository;
+        _warrantyClaimRepository = warrantyClaimRepository;
+        _jobRepository = jobRepository;
+        _projectRepository = projectRepository;
+
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
         CreatePolicyName = ErpPermissions.Customers.Edit;
         UpdatePolicyName = ErpPermissions.Customers.Edit;
         DeletePolicyName = ErpPermissions.Customers.Edit;
+    }
+
+    // No independent Index/Detail pages for CustomerContract (managed only from Customer Detail),
+    // but Ticket/WarrantyClaim/FieldServiceJob/Project can all still reference one after it's
+    // created - block rather than leave those with a dangling ContractId/ConvertedToContractId.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _ticketRepository.GetListAsync(x => x.ContractId == id)).Count, "Ticket"),
+            (async () => (await _warrantyClaimRepository.GetListAsync(x => x.ContractId == id)).Count, "Warranty Claim"),
+            (async () => (await _jobRepository.GetListAsync(x => x.ContractId == id)).Count, "Field Service Job"),
+            (async () => (await _projectRepository.GetListAsync(x => x.ConvertedToContractId == id)).Count, "Project")
+        );
+
+        await Repository.DeleteAsync(id);
     }
 
     protected override async Task<IQueryable<CustomerContract>> CreateFilteredQueryAsync(GetCustomerContractListInput input)

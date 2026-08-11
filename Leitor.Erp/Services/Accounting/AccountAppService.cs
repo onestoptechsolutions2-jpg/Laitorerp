@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Accounting;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -14,14 +15,51 @@ namespace Leitor.Erp.Services.Accounting;
 public class AccountAppService :
     CrudAppService<Account, AccountDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateAccountDto>
 {
-    public AccountAppService(IRepository<Account, Guid> repository)
+    private readonly IRepository<Budget, Guid> _budgetRepository;
+    private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
+    private readonly IRepository<RecurringJournalTemplateLine, Guid> _recurringJournalTemplateLineRepository;
+    private readonly IRepository<FixedAsset, Guid> _fixedAssetRepository;
+    private readonly IRepository<BankAccount, Guid> _bankAccountRepository;
+
+    public AccountAppService(
+        IRepository<Account, Guid> repository,
+        IRepository<Budget, Guid> budgetRepository,
+        IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
+        IRepository<RecurringJournalTemplateLine, Guid> recurringJournalTemplateLineRepository,
+        IRepository<FixedAsset, Guid> fixedAssetRepository,
+        IRepository<BankAccount, Guid> bankAccountRepository)
         : base(repository)
     {
+        _budgetRepository = budgetRepository;
+        _journalEntryLineRepository = journalEntryLineRepository;
+        _recurringJournalTemplateLineRepository = recurringJournalTemplateLineRepository;
+        _fixedAssetRepository = fixedAssetRepository;
+        _bankAccountRepository = bankAccountRepository;
+
         GetPolicyName = ErpPermissions.Accounting.Default;
         GetListPolicyName = ErpPermissions.Accounting.Default;
         CreatePolicyName = ErpPermissions.Accounting.Edit;
         UpdatePolicyName = ErpPermissions.Accounting.Edit;
         DeletePolicyName = ErpPermissions.Accounting.Edit;
+    }
+
+    // Every place a GL Account can be referenced - blocked if any exist (system-wide "block
+    // deletion if dependents exist" policy, see DependencyGuard). Financial integrity matters
+    // more here than almost anywhere else in the app.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _budgetRepository.GetListAsync(x => x.AccountId == id)).Count, "Budget"),
+            (async () => (await _journalEntryLineRepository.GetListAsync(x => x.AccountId == id)).Count, "Journal Entry Line"),
+            (async () => (await _recurringJournalTemplateLineRepository.GetListAsync(x => x.AccountId == id)).Count, "Recurring Journal Template Line"),
+            (async () => (await _fixedAssetRepository.GetListAsync(x =>
+                x.AssetAccountId == id || x.DepreciationExpenseAccountId == id || x.AccumulatedDepreciationAccountId == id)).Count, "Fixed Asset"),
+            (async () => (await _bankAccountRepository.GetListAsync(x => x.LinkedGlAccountId == id)).Count, "Bank Account")
+        );
+
+        await Repository.DeleteAsync(id);
     }
 
     protected override async Task<Account> MapToEntityAsync(CreateUpdateAccountDto createInput)

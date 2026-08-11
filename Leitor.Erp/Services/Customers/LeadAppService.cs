@@ -25,6 +25,8 @@ public class LeadAppService :
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<Agent, Guid> _agentRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
+    private readonly IRepository<LeadTouch, Guid> _leadTouchRepository;
+    private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public LeadAppService(
         IRepository<Lead, Guid> repository,
@@ -32,7 +34,9 @@ public class LeadAppService :
         IRepository<IdentityUser, Guid> identityUserRepository,
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<Agent, Guid> agentRepository,
-        IRepository<WorkflowStageEvent, Guid> stageEventRepository)
+        IRepository<WorkflowStageEvent, Guid> stageEventRepository,
+        IRepository<LeadTouch, Guid> leadTouchRepository,
+        IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
@@ -40,12 +44,34 @@ public class LeadAppService :
         _opportunityRepository = opportunityRepository;
         _agentRepository = agentRepository;
         _stageEventRepository = stageEventRepository;
+        _leadTouchRepository = leadTouchRepository;
+        _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Leads.Default;
         GetListPolicyName = ErpPermissions.Leads.Default;
         CreatePolicyName = ErpPermissions.Leads.Create;
         UpdatePolicyName = ErpPermissions.Leads.Edit;
         DeletePolicyName = ErpPermissions.Leads.Delete;
+    }
+
+    // Same pattern as every other top-level entity with dependents (Ticket/Problem/Project/etc.):
+    // route through the deletion-approval gate, block if an Opportunity still references this Lead
+    // (system-wide "block deletion if dependents exist" policy, see DependencyGuard), then
+    // cascade-delete LeadTouch rows - previously missing entirely, so deleting a Lead soft-deleted
+    // the Lead row but left its touch/outreach history (and the approval gate) untouched.
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+        await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Lead", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _opportunityRepository.GetListAsync(x => x.LeadId == id)).Count, "Opportunity")
+        );
+
+        var touches = await _leadTouchRepository.GetListAsync(x => x.LeadId == id);
+        await _leadTouchRepository.DeleteManyAsync(touches);
+
+        await Repository.DeleteAsync(id);
     }
 
     protected override async Task<IQueryable<Lead>> CreateFilteredQueryAsync(GetLeadListInput input)

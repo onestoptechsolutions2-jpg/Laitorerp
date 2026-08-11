@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
@@ -22,17 +23,26 @@ public class ConfigurationItemAppService :
 {
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<ConfigurationItemRelationship, Guid> _relationshipRepository;
+    private readonly IRepository<AssetCredential, Guid> _credentialRepository;
+    private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
+    private readonly IRepository<ChangeRequest, Guid> _changeRequestRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
 
     public ConfigurationItemAppService(
         IRepository<ConfigurationItem, Guid> repository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<ConfigurationItemRelationship, Guid> relationshipRepository,
+        IRepository<AssetCredential, Guid> credentialRepository,
+        IRepository<FieldServiceJob, Guid> jobRepository,
+        IRepository<ChangeRequest, Guid> changeRequestRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
         : base(repository)
     {
         _customerRepository = customerRepository;
         _relationshipRepository = relationshipRepository;
+        _credentialRepository = credentialRepository;
+        _jobRepository = jobRepository;
+        _changeRequestRepository = changeRequestRepository;
         _deletionRequestRepository = deletionRequestRepository;
 
         GetPolicyName = ErpPermissions.Assets.Default;
@@ -50,8 +60,16 @@ public class ConfigurationItemAppService :
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "ConfigurationItem", id);
 
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _jobRepository.GetListAsync(x => x.ConfigurationItemId == id)).Count, "Field Service Job"),
+            (async () => (await _changeRequestRepository.GetListAsync(x => x.ConfigurationItemId == id)).Count, "Change Request")
+        );
+
         var relationships = await _relationshipRepository.GetListAsync(x => x.SourceCiId == id || x.TargetCiId == id);
         await _relationshipRepository.DeleteManyAsync(relationships);
+
+        var credentials = await _credentialRepository.GetListAsync(x => x.ConfigurationItemId == id);
+        await _credentialRepository.DeleteManyAsync(credentials);
 
         await Repository.DeleteAsync(id);
     }

@@ -52,6 +52,11 @@ public class ProblemAppService :
     {
         await CheckDeletePolicyAsync();
         await DeletionGate.EnsureImmediateDeleteAllowedAsync(AuthorizationService, CurrentUser, _deletionRequestRepository, GuidGenerator, Clock, "Problem", id);
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _ticketRepository.GetListAsync(x => x.ProblemId == id)).Count, "Ticket")
+        );
+
         await Repository.DeleteAsync(id);
     }
 

@@ -1,9 +1,12 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Pos;
+using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -13,14 +16,59 @@ namespace Leitor.Erp.Services.Sales;
 public class TaxRateAppService :
     CrudAppService<TaxRate, TaxRateDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateTaxRateDto>
 {
-    public TaxRateAppService(IRepository<TaxRate, Guid> repository)
+    private readonly IRepository<Product, Guid> _productRepository;
+    private readonly IRepository<QuoteLine, Guid> _quoteLineRepository;
+    private readonly IRepository<OrderLine, Guid> _orderLineRepository;
+    private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
+    private readonly IRepository<PurchaseOrderLine, Guid> _purchaseOrderLineRepository;
+    private readonly IRepository<SupplierInvoiceLine, Guid> _supplierInvoiceLineRepository;
+    private readonly IRepository<PosSaleLine, Guid> _posSaleLineRepository;
+    private readonly IRepository<Vendor, Guid> _vendorRepository;
+
+    public TaxRateAppService(
+        IRepository<TaxRate, Guid> repository,
+        IRepository<Product, Guid> productRepository,
+        IRepository<QuoteLine, Guid> quoteLineRepository,
+        IRepository<OrderLine, Guid> orderLineRepository,
+        IRepository<InvoiceLine, Guid> invoiceLineRepository,
+        IRepository<PurchaseOrderLine, Guid> purchaseOrderLineRepository,
+        IRepository<SupplierInvoiceLine, Guid> supplierInvoiceLineRepository,
+        IRepository<PosSaleLine, Guid> posSaleLineRepository,
+        IRepository<Vendor, Guid> vendorRepository)
         : base(repository)
     {
+        _productRepository = productRepository;
+        _quoteLineRepository = quoteLineRepository;
+        _orderLineRepository = orderLineRepository;
+        _invoiceLineRepository = invoiceLineRepository;
+        _purchaseOrderLineRepository = purchaseOrderLineRepository;
+        _supplierInvoiceLineRepository = supplierInvoiceLineRepository;
+        _posSaleLineRepository = posSaleLineRepository;
+        _vendorRepository = vendorRepository;
+
         GetPolicyName = ErpPermissions.Catalog.Default;
         GetListPolicyName = ErpPermissions.Catalog.Default;
         CreatePolicyName = ErpPermissions.Catalog.Edit;
         UpdatePolicyName = ErpPermissions.Catalog.Edit;
         DeletePolicyName = ErpPermissions.Catalog.Edit;
+    }
+
+    public override async Task DeleteAsync(Guid id)
+    {
+        await CheckDeletePolicyAsync();
+
+        await DependencyGuard.EnsureDeletableAsync(
+            (async () => (await _productRepository.GetListAsync(x => x.TaxRateId == id)).Count, "Product"),
+            (async () => (await _quoteLineRepository.GetListAsync(x => x.TaxRateId == id)).Count, "Quote Line"),
+            (async () => (await _orderLineRepository.GetListAsync(x => x.TaxRateId == id)).Count, "Order Line"),
+            (async () => (await _invoiceLineRepository.GetListAsync(x => x.TaxRateId == id)).Count, "Invoice Line"),
+            (async () => (await _purchaseOrderLineRepository.GetListAsync(x => x.TaxRateId == id)).Count, "Purchase Order Line"),
+            (async () => (await _supplierInvoiceLineRepository.GetListAsync(x => x.TaxRateId == id)).Count, "Supplier Invoice Line"),
+            (async () => (await _posSaleLineRepository.GetListAsync(x => x.TaxRateId == id)).Count, "POS Sale Line"),
+            (async () => (await _vendorRepository.GetListAsync(x => x.WithholdingTaxRateId == id)).Count, "Vendor")
+        );
+
+        await Repository.DeleteAsync(id);
     }
 
     // CreateUpdateTaxRateDto -> TaxRate is mapped manually rather than via Mapperly - same reason
