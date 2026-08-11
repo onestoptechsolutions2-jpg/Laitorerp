@@ -8,10 +8,20 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Leads"]</h5>
-        @if (Model.CanCreate)
-        {
-            <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewLead"]">@L["NewLead"]</a>
-        }
+        <div>
+            @if (Model.CanExport)
+            {
+                <a asp-page="./Index" asp-page-handler="Export" asp-route-Filter="@Model.Filter" asp-route-Status="@Model.Status" asp-route-AssignedToUserId="@Model.AssignedToUserId" class="btn btn-outline-secondary">@L["Export"]</a>
+            }
+            @if (Model.CanImport)
+            {
+                <a asp-page="./Import" class="btn btn-outline-primary">@L["ImportLeads"]</a>
+            }
+            @if (Model.CanCreate)
+            {
+                <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewLead"]">@L["NewLead"]</a>
+            }
+        </div>
     </div>
     <div class="card-body">
         <form method="get" class="row g-2 mb-3">

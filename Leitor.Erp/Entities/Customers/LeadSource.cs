@@ -5,5 +5,6 @@ public enum LeadSource
     Website = 0,
     Referral = 1,
     WalkIn = 2,
-    Other = 3
+    Other = 3,
+    Import = 4
 }

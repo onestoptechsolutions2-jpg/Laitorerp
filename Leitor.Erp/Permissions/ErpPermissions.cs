@@ -9,6 +9,8 @@ public static class ErpPermissions
         public const string Create = Default + ".Create";
         public const string Edit = Default + ".Edit";
         public const string Delete = Default + ".Delete";
+        public const string Import = Default + ".Import";
+        public const string Export = Default + ".Export";
     }
 
     public static class Customers

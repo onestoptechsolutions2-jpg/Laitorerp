@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Pages.Shared;
@@ -50,12 +51,16 @@ public class IndexModel : AbpPageModel
     public bool CanCreate { get; set; }
     public bool CanDelete { get; set; }
     public bool CanDecideDeletions { get; set; }
+    public bool CanImport { get; set; }
+    public bool CanExport { get; set; }
 
     public async Task OnGetAsync()
     {
         CanCreate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Create);
         CanDelete = await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Delete);
         CanDecideDeletions = await AuthorizationService.IsGrantedAsync(ErpPermissions.DeletionApprovals.Decide);
+        CanImport = await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Import);
+        CanExport = await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Export);
 
         if (PageIndex < 1)
         {
@@ -85,5 +90,63 @@ public class IndexModel : AbpPageModel
     {
         await _leadAppService.DeleteAsync(id);
         return RedirectToPage(new { Filter, Status, AssignedToUserId, PageIndex });
+    }
+
+    // CSV of whatever the current filter/search is showing, not just the current page - matches
+    // the confirmed requirement of "export the current filtered list", not a paged slice of it.
+    public async Task<IActionResult> OnGetExportAsync()
+    {
+        if (!await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Export))
+        {
+            return Forbid();
+        }
+
+        var result = await _leadAppService.GetListAsync(new GetLeadListInput
+        {
+            Filter = Filter,
+            Status = Status,
+            AssignedToUserId = AssignedToUserId,
+            SkipCount = 0,
+            MaxResultCount = 10000
+        });
+
+        var csv = new StringBuilder();
+        csv.AppendLine(string.Join(",", new[]
+        {
+            "Name", "CompanyName", "Email", "Phone", "Territory", "Cluster", "Location", "Estate",
+            "AccountNumber", "Source", "Status", "AssignedTo", "ReferrerAgent", "Created"
+        }.Select(CsvEscape)));
+
+        foreach (var lead in result.Items)
+        {
+            csv.AppendLine(string.Join(",", new[]
+            {
+                lead.Name,
+                lead.CompanyName,
+                lead.Email,
+                lead.Phone,
+                lead.Territory,
+                lead.Cluster,
+                lead.Location,
+                lead.Estate,
+                lead.ExternalAccountNumber,
+                lead.Source.ToString(),
+                lead.Status.ToString(),
+                lead.AssignedToUserName,
+                lead.ReferrerAgentName,
+                lead.CreationTime.ToString("yyyy-MM-dd")
+            }.Select(CsvEscape)));
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        return File(bytes, "text/csv", $"leads-{Clock.Now:yyyyMMdd-HHmmss}.csv");
+    }
+
+    private static string CsvEscape(string? value)
+    {
+        value ??= string.Empty;
+        return value.IndexOfAny(new[] { ',', '"', '\n' }) >= 0
+            ? $"\"{value.Replace("\"", "\"\"")}\""
+            : value;
     }
 }

@@ -17,6 +17,12 @@ public class LeadDto : FullAuditedEntityDto<Guid>
     public Guid? ConvertedCustomerId { get; set; }
     public bool DoNotContact { get; set; }
     public Guid? ReferrerAgentId { get; set; }
+    public string? Territory { get; set; }
+    public string? Cluster { get; set; }
+    public string? Location { get; set; }
+    public string? Estate { get; set; }
+    public string? ExternalAccountNumber { get; set; }
+    public string? ExternalTicketNumber { get; set; }
 
     // Resolved by LeadAppService from IdentityUser/Agent repositories - not stored columns.
     public string? AssignedToUserName { get; set; }

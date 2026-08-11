@@ -13,6 +13,8 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         leadsPermission.AddChild(ErpPermissions.Leads.Create, L("Permission:Create"));
         leadsPermission.AddChild(ErpPermissions.Leads.Edit, L("Permission:Edit"));
         leadsPermission.AddChild(ErpPermissions.Leads.Delete, L("Permission:Delete"));
+        leadsPermission.AddChild(ErpPermissions.Leads.Import, L("Permission:Import"));
+        leadsPermission.AddChild(ErpPermissions.Leads.Export, L("Permission:Export"));
 
         var customersGroup = context.AddGroup(ErpPermissions.Customers.GroupName, L("Permission:Customers"));
 

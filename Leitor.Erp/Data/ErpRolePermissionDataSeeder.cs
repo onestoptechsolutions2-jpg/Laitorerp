@@ -80,6 +80,7 @@ public class ErpRolePermissionDataSeeder : IDataSeedContributor, ITransientDepen
         yield return ("Ops Manager", new[]
         {
             ErpPermissions.Leads.Default,
+            ErpPermissions.Leads.Import,
             ErpPermissions.Customers.Default,
             ErpPermissions.Opportunities.Default,
             ErpPermissions.Opportunities.Unlock,
@@ -97,7 +98,7 @@ public class ErpRolePermissionDataSeeder : IDataSeedContributor, ITransientDepen
 
         yield return ("Sales Agent", new[]
         {
-            ErpPermissions.Leads.Default, ErpPermissions.Leads.Create, ErpPermissions.Leads.Edit, ErpPermissions.Leads.Delete,
+            ErpPermissions.Leads.Default, ErpPermissions.Leads.Create, ErpPermissions.Leads.Edit, ErpPermissions.Leads.Delete, ErpPermissions.Leads.Import, ErpPermissions.Leads.Export,
             ErpPermissions.Customers.Default, ErpPermissions.Customers.Create, ErpPermissions.Customers.Edit, ErpPermissions.Customers.Delete,
             ErpPermissions.Opportunities.Default, ErpPermissions.Opportunities.Create, ErpPermissions.Opportunities.Edit, ErpPermissions.Opportunities.Delete,
             ErpPermissions.Catalog.Default,

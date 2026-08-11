@@ -35,6 +35,20 @@ public class Lead : FullAuditedAggregateRoot<Guid>
     // dedup key, replacing the one-off phone-normalization script this used to require.
     public string? NormalizedPhone { get; set; }
 
+    // Geography fields populated by LeadImportAppService from field-ticket exports (Territories/
+    // Cluster/Location/Estate columns) - free text, same convention as Agent.Territory: no
+    // dedicated geography entity until something needs to query it structurally.
+    public string? Territory { get; set; }
+    public string? Cluster { get; set; }
+    public string? Location { get; set; }
+    public string? Estate { get; set; }
+
+    // External system references carried over from an imported field-ticket row. ExternalTicketNumber
+    // is the import dedup key (see LeadImportAppService) - re-uploading the same export won't create
+    // duplicate Leads for tickets already imported.
+    public string? ExternalAccountNumber { get; set; }
+    public string? ExternalTicketNumber { get; set; }
+
     protected Lead()
     {
     }

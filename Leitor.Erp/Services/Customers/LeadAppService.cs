@@ -210,6 +210,12 @@ public class LeadAppService :
         entity.Notes = input.Notes;
         entity.DoNotContact = input.DoNotContact;
         entity.ReferrerAgentId = input.ReferrerAgentId;
+        entity.Territory = input.Territory;
+        entity.Cluster = input.Cluster;
+        entity.Location = input.Location;
+        entity.Estate = input.Estate;
+        entity.ExternalAccountNumber = input.ExternalAccountNumber;
+        entity.ExternalTicketNumber = input.ExternalTicketNumber;
 
         var normalizedPhone = NormalizePhone(input.Phone);
         if (!string.IsNullOrEmpty(normalizedPhone))
