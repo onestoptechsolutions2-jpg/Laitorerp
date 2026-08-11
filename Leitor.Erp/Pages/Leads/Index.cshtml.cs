@@ -101,14 +101,31 @@ public class IndexModel : AbpPageModel
             return Forbid();
         }
 
-        var result = await _leadAppService.GetListAsync(new GetLeadListInput
+        // GetListAsync validates MaxResultCount against LimitedResultRequestDto.MaxMaxResultCount
+        // (1000 by default, not raised anywhere in this app) - paging through in batches instead
+        // of raising that global cap for the sake of one export button.
+        var leads = new List<LeadDto>();
+        var skip = 0;
+        const int batchSize = 1000;
+        while (true)
         {
-            Filter = Filter,
-            Status = Status,
-            AssignedToUserId = AssignedToUserId,
-            SkipCount = 0,
-            MaxResultCount = 10000
-        });
+            var batch = await _leadAppService.GetListAsync(new GetLeadListInput
+            {
+                Filter = Filter,
+                Status = Status,
+                AssignedToUserId = AssignedToUserId,
+                SkipCount = skip,
+                MaxResultCount = batchSize
+            });
+
+            leads.AddRange(batch.Items);
+            if (batch.Items.Count < batchSize)
+            {
+                break;
+            }
+
+            skip += batchSize;
+        }
 
         var csv = new StringBuilder();
         csv.AppendLine(string.Join(",", new[]
@@ -117,7 +134,7 @@ public class IndexModel : AbpPageModel
             "AccountNumber", "Source", "Status", "AssignedTo", "ReferrerAgent", "Created"
         }.Select(CsvEscape)));
 
-        foreach (var lead in result.Items)
+        foreach (var lead in leads)
         {
             csv.AppendLine(string.Join(",", new[]
             {
