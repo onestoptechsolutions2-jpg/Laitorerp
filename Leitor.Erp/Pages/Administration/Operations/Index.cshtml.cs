@@ -136,7 +136,11 @@ public class IndexModel : AbpPageModel
 
     public async Task<IActionResult> OnPostToggleModuleAsync(string name)
     {
-        if (!CanManageModules)
+        // Not CanManageModules - that property is only populated by OnGetAsync, which never runs
+        // for a POST, so it's always the default `false` here regardless of the caller's actual
+        // permissions. Re-check directly, same as CheckAppSettingsPermissionAsync does for the
+        // other POST handlers on this page.
+        if (!await AuthorizationService.IsGrantedAsync(ErpPermissions.ModuleToggles.Manage))
         {
             throw new AbpAuthorizationException();
         }
