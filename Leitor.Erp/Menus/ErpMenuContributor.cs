@@ -456,29 +456,21 @@ public class ErpMenuContributor : IMenuContributor
 
         // Cross-cutting: every read-only analytics/aggregation page that isn't a financial
         // statement, regardless of which business module it reports on - lives under
-        // Administration (not the main module area) since it's a cross-module utility area, same
-        // reasoning AuditLogs/DeletionApprovals already follow. Shown if the user can see any one
-        // of its children. Financial statements/aging get their own group below.
-        var canViewWorkflowMonitor = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
+        // Administration (not the main module area) since it's a cross-module utility area.
+        // Shown if the user can see any one of its children. Financial statements/aging get
+        // their own group below. WorkflowMonitor and AuditLogs moved out to their own
+        // Governance/AuditLogs areas below (2026-08-11 reference-ERP-inspired restructure).
         var canViewSalesAnalytics = await context.IsGrantedAsync(ErpPermissions.Sales.Default);
-        var canViewAuditLogs = await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default);
         var canViewInventoryReports = await context.IsGrantedAsync(ErpPermissions.Inventory.Default);
         var canViewSupportAnalytics = await context.IsGrantedAsync(ErpPermissions.Support.Default);
 
-        if (canViewWorkflowMonitor || canViewSalesAnalytics || canViewAuditLogs || canViewInventoryReports || canViewSupportAnalytics)
+        if (canViewSalesAnalytics || canViewInventoryReports || canViewSupportAnalytics)
         {
             var reportsMenu = new ApplicationMenuItem(
                 ErpMenus.Reports,
                 l["Menu:Reports"],
                 icon: "fas fa-chart-line"
             );
-
-            if (canViewWorkflowMonitor)
-            {
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsWorkflowMonitor, l["Menu:WorkflowMonitor"], "~/Governance/WorkflowMonitor", order: 1)
-                );
-            }
 
             if (canViewSalesAnalytics)
             {
@@ -501,13 +493,6 @@ public class ErpMenuContributor : IMenuContributor
             {
                 reportsMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ReportsSupportAnalytics, l["Menu:SupportAnalytics"], "~/Support/Analytics", order: 5)
-                );
-            }
-
-            if (canViewAuditLogs)
-            {
-                reportsMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.ReportsAuditLogs, l["Menu:AuditLogs"], "~/AuditLogs", order: 6)
                 );
             }
 
@@ -589,14 +574,50 @@ public class ErpMenuContributor : IMenuContributor
             }
         }
 
-        if (await context.IsGrantedAsync(ErpPermissions.DeletionApprovals.Default))
+        // Governance - approval-workflow and workflow-monitoring pages, unified under one parent
+        // matching the existing Pages/Governance/ folder both already route under (previously
+        // DeletionApprovals sat bare under Administration and WorkflowMonitor was one item among
+        // six inside the general Reports grab-bag - see ErpMenus.Governance for the full
+        // rationale). Same permission checks each item already used individually, unchanged.
+        var canViewDeletionApprovals = await context.IsGrantedAsync(ErpPermissions.DeletionApprovals.Default);
+        var canViewWorkflowMonitor = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
+
+        if (canViewDeletionApprovals || canViewWorkflowMonitor)
+        {
+            var governanceMenu = new ApplicationMenuItem(
+                ErpMenus.Governance,
+                l["Menu:Governance"],
+                icon: "fas fa-gavel"
+            );
+
+            if (canViewDeletionApprovals)
+            {
+                governanceMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.GovernanceDeletionApprovals, l["Menu:DeletionApprovals"], "~/Governance/DeletionApprovals", icon: "fas fa-trash-can-arrow-up", order: 1)
+                );
+            }
+
+            if (canViewWorkflowMonitor)
+            {
+                governanceMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.GovernanceWorkflowMonitor, l["Menu:WorkflowMonitor"], "~/Governance/WorkflowMonitor", order: 2)
+                );
+            }
+
+            administration.Items.Add(governanceMenu);
+        }
+
+        // Audit Logs - promoted out of the Reports grab-bag to its own top-level Administration
+        // area (Pages/AuditLogs is already a physically separate folder from Pages/Governance -
+        // a distinct compliance concern, deliberately not merged into Governance above).
+        if (await context.IsGrantedAsync(ErpPermissions.AuditLogs.Default))
         {
             administration.Items.Add(
                 new ApplicationMenuItem(
-                    ErpMenus.DeletionApprovals,
-                    l["Menu:DeletionApprovals"],
-                    "~/Governance/DeletionApprovals",
-                    icon: "fas fa-trash-can-arrow-up"
+                    ErpMenus.AuditLogs,
+                    l["Menu:AuditLogs"],
+                    "~/AuditLogs",
+                    icon: "fas fa-clock-rotate-left"
                 )
             );
         }

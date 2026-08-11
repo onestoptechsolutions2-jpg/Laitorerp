@@ -83,20 +83,32 @@ public class ErpMenus
     public const string Portal = Prefix + ".Portal";
     public const string Workspace = Prefix + ".Workspace";
     public const string Help = Prefix + ".Help";
-    public const string DeletionApprovals = Prefix + ".DeletionApprovals";
     public const string ModuleToggles = Prefix + ".ModuleToggles";
+
+    // Governance - approval-workflow and workflow-monitoring pages, unified under one parent
+    // matching the existing Pages/Governance/ folder both already route under. Previously
+    // DeletionApprovals sat bare under Administration and WorkflowMonitor was buried inside the
+    // general Reports grab-bag as one item among six - reference-ERP-inspired restructure
+    // (2026-08-11) pulled both into their own labeled area, matching Leitor's own
+    // approval-workflow accumulation direction (see project_module_toggle_framework memory).
+    public const string Governance = Prefix + ".Governance";
+    public const string GovernanceDeletionApprovals = Governance + ".DeletionApprovals";
+    public const string GovernanceWorkflowMonitor = Governance + ".WorkflowMonitor";
+
+    // Audit Logs - promoted out of the Reports grab-bag to its own top-level Administration area
+    // (2026-08-11), matching Pages/AuditLogs already being a physically separate folder from
+    // Pages/Governance - a distinct compliance concern, not merged into Governance above.
+    public const string AuditLogs = Prefix + ".AuditLogs";
 
     // Cross-cutting: every read-only analytics/aggregation page that isn't a financial
     // statement, regardless of which business module it reports on - separated from the
     // transactional Module menus above. Financial statements/aging get their own group below
     // since they're 8 of the original 14 items and form one coherent cluster.
     public const string Reports = Prefix + ".Reports";
-    public const string ReportsWorkflowMonitor = Reports + ".WorkflowMonitor";
     public const string ReportsSalesAnalytics = Reports + ".SalesAnalytics";
     public const string ReportsStockOnHand = Reports + ".StockOnHand";
     public const string ReportsLowStock = Reports + ".LowStock";
     public const string ReportsSupportAnalytics = Reports + ".SupportAnalytics";
-    public const string ReportsAuditLogs = Reports + ".AuditLogs";
 
     public const string FinancialReports = Prefix + ".FinancialReports";
     public const string FinancialReportsTrialBalance = FinancialReports + ".TrialBalance";
