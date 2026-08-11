@@ -11,6 +11,7 @@ using Leitor.Erp.Data;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
+using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
 using QuestPDF.Infrastructure;
 using OpenIddict.Validation.AspNetCore;
@@ -282,6 +283,13 @@ public class ErpModule : AbpModule
             options.Add(
                 LayoutHooks.Body.Last,
                 typeof(MyActionItemsViewComponent),
+                layout: StandardLayouts.Application);
+
+            // The overlay-form modal shell (see Pages/Shared/Components/FormOverlay and
+            // wwwroot/leitor-layout.js) - one instance per page, fetched into on demand.
+            options.Add(
+                LayoutHooks.Body.Last,
+                typeof(FormOverlayViewComponent),
                 layout: StandardLayouts.Application);
         });
     }

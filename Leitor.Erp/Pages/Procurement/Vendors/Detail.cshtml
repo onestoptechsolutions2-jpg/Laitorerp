@@ -9,7 +9,7 @@
         <h5 class="card-title mb-0">@Model.Vendor.Name</h5>
         @if (Model.CanEdit)
         {
-            <a asp-page="./Edit" asp-route-id="@Model.Vendor.Id" class="btn btn-outline-primary btn-sm">@L["Edit"]</a>
+            <a asp-page="./Edit" asp-route-id="@Model.Vendor.Id" class="btn btn-outline-primary btn-sm" data-overlay data-overlay-title="@L["EditVendor"]">@L["Edit"]</a>
         }
     </div>
     <div class="card-body">

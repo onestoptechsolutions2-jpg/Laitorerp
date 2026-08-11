@@ -9,7 +9,7 @@
         <h5 class="card-title mb-0">@L["Vendors"]</h5>
         @if (Model.CanCreate)
         {
-            <a asp-page="./Create" class="btn btn-primary">@L["NewVendor"]</a>
+            <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewVendor"]">@L["NewVendor"]</a>
         }
     </div>
     <div class="card-body">
@@ -48,7 +48,7 @@
                                 <a asp-page="/Accounting/Reports/VendorStatement/Index" asp-route-VendorId="@vendor.Id" class="btn btn-sm btn-outline-secondary">@L["Statement"]</a>
                                 @if (Model.CanEdit)
                                 {
-                                    <a asp-page="./Edit" asp-route-id="@vendor.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <a asp-page="./Edit" asp-route-id="@vendor.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditVendor"]">@L["Edit"]</a>
                                 }
                                 @if (Model.CanDelete)
                                 {

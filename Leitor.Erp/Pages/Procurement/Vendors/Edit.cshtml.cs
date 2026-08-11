@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Governance;
@@ -96,6 +97,12 @@ public class EditModel : AbpPageModel
         }
 
         await _vendorAppService.UpdateAsync(Id, Vendor);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = Id });
     }
 

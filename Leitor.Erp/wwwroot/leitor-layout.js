@@ -74,6 +74,108 @@
         setOpen(localStorage.getItem(RIGHT_PANEL_STORAGE_KEY) !== "1");
     }
 
+    // Loads a Create/Edit Razor Page into the overlay modal (Pages/Shared/Components/FormOverlay)
+    // instead of navigating to it - the target page renders completely normally (same route, same
+    // PageModel, same validation), it just gets Layout = null and returns only its own markup
+    // when it sees the X-Requested-With header this sets (see Pages/Shared/OverlayRequest.cs).
+    // Falls back to a real navigation with no JS changes needed if fetch throws for any reason -
+    // every trigger is a real <a href> to the real page first, an overlay hook second.
+    function initFormOverlay() {
+        var modalEl = document.getElementById("leitor-overlay-modal");
+        if (!modalEl || typeof bootstrap === "undefined") {
+            return;
+        }
+
+        var titleEl = modalEl.querySelector("[data-leitor-overlay-title]");
+        var bodyEl = modalEl.querySelector("[data-leitor-overlay-body]");
+        var modal = new bootstrap.Modal(modalEl);
+        var xhrHeader = { "X-Requested-With": "XMLHttpRequest" };
+
+        function showLoading() {
+            bodyEl.innerHTML =
+                '<div class="leitor-overlay-loading">' +
+                '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>' +
+                "<span>" + (modalEl.getAttribute("data-loading-text") || "Loading...") + "</span>" +
+                "</div>";
+        }
+
+        function renderFragment(html) {
+            bodyEl.innerHTML = html;
+            bindFormSubmit();
+        }
+
+        function bindFormSubmit() {
+            var form = bodyEl.querySelector("form");
+            if (!form) {
+                return;
+            }
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var submitter = e.submitter;
+                var formData = new FormData(form);
+                if (submitter && submitter.name) {
+                    formData.append(submitter.name, submitter.value || "");
+                }
+
+                fetch(form.getAttribute("action") || window.location.href, {
+                    method: "POST",
+                    headers: xhrHeader,
+                    body: formData
+                })
+                    .then(function (response) {
+                        var contentType = response.headers.get("content-type") || "";
+                        if (contentType.indexOf("application/json") !== -1) {
+                            return response.json().then(function (data) {
+                                if (data.redirectUrl) {
+                                    window.location.href = data.redirectUrl;
+                                }
+                            });
+                        }
+                        return response.text().then(renderFragment);
+                    })
+                    .catch(function () {
+                        form.submit();
+                    });
+            });
+        }
+
+        function openOverlay(url, title) {
+            titleEl.textContent = title || "";
+            showLoading();
+            modal.show();
+
+            fetch(url, { headers: xhrHeader })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error("overlay fetch failed");
+                    }
+                    return response.text();
+                })
+                .then(renderFragment)
+                .catch(function () {
+                    modal.hide();
+                    window.location.href = url;
+                });
+        }
+
+        document.addEventListener("click", function (e) {
+            var trigger = e.target.closest("[data-overlay]");
+            if (!trigger) {
+                return;
+            }
+            e.preventDefault();
+            openOverlay(trigger.getAttribute("href"), trigger.getAttribute("data-overlay-title"));
+        });
+
+        // A successful create/update inside the overlay navigates the whole page to the returned
+        // redirectUrl (see the JSON branch above) - nothing to re-bind on modal close, but reset
+        // the body back to a loading state so a stale form never flashes on the next open.
+        modalEl.addEventListener("hidden.bs.modal", function () {
+            bodyEl.innerHTML = "";
+        });
+    }
+
     restoreSidebarCollapseState();
     initActionPanel();
+    initFormOverlay();
 })();

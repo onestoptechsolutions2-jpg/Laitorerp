@@ -10,7 +10,7 @@
         <h5 class="card-title mb-0">@L["Leads"]</h5>
         @if (Model.CanCreate)
         {
-            <a asp-page="./Create" class="btn btn-primary">@L["NewLead"]</a>
+            <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewLead"]">@L["NewLead"]</a>
         }
     </div>
     <div class="card-body">

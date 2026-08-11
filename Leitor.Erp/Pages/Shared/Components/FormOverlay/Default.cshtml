@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+
+<div class="modal fade" id="leitor-overlay-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" data-leitor-overlay-title>&nbsp;</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@L["Close"]"></button>
+            </div>
+            <div class="modal-body" data-leitor-overlay-body>
+                <div class="leitor-overlay-loading">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span>@L["Loading"]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

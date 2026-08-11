@@ -450,9 +450,24 @@ dl.row dd {
 }
 
 /* ============================= Modals ============================= */
+/* Apple-style "sheet": frosted/translucent backdrop (System Settings, Mail compose) rather than
+   Bootstrap's flat black scrim, and the card itself gets a hairline instead of border: none so it
+   reads as a distinct pane against a blurred (not opaque) background. @supports-gated since
+   backdrop-filter has no visual fallback need - the plain rgba tint underneath is already a
+   complete, correct backdrop on its own. */
+
+.modal-backdrop {
+  background-color: rgba(35, 36, 31, 0.32);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .modal-backdrop.show {
+    backdrop-filter: blur(6px) saturate(140%);
+    -webkit-backdrop-filter: blur(6px) saturate(140%);
+  }
+}
 
 .modal-content {
-  border: none;
+  border: 1px solid var(--leitor-border-soft);
   border-radius: var(--leitor-radius);
   box-shadow: var(--leitor-shadow-floating);
 }
@@ -465,6 +480,45 @@ dl.row dd {
 
 .modal-body {
   padding: 20px 24px;
+}
+
+/* ============================= Overlay forms (Create/Edit-in-place) ============================= */
+/* Generic host for any Create/Edit page loaded as an overlay instead of a full navigation - see
+   wwwroot/leitor-layout.js's overlay-form loader and Pages/Shared/Components/FormOverlay. The
+   loaded page's own <form>/<abp-input> markup is unchanged; only the chrome around it (the modal
+   shell) is new, so a page works identically whether opened as a real navigation or an overlay. */
+
+#leitor-overlay-modal .modal-dialog {
+  max-width: 640px;
+}
+
+#leitor-overlay-modal .modal-content {
+  min-height: 200px;
+}
+
+/* The fetched fragment's own <form> has no card wrapper (that's the modal-content itself now) -
+   strip the padding/border/shadow a bare .card would otherwise add if a page's markup includes
+   one, so it doesn't double up inside the modal-body's own padding. */
+#leitor-overlay-modal .card {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+#leitor-overlay-modal .card-header {
+  display: none;
+}
+#leitor-overlay-modal .card-body {
+  padding: 0;
+}
+
+.leitor-overlay-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--leitor-ink-soft);
+  font-size: 14px;
+  gap: 10px;
 }
 
 /* ============================= Floating layers (dropdowns, dialogs) ============================= */
@@ -770,6 +824,12 @@ img, svg {
 .leitor-action-panel-backdrop.is-open {
   opacity: 1;
   pointer-events: auto;
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .leitor-action-panel-backdrop.is-open {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
 }
 
 /* Floating edge tab - the toggle for the panel. Can't live in the theme's own topbar (compiled,

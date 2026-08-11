@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -53,6 +54,12 @@ public class CreateModel : AbpPageModel
         }
 
         var customer = await _customerAppService.CreateAsync(Customer);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = customer.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = customer.Id });
     }
 
