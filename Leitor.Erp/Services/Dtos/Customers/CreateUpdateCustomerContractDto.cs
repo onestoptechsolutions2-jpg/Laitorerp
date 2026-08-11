@@ -46,4 +46,9 @@ public class CreateUpdateCustomerContractDto
     public int? SlaLowHours { get; set; }
 
     public ContractServiceScope ServicesIncluded { get; set; } = ContractServiceScope.None;
+
+    public Guid? ContractTemplateId { get; set; }
+
+    [StringLength(256)]
+    public string? ClientSignatoryName { get; set; }
 }

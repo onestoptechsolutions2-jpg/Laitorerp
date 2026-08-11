@@ -34,6 +34,14 @@ public class CustomerContract : FullAuditedAggregateRoot<Guid>
     // (see CustomerContractAppService.CopyToEntity) so a renewal gets its own 30-day alert.
     public DateTime? LastExpiryAlertSentDate { get; set; }
 
+    // When set, "Generate PDF" is available on Customer Detail (see
+    // CustomersDetailModel.OnGetContractPdfAsync) - null for contracts created before this feature
+    // or that don't need a generated legal document. ClientSignatoryName is captured per contract
+    // rather than pulled from Customer, since the signing representative isn't otherwise tracked
+    // anywhere on the Customer record.
+    public Guid? ContractTemplateId { get; set; }
+    public string? ClientSignatoryName { get; set; }
+
     protected CustomerContract()
     {
     }

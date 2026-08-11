@@ -23,4 +23,8 @@ public static class ErpSettings
     public const string CompanyCountry = GroupName + ".Company.Country";
     public const string CompanyPhone = GroupName + ".Company.Phone";
     public const string CompanyEmail = GroupName + ".Company.Email";
+
+    // Default signatory name used on generated contract PDFs (Documents/ContractPdfDocument.cs) -
+    // see Settings/ErpSettingDefinitionProvider.cs for the seeded default.
+    public const string CompanyContractSignatoryName = GroupName + ".Company.ContractSignatoryName";
 }

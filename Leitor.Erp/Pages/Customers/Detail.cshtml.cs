@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
@@ -17,12 +18,14 @@ using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Opportunities;
 using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.Support;
+using Leitor.Erp.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Settings;
 
 namespace Leitor.Erp.Pages.Customers;
 
@@ -32,6 +35,9 @@ public class DetailModel : AbpPageModel
     private readonly CustomerAppService _customerAppService;
     private readonly CustomerContactAppService _customerContactAppService;
     private readonly CustomerContractAppService _customerContractAppService;
+    private readonly ContractTemplateAppService _contractTemplateAppService;
+    private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private readonly ISettingProvider _settingProvider;
     private readonly CustomerNoteAppService _customerNoteAppService;
     private readonly CustomerTaskAppService _customerTaskAppService;
     private readonly CustomerAttachmentAppService _customerAttachmentAppService;
@@ -53,6 +59,9 @@ public class DetailModel : AbpPageModel
         CustomerAppService customerAppService,
         CustomerContactAppService customerContactAppService,
         CustomerContractAppService customerContractAppService,
+        ContractTemplateAppService contractTemplateAppService,
+        ErpCompanyProfileProvider companyProfileProvider,
+        ISettingProvider settingProvider,
         CustomerNoteAppService customerNoteAppService,
         CustomerTaskAppService customerTaskAppService,
         CustomerAttachmentAppService customerAttachmentAppService,
@@ -73,6 +82,9 @@ public class DetailModel : AbpPageModel
         _customerAppService = customerAppService;
         _customerContactAppService = customerContactAppService;
         _customerContractAppService = customerContractAppService;
+        _contractTemplateAppService = contractTemplateAppService;
+        _companyProfileProvider = companyProfileProvider;
+        _settingProvider = settingProvider;
         _customerNoteAppService = customerNoteAppService;
         _customerTaskAppService = customerTaskAppService;
         _customerAttachmentAppService = customerAttachmentAppService;
@@ -293,6 +305,26 @@ public class DetailModel : AbpPageModel
     {
         await _customerContractAppService.DeleteAsync(contractId);
         return RedirectToPage(new { id = Id });
+    }
+
+    // Only reachable for a contract that picked a template (see the "Pdf" button gate on
+    // Detail.cshtml) - GetAsync would 404 anyway for a mismatched id, but the ContractTemplateId
+    // check here gives a clearer NotFound rather than a null-reference deeper in ContractPdfDocument.
+    public async Task<IActionResult> OnGetContractPdfAsync(Guid contractId)
+    {
+        var contract = await _customerContractAppService.GetAsync(contractId);
+        if (!contract.ContractTemplateId.HasValue)
+        {
+            return NotFound();
+        }
+
+        var template = await _contractTemplateAppService.GetAsync(contract.ContractTemplateId.Value);
+        var customer = await _customerAppService.GetAsync(contract.CustomerId);
+        var company = await _companyProfileProvider.GetAsync();
+        var companySignatoryName = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyContractSignatoryName);
+
+        var pdfBytes = ContractPdfDocument.Generate(contract, template, customer, company, companySignatoryName);
+        return File(pdfBytes, "application/pdf", $"{contract.ContractNumber}.pdf");
     }
 
     public async Task<IActionResult> OnPostAddNoteAsync()

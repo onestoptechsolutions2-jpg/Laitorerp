@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
@@ -9,6 +10,7 @@ using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
@@ -21,19 +23,22 @@ public class CustomerContractAppService :
     private readonly IRepository<WarrantyClaim, Guid> _warrantyClaimRepository;
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
     private readonly IRepository<Project, Guid> _projectRepository;
+    private readonly IRepository<ContractTemplate, Guid> _contractTemplateRepository;
 
     public CustomerContractAppService(
         IRepository<CustomerContract, Guid> repository,
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<WarrantyClaim, Guid> warrantyClaimRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
-        IRepository<Project, Guid> projectRepository)
+        IRepository<Project, Guid> projectRepository,
+        IRepository<ContractTemplate, Guid> contractTemplateRepository)
         : base(repository)
     {
         _ticketRepository = ticketRepository;
         _warrantyClaimRepository = warrantyClaimRepository;
         _jobRepository = jobRepository;
         _projectRepository = projectRepository;
+        _contractTemplateRepository = contractTemplateRepository;
 
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
@@ -63,6 +68,40 @@ public class CustomerContractAppService :
     {
         var query = await base.CreateFilteredQueryAsync(input);
         return query.WhereIf(input.CustomerId.HasValue, x => x.CustomerId == input.CustomerId!.Value);
+    }
+
+    public override async Task<CustomerContractDto> GetAsync(Guid id)
+    {
+        var dto = await base.GetAsync(id);
+        await ResolveExtrasAsync(new[] { dto });
+        return dto;
+    }
+
+    public override async Task<PagedResultDto<CustomerContractDto>> GetListAsync(GetCustomerContractListInput input)
+    {
+        var result = await base.GetListAsync(input);
+        await ResolveExtrasAsync(result.Items);
+        return result;
+    }
+
+    private async Task ResolveExtrasAsync(IReadOnlyCollection<CustomerContractDto> contracts)
+    {
+        var templateIds = contracts
+            .Where(x => x.ContractTemplateId.HasValue)
+            .Select(x => x.ContractTemplateId!.Value)
+            .Distinct()
+            .ToList();
+        var templateNamesById = templateIds.Count > 0
+            ? (await _contractTemplateRepository.GetListAsync(x => templateIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name)
+            : new Dictionary<Guid, string>();
+
+        foreach (var contract in contracts)
+        {
+            if (contract.ContractTemplateId.HasValue && templateNamesById.TryGetValue(contract.ContractTemplateId.Value, out var templateName))
+            {
+                contract.ContractTemplateName = templateName;
+            }
+        }
     }
 
     protected override Task<CustomerContract> MapToEntityAsync(CreateUpdateCustomerContractDto createInput)
@@ -109,5 +148,8 @@ public class CustomerContractAppService :
         entity.SlaLowHours = input.SlaLowHours;
 
         entity.ServicesIncluded = input.ServicesIncluded;
+
+        entity.ContractTemplateId = input.ContractTemplateId;
+        entity.ClientSignatoryName = input.ClientSignatoryName;
     }
 }

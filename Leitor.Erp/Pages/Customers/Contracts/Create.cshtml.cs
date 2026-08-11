@@ -9,6 +9,7 @@ using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -18,11 +19,16 @@ namespace Leitor.Erp.Pages.Customers.Contracts;
 public class CreateModel : AbpPageModel
 {
     private readonly CustomerContractAppService _customerContractAppService;
+    private readonly ContractTemplateAppService _contractTemplateAppService;
     private readonly IRepository<Project, Guid> _projectRepository;
 
-    public CreateModel(CustomerContractAppService customerContractAppService, IRepository<Project, Guid> projectRepository)
+    public CreateModel(
+        CustomerContractAppService customerContractAppService,
+        ContractTemplateAppService contractTemplateAppService,
+        IRepository<Project, Guid> projectRepository)
     {
         _customerContractAppService = customerContractAppService;
+        _contractTemplateAppService = contractTemplateAppService;
         _projectRepository = projectRepository;
     }
 
@@ -48,7 +54,9 @@ public class CreateModel : AbpPageModel
     [BindProperty]
     public List<int> SelectedServiceFlags { get; set; } = new();
 
-    public void OnGet()
+    public List<SelectListItem> ContractTemplateOptions { get; set; } = new();
+
+    public async Task OnGetAsync()
     {
         Contract.CustomerId = CustomerId;
 
@@ -56,6 +64,8 @@ public class CreateModel : AbpPageModel
         {
             Contract.Title = PrefillTitle;
         }
+
+        await LoadOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -65,6 +75,7 @@ public class CreateModel : AbpPageModel
 
         if (!ModelState.IsValid)
         {
+            await LoadOptionsAsync();
             return Page();
         }
 
@@ -81,5 +92,14 @@ public class CreateModel : AbpPageModel
         }
 
         return RedirectToPage("/Customers/Detail", new { id = CustomerId });
+    }
+
+    private async Task LoadOptionsAsync()
+    {
+        var templates = await _contractTemplateAppService.GetListAsync();
+        ContractTemplateOptions = new List<SelectListItem> { new(L["None"], "") };
+        ContractTemplateOptions.AddRange(
+            templates.Where(x => x.IsActive).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+        );
     }
 }

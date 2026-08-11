@@ -8,6 +8,7 @@ using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 
 namespace Leitor.Erp.Pages.Customers.Contracts;
@@ -16,10 +17,12 @@ namespace Leitor.Erp.Pages.Customers.Contracts;
 public class EditModel : AbpPageModel
 {
     private readonly CustomerContractAppService _customerContractAppService;
+    private readonly ContractTemplateAppService _contractTemplateAppService;
 
-    public EditModel(CustomerContractAppService customerContractAppService)
+    public EditModel(CustomerContractAppService customerContractAppService, ContractTemplateAppService contractTemplateAppService)
     {
         _customerContractAppService = customerContractAppService;
+        _contractTemplateAppService = contractTemplateAppService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -33,6 +36,8 @@ public class EditModel : AbpPageModel
 
     [BindProperty]
     public List<int> SelectedServiceFlags { get; set; } = new();
+
+    public List<SelectListItem> ContractTemplateOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -52,12 +57,16 @@ public class EditModel : AbpPageModel
             SlaHighHours = contract.SlaHighHours,
             SlaMediumHours = contract.SlaMediumHours,
             SlaLowHours = contract.SlaLowHours,
-            ServicesIncluded = contract.ServicesIncluded
+            ServicesIncluded = contract.ServicesIncluded,
+            ContractTemplateId = contract.ContractTemplateId,
+            ClientSignatoryName = contract.ClientSignatoryName
         };
         SelectedServiceFlags = ContractServiceScopeOptions.All
             .Where(flag => contract.ServicesIncluded.HasFlag(flag))
             .Select(flag => (int)flag)
             .ToList();
+
+        await LoadOptionsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -67,10 +76,20 @@ public class EditModel : AbpPageModel
 
         if (!ModelState.IsValid)
         {
+            await LoadOptionsAsync();
             return Page();
         }
 
         await _customerContractAppService.UpdateAsync(Id, Contract);
         return RedirectToPage("/Customers/Detail", new { id = CustomerId });
+    }
+
+    private async Task LoadOptionsAsync()
+    {
+        var templates = await _contractTemplateAppService.GetListAsync();
+        ContractTemplateOptions = new List<SelectListItem> { new(L["None"], "") };
+        ContractTemplateOptions.AddRange(
+            templates.Where(x => x.IsActive).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
+        );
     }
 }

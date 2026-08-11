@@ -61,6 +61,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
     public DbSet<CustomerContract> CustomerContracts { get; set; } = null!;
+    public DbSet<ContractTemplate> ContractTemplates { get; set; } = null!;
+    public DbSet<ContractTemplateSection> ContractTemplateSections { get; set; } = null!;
     public DbSet<CustomerNote> CustomerNotes { get; set; } = null!;
     public DbSet<CustomerTask> CustomerTasks { get; set; } = null!;
     public DbSet<CustomerAttachment> CustomerAttachments { get; set; } = null!;
@@ -210,6 +212,22 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Value).HasColumnType("decimal(18,2)");
             b.Property(x => x.Notes).HasMaxLength(2000);
             b.HasIndex(x => x.CustomerId);
+        });
+
+        builder.Entity<ContractTemplate>(b =>
+        {
+            b.ToTable("ContractTemplates");
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+        });
+
+        builder.Entity<ContractTemplateSection>(b =>
+        {
+            b.ToTable("ContractTemplateSections");
+            b.ConfigureByConvention();
+            b.Property(x => x.Heading).HasMaxLength(256);
+            b.Property(x => x.BodyText).IsRequired().HasMaxLength(8000);
+            b.HasIndex(x => x.ContractTemplateId);
         });
 
         builder.Entity<CustomerNote>(b =>

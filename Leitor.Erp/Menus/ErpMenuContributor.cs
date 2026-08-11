@@ -114,6 +114,9 @@ public class ErpMenuContributor : IMenuContributor
                 crmMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.Customers, l["Menu:Customers"], "~/Customers", order: 3)
                 );
+                crmMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.ContractTemplates, l["Menu:ContractTemplates"], "~/Contracts/Templates", order: 4)
+                );
             }
 
             context.Menu.Items.Add(crmMenu);

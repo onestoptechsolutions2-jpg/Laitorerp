@@ -30,7 +30,11 @@ public class ErpSettingDefinitionProvider : SettingDefinitionProvider
             new SettingDefinition(ErpSettings.CompanyPostalCode, "", L("Setting:CompanyPostalCode")),
             new SettingDefinition(ErpSettings.CompanyCountry, "", L("Setting:CompanyCountry")),
             new SettingDefinition(ErpSettings.CompanyPhone, "", L("Setting:CompanyPhone")),
-            new SettingDefinition(ErpSettings.CompanyEmail, "", L("Setting:CompanyEmail"))
+            new SettingDefinition(ErpSettings.CompanyEmail, "", L("Setting:CompanyEmail")),
+
+            // Matches the real current signatory named in the Managed Services Agreement sample
+            // this feature was built from - a genuine current value, not a placeholder.
+            new SettingDefinition(ErpSettings.CompanyContractSignatoryName, "Treazer Ominde Akombe", L("Setting:CompanyContractSignatoryName"))
         );
     }
 

@@ -22,4 +22,10 @@ public class CustomerContractDto : FullAuditedEntityDto<Guid>
     public int? SlaLowHours { get; set; }
 
     public ContractServiceScope ServicesIncluded { get; set; }
+
+    public Guid? ContractTemplateId { get; set; }
+    public string? ClientSignatoryName { get; set; }
+
+    // Resolved by CustomerContractAppService from ContractTemplate - not a stored column.
+    public string? ContractTemplateName { get; set; }
 }

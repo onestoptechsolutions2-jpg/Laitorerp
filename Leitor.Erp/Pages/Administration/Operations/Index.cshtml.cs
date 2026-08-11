@@ -97,6 +97,7 @@ public class IndexModel : AbpPageModel
         await _settingManager.SetGlobalAsync(ErpSettings.CompanyCountry, Company.Country ?? "");
         await _settingManager.SetGlobalAsync(ErpSettings.CompanyPhone, Company.Phone ?? "");
         await _settingManager.SetGlobalAsync(ErpSettings.CompanyEmail, Company.Email ?? "");
+        await _settingManager.SetGlobalAsync(ErpSettings.CompanyContractSignatoryName, Company.ContractSignatoryName ?? "");
 
         return RedirectToPage(new { tab = "company" });
     }
@@ -177,7 +178,8 @@ public class IndexModel : AbpPageModel
             PostalCode = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyPostalCode),
             Country = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyCountry),
             Phone = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyPhone),
-            Email = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyEmail)
+            Email = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyEmail),
+            ContractSignatoryName = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyContractSignatoryName)
         };
     }
 
@@ -281,6 +283,9 @@ public class IndexModel : AbpPageModel
 
         [StringLength(256)]
         public string? Email { get; set; }
+
+        [StringLength(256)]
+        public string? ContractSignatoryName { get; set; }
     }
 
     public class EmailSettingsInput

@@ -11,6 +11,7 @@ public class ErpMenus
     public const string Leads = Crm + ".Leads";
     public const string Opportunities = Crm + ".Opportunities";
     public const string Customers = Crm + ".Customers";
+    public const string ContractTemplates = Crm + ".ContractTemplates";
 
     public const string Sales = Prefix + ".Sales";
     public const string SalesQuotes = Sales + ".Quotes";
