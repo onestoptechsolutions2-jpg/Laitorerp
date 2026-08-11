@@ -432,10 +432,16 @@ public class ErpModule : AbpModule
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 
+        // IsMultiTenant is a compile-time const (false) - CS0162 flags this branch as
+        // unreachable, but that's the point: flipping the const is the documented single point
+        // to re-enable multi-tenancy (see its own declaration), which brings this branch back to
+        // life. Suppressed rather than removed so the toggle keeps working.
+#pragma warning disable CS0162
         if (IsMultiTenant)
         {
             app.UseMultiTenancy();
         }
+#pragma warning restore CS0162
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();

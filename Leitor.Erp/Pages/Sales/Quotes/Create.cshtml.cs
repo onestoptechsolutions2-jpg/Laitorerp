@@ -70,7 +70,6 @@ public class CreateModel : AbpPageModel
         return RedirectToPage("./Detail", new { id = quote.Id });
     }
 
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreateCustomerAsync([FromBody] CreateCustomerRequest request)
     {
         // AJAX handler for creating a new customer from this form - a brand-new prospect with no

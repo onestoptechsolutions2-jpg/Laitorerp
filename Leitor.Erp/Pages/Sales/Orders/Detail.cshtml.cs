@@ -198,7 +198,6 @@ public class DetailModel : AbpPageModel
         return RedirectToPage(new { id = Id });
     }
 
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreateProductAsync([FromBody] CreateProductRequest request)
     {
         // AJAX handler for creating a new product from the order line-add form - same shape as

@@ -13,6 +13,14 @@
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
   </ItemGroup>
 
+  <!-- Security-only version pins for transitive dependencies ABP 10.5.0 still brings in at
+       vulnerable versions (NU1903) - both are patch-level bumps from ABP's own pinned versions,
+       kept as an explicit override rather than waiting on an ABP release. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="Scriban" Version="7.2.2" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite" Version="5.4.0-preview*" />
   </ItemGroup>

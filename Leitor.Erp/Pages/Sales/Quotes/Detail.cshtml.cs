@@ -247,7 +247,6 @@ public class DetailModel : AbpPageModel
         }
     }
 
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreateProductAsync([FromBody] CreateProductRequest request)
     {
         // AJAX handler for creating a new product from the quote form

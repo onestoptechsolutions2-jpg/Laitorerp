@@ -15,6 +15,7 @@ public partial class OrderToOrderDtoMapper : MapperBase<Order, OrderDto>
     [MapperIgnoreTarget(nameof(OrderDto.Subtotal))]
     [MapperIgnoreTarget(nameof(OrderDto.TaxAmount))]
     [MapperIgnoreTarget(nameof(OrderDto.Total))]
+    [MapperIgnoreTarget(nameof(OrderDto.SalespersonName))]
     public override partial OrderDto Map(Order source);
 
     [MapperIgnoreSource(nameof(Order.ExtraProperties))]
@@ -24,5 +25,6 @@ public partial class OrderToOrderDtoMapper : MapperBase<Order, OrderDto>
     [MapperIgnoreTarget(nameof(OrderDto.Subtotal))]
     [MapperIgnoreTarget(nameof(OrderDto.TaxAmount))]
     [MapperIgnoreTarget(nameof(OrderDto.Total))]
+    [MapperIgnoreTarget(nameof(OrderDto.SalespersonName))]
     public override partial void Map(Order source, OrderDto destination);
 }

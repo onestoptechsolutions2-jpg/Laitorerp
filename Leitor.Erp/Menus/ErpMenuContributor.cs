@@ -622,6 +622,10 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        // Same intentional const-driven branch as ErpModule.ConfigureServices' UseMultiTenancy()
+        // call - CS0162 fires because ErpModule.IsMultiTenant is const false, not because this
+        // branch is dead code to delete.
+#pragma warning disable CS0162
         if (ErpModule.IsMultiTenant)
         {
             administration.SetSubItemOrder(TenantManagementMenuNames.GroupName, 1);
@@ -630,5 +634,6 @@ public class ErpMenuContributor : IMenuContributor
         {
             administration.TryRemoveMenuItem(TenantManagementMenuNames.GroupName);
         }
+#pragma warning restore CS0162
     }
 }

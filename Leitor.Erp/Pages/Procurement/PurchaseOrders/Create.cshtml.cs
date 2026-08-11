@@ -75,7 +75,6 @@ public class CreateModel : AbpPageModel
         return RedirectToPage("./Detail", new { id = purchaseOrder.Id });
     }
 
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreateVendorAsync([FromBody] CreateVendorRequest request)
     {
         // AJAX handler for creating a new vendor from this form - same shape as Sales/Quotes/

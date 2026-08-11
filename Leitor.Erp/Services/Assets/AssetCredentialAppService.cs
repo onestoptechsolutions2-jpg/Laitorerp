@@ -53,7 +53,10 @@ public class AssetCredentialAppService :
         await CheckPolicyAsync(ErpPermissions.Assets.RevealCredentials);
 
         var entity = await Repository.GetAsync(id);
-        var value = _stringEncryptionService.Decrypt(entity.EncryptedValue);
+        // IStringEncryptionService's null-in/null-out contract makes Decrypt return string? -
+        // entity.EncryptedValue itself is a non-nullable string (see its own declaration), so the
+        // result here can't actually be null.
+        var value = _stringEncryptionService.Decrypt(entity.EncryptedValue)!;
 
         await WorkflowStageLog.RecordAsync(
             _stageEventRepository, GuidGenerator, CurrentUser, Clock,
@@ -82,6 +85,7 @@ public class AssetCredentialAppService :
         entity.CredentialType = input.CredentialType;
         entity.Username = input.Username;
         entity.Notes = input.Notes;
-        entity.EncryptedValue = _stringEncryptionService.Encrypt(input.Value);
+        // Same null-in/null-out contract as Decrypt above - input.Value is non-nullable.
+        entity.EncryptedValue = _stringEncryptionService.Encrypt(input.Value)!;
     }
 }

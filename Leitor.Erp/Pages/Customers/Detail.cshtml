@@ -612,7 +612,11 @@
             <p class="text-muted mb-3">
                 @L["SlaPerformance"]:
                 <span class="pill @(Model.SlaPerformance.CompliancePercent >= 90 ? "pill-success" : Model.SlaPerformance.CompliancePercent >= 75 ? "pill-warning" : "pill-danger")">
-                    @Model.SlaPerformance.CompliancePercent.Value.ToString("N1")%
+                    @* CompliancePercent is only null when TotalCount is 0 (see
+                       SupportAnalyticsAppService.GetCustomerSlaPerformanceAsync) - the
+                       TotalCount: > 0 check above guarantees it's set here, just not in a way
+                       the compiler's null-flow analysis can see across two properties. *@
+                    @Model.SlaPerformance.CompliancePercent!.Value.ToString("N1")%
                 </span>
                 (@Model.SlaPerformance.MetCount @L["Of"] @Model.SlaPerformance.TotalCount @L["TicketsMetSla"])
             </p>

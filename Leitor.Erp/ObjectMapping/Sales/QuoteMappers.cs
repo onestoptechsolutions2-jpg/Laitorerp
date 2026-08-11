@@ -14,6 +14,7 @@ public partial class QuoteToQuoteDtoMapper : MapperBase<Quote, QuoteDto>
     [MapperIgnoreTarget(nameof(QuoteDto.Subtotal))]
     [MapperIgnoreTarget(nameof(QuoteDto.TaxAmount))]
     [MapperIgnoreTarget(nameof(QuoteDto.Total))]
+    [MapperIgnoreTarget(nameof(QuoteDto.SalespersonName))]
     [MapperIgnoreTarget(nameof(QuoteDto.ProposalNumber))]
     public override partial QuoteDto Map(Quote source);
 
@@ -23,6 +24,7 @@ public partial class QuoteToQuoteDtoMapper : MapperBase<Quote, QuoteDto>
     [MapperIgnoreTarget(nameof(QuoteDto.Subtotal))]
     [MapperIgnoreTarget(nameof(QuoteDto.TaxAmount))]
     [MapperIgnoreTarget(nameof(QuoteDto.Total))]
+    [MapperIgnoreTarget(nameof(QuoteDto.SalespersonName))]
     [MapperIgnoreTarget(nameof(QuoteDto.ProposalNumber))]
     public override partial void Map(Quote source, QuoteDto destination);
 }

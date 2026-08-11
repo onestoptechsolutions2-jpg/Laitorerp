@@ -16,6 +16,8 @@ public partial class InvoiceToInvoiceDtoMapper : MapperBase<Invoice, InvoiceDto>
     [MapperIgnoreTarget(nameof(InvoiceDto.Total))]
     [MapperIgnoreTarget(nameof(InvoiceDto.AmountPaid))]
     [MapperIgnoreTarget(nameof(InvoiceDto.PaymentStatus))]
+    [MapperIgnoreTarget(nameof(InvoiceDto.IsPostedToLedger))]
+    [MapperIgnoreTarget(nameof(InvoiceDto.SalespersonName))]
     public override partial InvoiceDto Map(Invoice source);
 
     [MapperIgnoreSource(nameof(Invoice.ExtraProperties))]
@@ -26,5 +28,7 @@ public partial class InvoiceToInvoiceDtoMapper : MapperBase<Invoice, InvoiceDto>
     [MapperIgnoreTarget(nameof(InvoiceDto.Total))]
     [MapperIgnoreTarget(nameof(InvoiceDto.AmountPaid))]
     [MapperIgnoreTarget(nameof(InvoiceDto.PaymentStatus))]
+    [MapperIgnoreTarget(nameof(InvoiceDto.IsPostedToLedger))]
+    [MapperIgnoreTarget(nameof(InvoiceDto.SalespersonName))]
     public override partial void Map(Invoice source, InvoiceDto destination);
 }

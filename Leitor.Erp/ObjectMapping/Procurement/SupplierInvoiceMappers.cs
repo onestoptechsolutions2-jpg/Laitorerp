@@ -13,6 +13,9 @@ public partial class SupplierInvoiceToSupplierInvoiceDtoMapper : MapperBase<Supp
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.VendorName))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.PONumber))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.Total))]
+    [MapperIgnoreTarget(nameof(SupplierInvoiceDto.Subtotal))]
+    [MapperIgnoreTarget(nameof(SupplierInvoiceDto.TaxAmount))]
+    [MapperIgnoreTarget(nameof(SupplierInvoiceDto.IsPostedToLedger))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.AmountPaid))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.PaymentStatus))]
     public override partial SupplierInvoiceDto Map(SupplierInvoice source);
@@ -22,6 +25,9 @@ public partial class SupplierInvoiceToSupplierInvoiceDtoMapper : MapperBase<Supp
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.VendorName))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.PONumber))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.Total))]
+    [MapperIgnoreTarget(nameof(SupplierInvoiceDto.Subtotal))]
+    [MapperIgnoreTarget(nameof(SupplierInvoiceDto.TaxAmount))]
+    [MapperIgnoreTarget(nameof(SupplierInvoiceDto.IsPostedToLedger))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.AmountPaid))]
     [MapperIgnoreTarget(nameof(SupplierInvoiceDto.PaymentStatus))]
     public override partial void Map(SupplierInvoice source, SupplierInvoiceDto destination);

@@ -121,7 +121,6 @@ public class CreateModel : AbpPageModel
         return RedirectToPage("./Index", new { OpportunityId = Commission.OpportunityId });
     }
 
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreatePartnerAsync([FromBody] CreatePartnerRequest request)
     {
         // AJAX handler for creating a new Partner from this form, same shape as the Product/
@@ -149,7 +148,6 @@ public class CreateModel : AbpPageModel
         }
     }
 
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> OnPostCreateAgentAsync([FromBody] CreateAgentRequest request)
     {
         try
