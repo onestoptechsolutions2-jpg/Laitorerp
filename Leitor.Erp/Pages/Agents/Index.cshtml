@@ -42,7 +42,7 @@
                     {
                         <tr>
                             <td>@item.Name</td>
-                            <td>@item.Phone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="item.Phone" /></td>
+                            <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="item.Phone" /></td>
                             <td>@item.Territory</td>
                             <td>@L[$"Enum:CommissionBasis:{(int)item.CommissionBasis}"]</td>
                             <td>@item.CommissionRate.ToString("N2")</td>

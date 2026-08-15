@@ -75,7 +75,7 @@
                                 }
                             </td>
                             <td>@lead.CompanyName</td>
-                            <td>@lead.Phone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="lead.Phone" /></td>
+                            <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="lead.Phone" /></td>
                             <td>@lead.Territory</td>
                             <td>@L[$"Enum:LeadSource:{(int)lead.Source}"]</td>
                             <td><span class="pill @StatusPill.For(lead.Status)">@L[$"Enum:LeadStatus:{(int)lead.Status}"]</span></td>

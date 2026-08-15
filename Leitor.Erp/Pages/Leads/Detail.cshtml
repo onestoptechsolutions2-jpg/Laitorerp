@@ -42,7 +42,7 @@
             <dt class="col-sm-2">@L["Email"]</dt>
             <dd class="col-sm-4">@Model.Lead.Email</dd>
             <dt class="col-sm-2">@L["PhoneNumber"]</dt>
-            <dd class="col-sm-4">@Model.Lead.Phone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="Model.Lead.Phone" /></dd>
+            <dd class="col-sm-4"><partial name="/Pages/Shared/_PhoneActions.cshtml" model="Model.Lead.Phone" /></dd>
 
             <dt class="col-sm-2">@L["Source"]</dt>
             <dd class="col-sm-4">@L[$"Enum:LeadSource:{(int)Model.Lead.Source}"]</dd>

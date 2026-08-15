@@ -43,7 +43,7 @@
                         <tr>
                             <td><a asp-page="./Detail" asp-route-id="@customer.Id">@customer.Name</a></td>
                             <td>@customer.Email</td>
-                            <td>@customer.PhoneNumber<partial name="/Pages/Shared/_PhoneActions.cshtml" model="customer.PhoneNumber" /></td>
+                            <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="customer.PhoneNumber" /></td>
                             <td><span class="pill @StatusPill.For(customer.Status)">@L[$"Enum:CustomerStatus:{(int)customer.Status}"]</span></td>
                             <td>@customer.AccountOwnerUserName</td>
                             <td>

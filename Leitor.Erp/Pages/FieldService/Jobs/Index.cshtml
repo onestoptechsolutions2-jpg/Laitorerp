@@ -54,7 +54,7 @@
                     {
                         <tr>
                             <td><a asp-page="./Detail" asp-route-id="@job.Id">@job.CustomerName</a></td>
-                            <td>@job.CustomerPhone<partial name="/Pages/Shared/_PhoneActions.cshtml" model="job.CustomerPhone" /></td>
+                            <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="job.CustomerPhone" /></td>
                             <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
                             <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
                             <td>@job.ScheduledDate.ToShortDateString()</td>
