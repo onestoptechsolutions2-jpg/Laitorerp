@@ -16,7 +16,11 @@ namespace Leitor.Erp.Tests;
 // ErpTestBase swaps in AlwaysAllowAuthorizationService, so every permission check always passes
 // here - these tests cover the margin-threshold and reason-required logic, not the
 // Sales.OverrideMarginGate permission denial itself (same documented limitation as
-// DeletionGate's approval-filing branch).
+// DeletionGate's approval-filing branch). Same limitation applies to the escalation-filing branch
+// added later the same day - when the current user lacks OverrideMarginGate, production code
+// files an EscalationItem instead of hard-blocking, but that branch is unreachable here since
+// AuthorizationService.IsGrantedAsync always returns true in this test host; see
+// EscalationItemTests.cs for coverage of the approval/execution side of that flow.
 public class QuoteMarginGateTests : ErpTestBase
 {
     private async Task<(QuoteAppService QuoteAppService, QuoteLineAppService LineAppService, Guid CustomerId)> SeedAsync()

@@ -13,7 +13,9 @@ namespace Leitor.Erp.Tests;
 // The Order-side half of the margin gate ([[feature_quote_margin_gate_2026-08-15]]) - most Orders
 // inherit an already-gated margin from the Quote they were converted from, so this covers an Order
 // built directly with its own lines, which never went through a gated Quote. Same test shape as
-// QuoteMarginGateTests; see that file's header comment for the CurrentUser.Id caveat in this host.
+// QuoteMarginGateTests; see that file's header comment for the CurrentUser.Id caveat in this host,
+// and for the escalation-filing branch (untestable here for the same reason) now covered by
+// EscalationItemTests.cs instead.
 public class OrderMarginGateTests : ErpTestBase
 {
     private async Task<(OrderAppService OrderAppService, OrderLineAppService LineAppService, Guid CustomerId)> SeedAsync()

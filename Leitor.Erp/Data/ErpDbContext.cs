@@ -57,6 +57,7 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<DeletionRequest> DeletionRequests { get; set; } = null!;
     public DbSet<WorkflowStageEvent> WorkflowStageEvents { get; set; } = null!;
     public DbSet<ChangeRequest> ChangeRequests { get; set; } = null!;
+    public DbSet<EscalationItem> EscalationItems { get; set; } = null!;
 
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerContact> CustomerContacts { get; set; } = null!;
@@ -986,6 +987,21 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Reason).HasMaxLength(2000);
             b.Property(x => x.DecisionNotes).HasMaxLength(2000);
             b.HasIndex(x => new { x.EntityType, x.EntityId });
+            b.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<EscalationItem>(b =>
+        {
+            b.ToTable("EscalationItems");
+            b.ConfigureByConvention();
+            b.Property(x => x.ActionType).IsRequired().HasMaxLength(64);
+            b.Property(x => x.EntityType).IsRequired().HasMaxLength(64);
+            b.Property(x => x.RequiredPermission).IsRequired().HasMaxLength(128);
+            b.Property(x => x.PayloadJson).HasMaxLength(4000);
+            b.Property(x => x.Reason).HasMaxLength(2000);
+            b.Property(x => x.DecisionNotes).HasMaxLength(2000);
+            b.Property(x => x.ExecutionError).HasMaxLength(2000);
+            b.HasIndex(x => new { x.ActionType, x.EntityId });
             b.HasIndex(x => x.Status);
         });
 

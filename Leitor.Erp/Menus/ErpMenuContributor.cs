@@ -583,9 +583,10 @@ public class ErpMenuContributor : IMenuContributor
         // six inside the general Reports grab-bag - see ErpMenus.Governance for the full
         // rationale). Same permission checks each item already used individually, unchanged.
         var canViewDeletionApprovals = await context.IsGrantedAsync(ErpPermissions.DeletionApprovals.Default);
+        var canViewEscalations = await context.IsGrantedAsync(ErpPermissions.Escalations.Default);
         var canViewWorkflowMonitor = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
 
-        if (canViewDeletionApprovals || canViewWorkflowMonitor)
+        if (canViewDeletionApprovals || canViewEscalations || canViewWorkflowMonitor)
         {
             var governanceMenu = new ApplicationMenuItem(
                 ErpMenus.Governance,
@@ -600,10 +601,17 @@ public class ErpMenuContributor : IMenuContributor
                 );
             }
 
+            if (canViewEscalations)
+            {
+                governanceMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.GovernanceEscalations, l["Menu:Escalations"], "~/Governance/Escalations", icon: "fas fa-arrow-up-right-from-square", order: 2)
+                );
+            }
+
             if (canViewWorkflowMonitor)
             {
                 governanceMenu.AddItem(
-                    new ApplicationMenuItem(ErpMenus.GovernanceWorkflowMonitor, l["Menu:WorkflowMonitor"], "~/Governance/WorkflowMonitor", order: 2)
+                    new ApplicationMenuItem(ErpMenus.GovernanceWorkflowMonitor, l["Menu:WorkflowMonitor"], "~/Governance/WorkflowMonitor", order: 3)
                 );
             }
 

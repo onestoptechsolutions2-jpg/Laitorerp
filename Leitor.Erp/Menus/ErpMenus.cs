@@ -94,6 +94,7 @@ public class ErpMenus
     // approval-workflow accumulation direction (see project_module_toggle_framework memory).
     public const string Governance = Prefix + ".Governance";
     public const string GovernanceDeletionApprovals = Governance + ".DeletionApprovals";
+    public const string GovernanceEscalations = Governance + ".Escalations";
     public const string GovernanceWorkflowMonitor = Governance + ".WorkflowMonitor";
 
     // Audit Logs - promoted out of the Reports grab-bag to its own top-level Administration area

@@ -43,6 +43,7 @@ public class DetailModel : AbpPageModel
     private readonly ErpCompanyProfileProvider _companyProfileProvider;
     private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
 
     public DetailModel(
         OrderAppService orderAppService,
@@ -57,7 +58,8 @@ public class DetailModel : AbpPageModel
         IRepository<PriceListItem, Guid> priceListItemRepository,
         IEmailSender emailSender,
         ErpCompanyProfileProvider companyProfileProvider,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<EscalationItem, Guid> escalationItemRepository)
     {
         _orderAppService = orderAppService;
         _orderLineAppService = orderLineAppService;
@@ -72,6 +74,7 @@ public class DetailModel : AbpPageModel
         _emailSender = emailSender;
         _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
+        _escalationItemRepository = escalationItemRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -103,6 +106,7 @@ public class DetailModel : AbpPageModel
     public bool CanEdit { get; set; }
     public bool CanOverrideMarginGate { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
+    public bool HasPendingMarginEscalation { get; set; }
 
     [TempData]
     public string? ErrorMessage { get; set; }
@@ -112,6 +116,7 @@ public class DetailModel : AbpPageModel
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Edit);
         CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Order", Id);
+        HasPendingMarginEscalation = await EscalationGate.IsPendingAsync(_escalationItemRepository, "Order.MarginOverride", Id);
         await LoadAsync();
     }
 

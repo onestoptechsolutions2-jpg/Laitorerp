@@ -41,6 +41,7 @@ public class QuoteAppService :
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IDataFilter _dataFilter;
     private readonly ISettingProvider _settingProvider;
+    private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
 
     public QuoteAppService(
         IRepository<Quote, Guid> repository,
@@ -57,7 +58,8 @@ public class QuoteAppService :
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
         IDataFilter dataFilter,
-        ISettingProvider settingProvider)
+        ISettingProvider settingProvider,
+        IRepository<EscalationItem, Guid> escalationItemRepository)
         : base(repository)
     {
         _lineRepository = lineRepository;
@@ -74,6 +76,7 @@ public class QuoteAppService :
         _identityUserRepository = identityUserRepository;
         _dataFilter = dataFilter;
         _settingProvider = settingProvider;
+        _escalationItemRepository = escalationItemRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -293,12 +296,27 @@ public class QuoteAppService :
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(overrideReason) ||
-            !await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate))
+        if (string.IsNullOrWhiteSpace(overrideReason))
         {
             throw new UserFriendlyException(
                 $"This quote's margin ({marginPercent.Value:N1}%) is below the {floorPercent:N1}% floor and can't be sent. " +
-                "A manager can override this with an explicit reason.");
+                "Provide a reason to override it (directly, if you're a manager, or to request approval).");
+        }
+
+        if (!await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate))
+        {
+            await EscalationGate.FileAsync(
+                _escalationItemRepository, CurrentUser, GuidGenerator, Clock,
+                actionType: "Quote.MarginOverride",
+                requiredPermission: ErpPermissions.Sales.OverrideMarginGate,
+                entityType: "Quote",
+                entityId: entity.Id,
+                payload: new MarginOverridePayload { OverrideReason = overrideReason },
+                reason: overrideReason,
+                filedMessage:
+                    $"This quote's margin ({marginPercent.Value:N1}%) is below the {floorPercent:N1}% floor and can't be sent directly. " +
+                    "Your override request has been filed - a manager will review it.");
+            return; // unreachable: FileAsync always throws; kept for clarity/compiler flow
         }
 
         entity.MarginOverrideByUserId = CurrentUser.Id;
@@ -431,5 +449,28 @@ public class QuoteAppService :
         await Repository.UpdateAsync(quote, autoSave: true);
 
         return ObjectMapper.Map<Order, OrderDto>(order);
+    }
+
+    // Dedicated Draft -> Sent transition entry point, mirroring OrderAppService.ConfirmAsync's
+    // shape. Exists so QuoteMarginOverrideEscalationHandler doesn't have to reconstruct a full
+    // CreateUpdateQuoteDto (risking silently dropping/overwriting fields not carried over from
+    // QuoteDto) just to flip Status and re-run EnforceMarginGateAsync.
+    public async Task<QuoteDto> SendAsync(Guid id, string? marginOverrideReason = null)
+    {
+        await CheckUpdatePolicyAsync();
+
+        var entity = await Repository.GetAsync(id);
+        if (entity.Status != QuoteStatus.Draft)
+        {
+            throw new UserFriendlyException("Only draft quotes can be sent.");
+        }
+
+        await EnforceMarginGateAsync(entity, marginOverrideReason);
+
+        entity.Status = QuoteStatus.Sent;
+        entity.Version++;
+        await Repository.UpdateAsync(entity, autoSave: true);
+
+        return await GetAsync(id);
     }
 }

@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,15 +24,18 @@ public class EditModel : AbpPageModel
     private readonly QuoteAppService _quoteAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
+    private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
 
     public EditModel(
         QuoteAppService quoteAppService,
         IRepository<Customer, Guid> customerRepository,
-        IRepository<Currency, Guid> currencyRepository)
+        IRepository<Currency, Guid> currencyRepository,
+        IRepository<EscalationItem, Guid> escalationItemRepository)
     {
         _quoteAppService = quoteAppService;
         _customerRepository = customerRepository;
         _currencyRepository = currencyRepository;
+        _escalationItemRepository = escalationItemRepository;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -45,6 +50,7 @@ public class EditModel : AbpPageModel
     public QuoteDto QuoteDetails { get; set; } = null!;
     public bool CanUnlock { get; set; }
     public bool CanOverrideMarginGate { get; set; }
+    public bool HasPendingMarginEscalation { get; set; }
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
     public string? ErrorMessage { get; set; }
@@ -65,6 +71,7 @@ public class EditModel : AbpPageModel
             CurrencyCode = QuoteDetails.CurrencyCode
         };
         CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
+        HasPendingMarginEscalation = await EscalationGate.IsPendingAsync(_escalationItemRepository, "Quote.MarginOverride", Id);
 
         await LoadCustomerOptionsAsync();
         await LoadCurrencyOptionsAsync();
@@ -91,6 +98,7 @@ public class EditModel : AbpPageModel
             // not crash out of the pipeline" fix as Orders/Edit.cshtml.cs's own UpdateAsync catch.
             ErrorMessage = ex.Message;
             CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
+            HasPendingMarginEscalation = await EscalationGate.IsPendingAsync(_escalationItemRepository, "Quote.MarginOverride", Id);
             await LoadCustomerOptionsAsync();
             await LoadCurrencyOptionsAsync();
             return Page();

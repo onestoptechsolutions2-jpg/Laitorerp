@@ -57,6 +57,7 @@ public class OrderAppService :
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly ISettingProvider _settingProvider;
+    private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
 
     public OrderAppService(
         IRepository<Order, Guid> repository,
@@ -85,7 +86,8 @@ public class OrderAppService :
         IRepository<Ticket, Guid> ticketRepository,
         IDataFilter dataFilter,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
-        ISettingProvider settingProvider)
+        ISettingProvider settingProvider,
+        IRepository<EscalationItem, Guid> escalationItemRepository)
         : base(repository)
     {
         _lineRepository = lineRepository;
@@ -114,6 +116,7 @@ public class OrderAppService :
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
         _settingProvider = settingProvider;
+        _escalationItemRepository = escalationItemRepository;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -388,12 +391,27 @@ public class OrderAppService :
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(overrideReason) ||
-            !await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate))
+        if (string.IsNullOrWhiteSpace(overrideReason))
         {
             throw new UserFriendlyException(
                 $"This order's margin ({marginPercent.Value:N1}%) is below the {floorPercent:N1}% floor and can't be confirmed. " +
-                "A manager can override this with an explicit reason.");
+                "Provide a reason to override it (directly, if you're a manager, or to request approval).");
+        }
+
+        if (!await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate))
+        {
+            await EscalationGate.FileAsync(
+                _escalationItemRepository, CurrentUser, GuidGenerator, Clock,
+                actionType: "Order.MarginOverride",
+                requiredPermission: ErpPermissions.Sales.OverrideMarginGate,
+                entityType: "Order",
+                entityId: order.Id,
+                payload: new MarginOverridePayload { OverrideReason = overrideReason },
+                reason: overrideReason,
+                filedMessage:
+                    $"This order's margin ({marginPercent.Value:N1}%) is below the {floorPercent:N1}% floor and can't be confirmed directly. " +
+                    "Your override request has been filed - a manager will review it.");
+            return; // unreachable: FileAsync always throws; kept for clarity/compiler flow
         }
 
         order.MarginOverrideByUserId = CurrentUser.Id;

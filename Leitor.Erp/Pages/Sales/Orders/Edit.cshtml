@@ -52,10 +52,14 @@
                 }
                 <abp-input asp-for="Order.Notes" />
 
+                <abp-input asp-for="Order.MarginOverrideReason" label="@L["MarginOverrideReason"].Value" />
                 @if (Model.CanOverrideMarginGate)
                 {
-                    <abp-input asp-for="Order.MarginOverrideReason" label="@L["MarginOverrideReason"].Value" />
                     <small class="text-muted">@L["MarginOverrideReasonHint"]</small>
+                }
+                else
+                {
+                    <small class="text-muted">@L["MarginOverrideReasonHintNoPermission"]</small>
                 }
 
                 <div class="mt-3">

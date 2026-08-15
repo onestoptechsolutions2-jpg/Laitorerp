@@ -266,6 +266,17 @@ public static class ErpPermissions
         public const string Decide = Default + ".Decide";
     }
 
+    public static class Escalations
+    {
+        public const string GroupName = "Erp.Escalations";
+        public const string Default = GroupName;
+
+        // Catch-all: decides ANY escalation regardless of its RequiredPermission - see
+        // EscalationItemAppService.CanDecideAsync. Domain-specific approval power comes from each
+        // item's own RequiredPermission (e.g. Sales.OverrideMarginGate), not from here.
+        public const string Decide = Default + ".Decide";
+    }
+
     // Gates the admin screen that turns the optional modules in Features/ErpFeatures.cs on/off -
     // a distinct capability from any single module's own permissions, since toggling Project
     // Management off shouldn't require holding Projects.Edit (which won't even exist while it's

@@ -1,0 +1,105 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Governance
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Governance.Escalations.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["Escalations"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <select name="Status" class="form-select">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Status == EscalationItemStatus.Pending)">@L["Enum:EscalationItemStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == EscalationItemStatus.Approved)">@L["Enum:EscalationItemStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == EscalationItemStatus.Rejected)">@L["Enum:EscalationItemStatus:2"]</option>
+                    <option value="3" selected="@(Model.Status == EscalationItemStatus.Failed)">@L["Enum:EscalationItemStatus:3"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["ActionType"]</th>
+                        <th>@L["EntityType"]</th>
+                        <th>@L["RequestedBy"]</th>
+                        <th>@L["RequestedAt"]</th>
+                        <th>@L["Reason"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["DecidedBy"]</th>
+                        <th>@L["DecisionNotes"]</th>
+                        <th>@L["ExecutionError"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="10">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var item in Model.Items)
+                    {
+                        var canDecide = Model.CanDecideById.GetValueOrDefault(item.Id);
+                        <tr>
+                            <td>@item.ActionType</td>
+                            <td>
+                                <a href="@Leitor.Erp.Pages.Governance.Escalations.IndexModel.GetEntityDetailUrl(item.EntityType, item.EntityId)">@item.EntityType</a>
+                            </td>
+                            <td>@item.RequestedByUserName</td>
+                            <td>@item.RequestedAt.ToLocalTime()</td>
+                            <td>@item.Reason</td>
+                            <td><span class="pill @StatusPill.For(item.Status)">@L[$"Enum:EscalationItemStatus:{(int)item.Status}"]</span></td>
+                            <td>@item.DecidedByUserName</td>
+                            <td>@item.DecisionNotes</td>
+                            <td>
+                                @if (item.Status == EscalationItemStatus.Failed)
+                                {
+                                    @item.ExecutionError
+                                }
+                            </td>
+                            <td>
+                                @if (item.Status == EscalationItemStatus.Pending && canDecide)
+                                {
+                                    <form method="post" asp-page-handler="Approve" asp-route-id="@item.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToApproveEscalation"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">@L["Approve"]</button>
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@item.Id">@L["Reject"]</button>
+
+                                    <div class="modal fade" id="rejectModal-@item.Id" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <form method="post" asp-page-handler="Reject" asp-route-id="@item.Id">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h6 class="modal-title">@L["Reject"] @item.ActionType</h6>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <label class="form-label">@L["DecisionNotes"]</label>
+                                                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                                                        <button type="submit" class="btn btn-danger">@L["Reject"]</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

@@ -37,6 +37,7 @@
             {
                 <div class="alert alert-danger">@Model.ErrorMessage</div>
             }
+            <partial name="/Pages/Shared/_PendingEscalationBanner.cshtml" model="Model.HasPendingMarginEscalation" />
             <form method="post">
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="All" class="text-danger"></div>
@@ -48,10 +49,14 @@
                 <abp-select asp-for="Quote.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
                 <abp-input asp-for="Quote.Notes" />
 
+                <abp-input asp-for="Quote.MarginOverrideReason" label="@L["MarginOverrideReason"].Value" />
                 @if (Model.CanOverrideMarginGate)
                 {
-                    <abp-input asp-for="Quote.MarginOverrideReason" label="@L["MarginOverrideReason"].Value" />
                     <small class="text-muted">@L["MarginOverrideReasonHint"]</small>
+                }
+                else
+                {
+                    <small class="text-muted">@L["MarginOverrideReasonHintNoPermission"]</small>
                 }
 
                 <div class="mt-3">

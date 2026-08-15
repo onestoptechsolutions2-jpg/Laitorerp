@@ -13,6 +13,7 @@ using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
 using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
+using Leitor.Erp.Services.Governance;
 using QuestPDF.Infrastructure;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
@@ -188,6 +189,14 @@ public class ErpModule : AbpModule
         context.Services.Configure<OpenExchangeRatesOptions>(configuration.GetSection("OpenExchangeRates"));
         context.Services.Configure<DataRetentionOptions>(configuration.GetSection("DataRetention"));
         context.Services.AddHttpClient("OpenExchangeRates");
+
+        // Explicit registration rather than relying on ITransientDependency convention -
+        // IEnumerable<IEscalationActionHandler> resolution needs every implementation registered
+        // under this exact interface, and empirically the conventional registrar didn't expose it
+        // (confirmed via EscalationItemTests failing with "No handler registered" until this was
+        // added). One line per new escalation action type, alongside a new handler class.
+        context.Services.AddTransient<IEscalationActionHandler, QuoteMarginOverrideEscalationHandler>();
+        context.Services.AddTransient<IEscalationActionHandler, OrderMarginOverrideEscalationHandler>();
 
         ConfigureAuthentication(context);
         ConfigureIdentityOptions();

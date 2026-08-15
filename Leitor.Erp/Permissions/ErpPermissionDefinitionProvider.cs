@@ -110,6 +110,10 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         var deletionApprovalsPermission = deletionApprovalsGroup.AddPermission(ErpPermissions.DeletionApprovals.Default, L("Permission:DeletionApprovals"));
         deletionApprovalsPermission.AddChild(ErpPermissions.DeletionApprovals.Decide, L("Permission:Decide"));
 
+        var escalationsGroup = context.AddGroup(ErpPermissions.Escalations.GroupName, L("Permission:Escalations"));
+        var escalationsPermission = escalationsGroup.AddPermission(ErpPermissions.Escalations.Default, L("Permission:Escalations"));
+        escalationsPermission.AddChild(ErpPermissions.Escalations.Decide, L("Permission:DecideEscalations"));
+
         var projectsGroup = context.AddGroup(ErpPermissions.Projects.GroupName, L("Permission:Projects"));
         var projectsPermission = projectsGroup.AddPermission(ErpPermissions.Projects.Default, L("Permission:Projects"));
         projectsPermission.AddChild(ErpPermissions.Projects.Create, L("Permission:Create"));

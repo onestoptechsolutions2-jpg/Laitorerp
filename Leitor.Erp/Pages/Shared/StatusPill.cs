@@ -145,6 +145,15 @@ public static class StatusPill
         _ => Neutral
     };
 
+    public static string For(EscalationItemStatus status) => status switch
+    {
+        EscalationItemStatus.Pending => Warning,
+        EscalationItemStatus.Approved => Success,
+        EscalationItemStatus.Rejected => Danger,
+        EscalationItemStatus.Failed => Danger,
+        _ => Neutral
+    };
+
     public static string For(WarrantyClaimStatus status) => status switch
     {
         WarrantyClaimStatus.Open => Info,
