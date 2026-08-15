@@ -39,4 +39,10 @@ public class CreateUpdateQuoteDto
     // auto-resolved server-side (see QuoteAppService.MapToEntityAsync). A caller may still pass an
     // explicit value (e.g. a future API integration); the resolver only fills it in when null.
     public Guid? SalespersonUserId { get; set; }
+
+    // Only meaningful when this edit pushes the Quote from Draft into Sent while its computed
+    // margin is below ErpSettings.SalesMarginFloorPercent - see QuoteAppService's margin gate.
+    // Ignored (never required) on every other status transition or edit.
+    [StringLength(1000)]
+    public string? MarginOverrideReason { get; set; }
 }

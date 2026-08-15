@@ -43,6 +43,7 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         salesPermission.AddChild(ErpPermissions.Sales.Edit, L("Permission:Edit"));
         salesPermission.AddChild(ErpPermissions.Sales.Delete, L("Permission:Delete"));
         salesPermission.AddChild(ErpPermissions.Sales.Unlock, L("Permission:Unlock"));
+        salesPermission.AddChild(ErpPermissions.Sales.OverrideMarginGate, L("Permission:OverrideMarginGate"));
 
         var fieldServiceGroup = context.AddGroup(ErpPermissions.FieldService.GroupName, L("Permission:FieldService"));
         var fieldServicePermission = fieldServiceGroup.AddPermission(ErpPermissions.FieldService.Default, L("Permission:FieldService"));

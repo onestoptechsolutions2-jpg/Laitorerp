@@ -62,6 +62,11 @@ public static class ErpPermissions
         // Unlocking an approved Quote/Order for revision is a senior/manager action - see
         // Services/Sales/QuoteAppService.cs / OrderAppService.cs.
         public const string Unlock = Default + ".Unlock";
+
+        // Pushing a below-margin-floor Quote to Sent anyway - the one thing the agentic-AI
+        // narrative comparison (2026-08-15) flagged as "must never be Level 1 automation,
+        // regardless of trust built up over time." Same senior/manager tier as Unlock.
+        public const string OverrideMarginGate = Default + ".OverrideMarginGate";
     }
 
     public static class FieldService

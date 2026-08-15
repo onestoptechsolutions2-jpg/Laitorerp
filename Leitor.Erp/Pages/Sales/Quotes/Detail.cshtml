@@ -61,12 +61,25 @@
             <dt class="col-sm-2">@L["Total"]</dt>
             <dd class="col-sm-10">@Model.Quote.Total.ToString("N2") @Model.Quote.CurrencyCode</dd>
 
+            <dt class="col-sm-2">@L["Margin"]</dt>
+            <dd class="col-sm-4">@(Model.Quote.MarginPercent.HasValue ? $"{Model.Quote.MarginPercent:N1}%" : "-")</dd>
+
             @if (!string.IsNullOrWhiteSpace(Model.Quote.Notes))
             {
                 <dt class="col-sm-2">@L["Notes"]</dt>
                 <dd class="col-sm-10">@Model.Quote.Notes</dd>
             }
         </dl>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Quote.MarginOverrideReason))
+        {
+            <div class="alert alert-warning mt-3 mb-0">
+                <strong>@L["MarginGateOverridden"]</strong>
+                @L["MarginOverriddenBy"]: @Model.Quote.MarginOverrideByUserName, @Model.Quote.MarginOverrideAt?.ToString("g")
+                <br />
+                @L["Reason"]: @Model.Quote.MarginOverrideReason
+            </div>
+        }
     </div>
 </div>
 

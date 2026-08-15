@@ -88,6 +88,7 @@ public class ErpRolePermissionDataSeeder : IDataSeedContributor, ITransientDepen
             ErpPermissions.Vendors.Default,
             ErpPermissions.Sales.Default,
             ErpPermissions.Sales.Unlock,
+            ErpPermissions.Sales.OverrideMarginGate,
             ErpPermissions.Procurement.Default,
             ErpPermissions.FieldService.Default,
             ErpPermissions.Support.Default,

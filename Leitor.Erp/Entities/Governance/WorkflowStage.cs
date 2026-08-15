@@ -31,5 +31,6 @@ public enum WorkflowStage
     ChangeApproved = 22,
     ChangeRejected = 23,
     ChangeCompleted = 24,
-    ChangeRolledBack = 25
+    ChangeRolledBack = 25,
+    MarginGateOverridden = 26
 }

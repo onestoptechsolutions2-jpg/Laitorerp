@@ -10,6 +10,7 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -43,8 +44,10 @@ public class EditModel : AbpPageModel
 
     public QuoteDto QuoteDetails { get; set; } = null!;
     public bool CanUnlock { get; set; }
+    public bool CanOverrideMarginGate { get; set; }
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
+    public string? ErrorMessage { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -61,6 +64,7 @@ public class EditModel : AbpPageModel
             ProposalId = QuoteDetails.ProposalId,
             CurrencyCode = QuoteDetails.CurrencyCode
         };
+        CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
 
         await LoadCustomerOptionsAsync();
         await LoadCurrencyOptionsAsync();
@@ -75,8 +79,22 @@ public class EditModel : AbpPageModel
             return Page();
         }
 
-        await _quoteAppService.UpdateAsync(Id, Quote);
-        return RedirectToPage("./Detail", new { id = Id });
+        try
+        {
+            await _quoteAppService.UpdateAsync(Id, Quote);
+            return RedirectToPage("./Detail", new { id = Id });
+        }
+        catch (UserFriendlyException ex)
+        {
+            // The margin gate (Sales.OverrideMarginGate) throws this when this edit tries to push
+            // the quote below-floor into Sent without a valid override - same "business rule must
+            // not crash out of the pipeline" fix as Orders/Edit.cshtml.cs's own UpdateAsync catch.
+            ErrorMessage = ex.Message;
+            CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
+            await LoadCustomerOptionsAsync();
+            await LoadCurrencyOptionsAsync();
+            return Page();
+        }
     }
 
     public async Task<IActionResult> OnPostUnlockAsync()

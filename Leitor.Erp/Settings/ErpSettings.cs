@@ -11,6 +11,11 @@ public static class ErpSettings
 
     public const string ContractExpiryAlertLeadDays = GroupName + ".Contracts.ExpiryAlertLeadDays";
 
+    // The minimum acceptable Quote contribution margin (revenue vs snapshotted line Cost, see
+    // QuoteAppService's margin gate) - a Quote can't move Draft -> Sent below this without an
+    // explicit, permission-gated, logged override. See Sales.OverrideMarginGate.
+    public const string SalesMarginFloorPercent = GroupName + ".Sales.MarginFloorPercent";
+
     // Company letterhead info shown on generated PDFs (invoices/quotes/orders/POs/proposals/field
     // service jobs/POS receipts) - previously appsettings-only (Documents/ErpCompanyOptions.cs),
     // meaning changing the company address or phone number needed a code redeploy. See

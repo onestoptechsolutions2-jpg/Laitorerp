@@ -20,6 +20,7 @@ public class ErpSettingDefinitionProvider : SettingDefinitionProvider
             new SettingDefinition(ErpSettings.SlaHoursMedium, "72", L("Setting:SlaHoursMedium")),
             new SettingDefinition(ErpSettings.SlaHoursLow, "168", L("Setting:SlaHoursLow")),
             new SettingDefinition(ErpSettings.ContractExpiryAlertLeadDays, "30", L("Setting:ContractExpiryAlertLeadDays")),
+            new SettingDefinition(ErpSettings.SalesMarginFloorPercent, "15", L("Setting:SalesMarginFloorPercent")),
 
             // Defaults match the appsettings.json "Company" section's own defaults, so nothing
             // changes for an existing deployment until an admin actually edits these.

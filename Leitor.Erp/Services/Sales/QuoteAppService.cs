@@ -12,12 +12,15 @@ using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services;
+using Leitor.Erp.Settings;
+using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
+using Volo.Abp.Settings;
 
 namespace Leitor.Erp.Services.Sales;
 
@@ -37,6 +40,7 @@ public class QuoteAppService :
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IDataFilter _dataFilter;
+    private readonly ISettingProvider _settingProvider;
 
     public QuoteAppService(
         IRepository<Quote, Guid> repository,
@@ -52,7 +56,8 @@ public class QuoteAppService :
         IRepository<Product, Guid> productRepository,
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<IdentityUser, Guid> identityUserRepository,
-        IDataFilter dataFilter)
+        IDataFilter dataFilter,
+        ISettingProvider settingProvider)
         : base(repository)
     {
         _lineRepository = lineRepository;
@@ -68,6 +73,7 @@ public class QuoteAppService :
         _opportunityRepository = opportunityRepository;
         _identityUserRepository = identityUserRepository;
         _dataFilter = dataFilter;
+        _settingProvider = settingProvider;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -135,13 +141,15 @@ public class QuoteAppService :
             ? (await _proposalRepository.GetListAsync(x => proposalIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.ProposalNumber)
             : new Dictionary<Guid, string>();
 
-        var salespersonIds = quotes
-            .Where(x => x.SalespersonUserId.HasValue)
-            .Select(x => x.SalespersonUserId!.Value)
+        var userIds = quotes
+            .Select(x => x.SalespersonUserId)
+            .Concat(quotes.Select(x => x.MarginOverrideByUserId))
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
             .Distinct()
             .ToList();
-        var salespersonNamesById = salespersonIds.Count > 0
-            ? (await _identityUserRepository.GetListAsync(x => salespersonIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
+        var userNamesById = userIds.Count > 0
+            ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
         foreach (var quote in quotes)
@@ -155,17 +163,40 @@ public class QuoteAppService :
             quote.Subtotal = lines.Sum(x => x.Subtotal());
             quote.TaxAmount = lines.Sum(x => x.TaxAmount());
             quote.Total = quote.Subtotal + quote.TaxAmount;
+            quote.MarginPercent = ComputeMarginPercent(lines);
 
             if (quote.ProposalId.HasValue && proposalNumbersById.TryGetValue(quote.ProposalId.Value, out var proposalNumber))
             {
                 quote.ProposalNumber = proposalNumber;
             }
 
-            if (quote.SalespersonUserId.HasValue && salespersonNamesById.TryGetValue(quote.SalespersonUserId.Value, out var salespersonName))
+            if (quote.SalespersonUserId.HasValue && userNamesById.TryGetValue(quote.SalespersonUserId.Value, out var salespersonName))
             {
                 quote.SalespersonName = salespersonName;
             }
+
+            if (quote.MarginOverrideByUserId.HasValue && userNamesById.TryGetValue(quote.MarginOverrideByUserId.Value, out var overrideByName))
+            {
+                quote.MarginOverrideByUserName = overrideByName;
+            }
         }
+    }
+
+    // Weighted margin across every line: total revenue net of discount (excl. tax) vs total
+    // snapshotted Cost, not an average of each line's own MarginPercent - a Quote with one huge
+    // low-margin line and one tiny high-margin line should read as low-margin overall, which a
+    // simple average would mask. Null (not 0) when there's no revenue to divide by - same
+    // "can't compute a meaningful percentage" convention QuoteLineAppService already uses.
+    private static decimal? ComputeMarginPercent(IReadOnlyCollection<QuoteLine> lines)
+    {
+        var revenue = lines.Sum(x => x.Subtotal());
+        if (revenue <= 0)
+        {
+            return null;
+        }
+
+        var cost = lines.Sum(x => x.Cost * x.Quantity);
+        return Math.Round(100m * (revenue - cost) / revenue, 1);
     }
 
     // CreateUpdateQuoteDto -> Quote is mapped manually rather than via Mapperly - same reason as
@@ -230,6 +261,7 @@ public class QuoteAppService :
 
         var wasUnlocked = entity.UnlockedByUserId != null;
         var previousCustomerId = entity.CustomerId;
+        var previousStatus = entity.Status;
 
         CopyToEntity(updateInput, entity);
         entity.ExchangeRateToBase = await CurrencyRateResolver.ResolveAsync(
@@ -247,6 +279,52 @@ public class QuoteAppService :
         {
             await RepriceLinesForNewCustomerAsync(entity);
         }
+
+        if (previousStatus != QuoteStatus.Sent && entity.Status == QuoteStatus.Sent)
+        {
+            await EnforceMarginGateAsync(entity, updateInput.MarginOverrideReason);
+        }
+    }
+
+    // The margin gate (agentic-AI narrative comparison, 2026-08-15): a Quote can't cross into
+    // Sent while its computed margin sits below ErpSettings.SalesMarginFloorPercent unless a
+    // holder of Sales.OverrideMarginGate supplies an explicit reason - enforced here, in the
+    // domain-facing app service, not just displayed as a warning on a page, so no future caller
+    // (UI form, bulk action, or an eventual agent-drafted Quote) can bypass it by skipping a page.
+    // A Quote with no lines yet (no revenue to divide by) is never blocked - there's nothing to
+    // gate on, same "can't compute a meaningful percentage" case ComputeMarginPercent returns null
+    // for.
+    private async Task EnforceMarginGateAsync(Quote entity, string? overrideReason)
+    {
+        var lines = await _lineRepository.GetListAsync(x => x.QuoteId == entity.Id);
+        var marginPercent = ComputeMarginPercent(lines);
+        if (!marginPercent.HasValue)
+        {
+            return;
+        }
+
+        var floorRaw = await _settingProvider.GetOrNullAsync(ErpSettings.SalesMarginFloorPercent);
+        var floorPercent = decimal.Parse(floorRaw!);
+        if (marginPercent.Value >= floorPercent)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(overrideReason) ||
+            !await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate))
+        {
+            throw new UserFriendlyException(
+                $"This quote's margin ({marginPercent.Value:N1}%) is below the {floorPercent:N1}% floor and can't be sent. " +
+                "A manager can override this with an explicit reason.");
+        }
+
+        entity.MarginOverrideByUserId = CurrentUser.Id;
+        entity.MarginOverrideAt = Clock.Now;
+        entity.MarginOverrideReason = overrideReason;
+
+        await WorkflowStageLog.RecordAsync(
+            _stageEventRepository, GuidGenerator, CurrentUser, Clock, "Quote", entity.Id, WorkflowStage.MarginGateOverridden,
+            notes: $"Margin {marginPercent.Value:N1}% below {floorPercent:N1}% floor - {overrideReason}");
     }
 
     // Changing a Quote's Customer re-resolves every existing line's UnitPrice/DiscountPercent

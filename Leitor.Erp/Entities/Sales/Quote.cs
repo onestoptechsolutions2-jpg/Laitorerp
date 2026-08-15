@@ -43,6 +43,14 @@ public class Quote : FullAuditedAggregateRoot<Guid>
     // Purely attributive (commission/reporting), never enforced against who can edit the quote.
     public Guid? SalespersonUserId { get; set; }
 
+    // Stamped when a holder of Sales.OverrideMarginGate explicitly pushes a below-floor Quote to
+    // Sent anyway - same audit shape as UnlockedByUserId/UnlockedAt/UnlockReason above. Unlike the
+    // unlock fields this is never cleared automatically: it's a permanent record that this specific
+    // Quote left Draft below the configured margin floor, not a single-use consumable flag.
+    public Guid? MarginOverrideByUserId { get; set; }
+    public DateTime? MarginOverrideAt { get; set; }
+    public string? MarginOverrideReason { get; set; }
+
     protected Quote()
     {
     }

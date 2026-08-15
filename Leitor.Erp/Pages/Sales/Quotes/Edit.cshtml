@@ -33,6 +33,10 @@
         }
         else
         {
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">@Model.ErrorMessage</div>
+            }
             <form method="post">
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="All" class="text-danger"></div>
@@ -43,6 +47,12 @@
                 <abp-input asp-for="Quote.ExpiryDate" />
                 <abp-select asp-for="Quote.CurrencyCode" asp-items="Model.CurrencyOptions" label="@L["Currency"].Value" />
                 <abp-input asp-for="Quote.Notes" />
+
+                @if (Model.CanOverrideMarginGate)
+                {
+                    <abp-input asp-for="Quote.MarginOverrideReason" label="@L["MarginOverrideReason"].Value" />
+                    <small class="text-muted">@L["MarginOverrideReasonHint"]</small>
+                }
 
                 <div class="mt-3">
                     <button type="submit" class="btn btn-primary">@L["Save"]</button>
