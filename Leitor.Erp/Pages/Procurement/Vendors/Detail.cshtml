@@ -87,7 +87,7 @@
                             <td>@contact.FullName</td>
                             <td>@contact.JobTitle</td>
                             <td>@contact.Email</td>
-                            <td>@contact.PhoneNumber<partial name="/Pages/Shared/_PhoneActions.cshtml" model="contact.PhoneNumber" /></td>
+                            <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="contact.PhoneNumber" /></td>
                             <td>@(contact.IsPrimary ? "✓" : "")</td>
                             <td>
                                 @if (Model.CanEdit)
