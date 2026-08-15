@@ -17,7 +17,7 @@
 
                 @if (Model.Order.Status == OrderStatus.Submitted)
                 {
-                    <form method="post" asp-page-handler="Confirm" class="d-inline" onsubmit="return confirm('Confirm this order? The order will be locked and marked as confirmed.');">
+                    <form id="confirmOrderForm" method="post" asp-page-handler="Confirm" class="d-inline" onsubmit="return confirm('Confirm this order? The order will be locked and marked as confirmed.');">
                         <button type="submit" class="btn btn-warning">@L["ConfirmOrder"]</button>
                     </form>
                 }
@@ -74,12 +74,34 @@
             <dt class="col-sm-2">@L["Total"]</dt>
             <dd class="col-sm-4">@Model.Order.Total.ToString("N2") @Model.Order.CurrencyCode</dd>
 
+            <dt class="col-sm-2">@L["Margin"]</dt>
+            <dd class="col-sm-4">@(Model.Order.MarginPercent.HasValue ? $"{Model.Order.MarginPercent:N1}%" : "-")</dd>
+
             @if (!string.IsNullOrWhiteSpace(Model.Order.Notes))
             {
                 <dt class="col-sm-2">@L["Notes"]</dt>
                 <dd class="col-sm-10">@Model.Order.Notes</dd>
             }
         </dl>
+
+        @if (Model.Order.Status == OrderStatus.Submitted && Model.CanOverrideMarginGate)
+        {
+            <div class="mt-3">
+                <label class="form-label">@L["MarginOverrideReason"]</label>
+                <input form="confirmOrderForm" asp-for="MarginOverrideReason" class="form-control" style="max-width: 32rem;" />
+                <small class="text-muted">@L["MarginOverrideReasonHint"]</small>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Order.MarginOverrideReason))
+        {
+            <div class="alert alert-warning mt-3 mb-0">
+                <strong>@L["MarginGateOverridden"]</strong>
+                @L["MarginOverriddenBy"]: @Model.Order.MarginOverrideByUserName, @Model.Order.MarginOverrideAt?.ToString("g")
+                <br />
+                @L["Reason"]: @Model.Order.MarginOverrideReason
+            </div>
+        }
     </div>
 </div>
 

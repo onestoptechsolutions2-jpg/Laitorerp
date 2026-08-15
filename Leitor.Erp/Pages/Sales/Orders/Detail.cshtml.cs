@@ -97,7 +97,11 @@ public class DetailModel : AbpPageModel
     [BindProperty]
     public CreateUpdateOrderPaymentMilestoneDto NewMilestone { get; set; } = new();
 
+    [BindProperty]
+    public string? MarginOverrideReason { get; set; }
+
     public bool CanEdit { get; set; }
+    public bool CanOverrideMarginGate { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
     [TempData]
@@ -106,6 +110,7 @@ public class DetailModel : AbpPageModel
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Edit);
+        CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Order", Id);
         await LoadAsync();
     }
@@ -248,7 +253,7 @@ public class DetailModel : AbpPageModel
     {
         try
         {
-            await _orderAppService.ConfirmAsync(Id);
+            await _orderAppService.ConfirmAsync(Id, MarginOverrideReason);
         }
         catch (UserFriendlyException ex)
         {

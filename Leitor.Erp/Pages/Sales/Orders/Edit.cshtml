@@ -52,6 +52,12 @@
                 }
                 <abp-input asp-for="Order.Notes" />
 
+                @if (Model.CanOverrideMarginGate)
+                {
+                    <abp-input asp-for="Order.MarginOverrideReason" label="@L["MarginOverrideReason"].Value" />
+                    <small class="text-muted">@L["MarginOverrideReasonHint"]</small>
+                }
+
                 <div class="mt-3">
                     <button type="submit" class="btn btn-primary">@L["Save"]</button>
                     <a asp-page="./Detail" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>

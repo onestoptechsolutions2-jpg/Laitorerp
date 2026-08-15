@@ -57,6 +57,15 @@ public class Order : FullAuditedAggregateRoot<Guid>
     // Invoice by ConvertToInvoiceAsync. Purely attributive.
     public Guid? SalespersonUserId { get; set; }
 
+    // Stamped when a holder of Sales.OverrideMarginGate confirms a below-floor Order anyway - same
+    // permanent-audit shape as Quote.MarginOverrideByUserId/At/Reason. Most Orders inherit an
+    // already-gated margin from the Quote they were converted from (ConvertToOrderAsync copies
+    // Cost forward); this only fires for an Order with its own lines that never went through a
+    // gated Quote first.
+    public Guid? MarginOverrideByUserId { get; set; }
+    public DateTime? MarginOverrideAt { get; set; }
+    public string? MarginOverrideReason { get; set; }
+
     protected Order()
     {
     }

@@ -57,6 +57,7 @@ public class EditModel : AbpPageModel
 
     public OrderDto OrderDetails { get; set; } = null!;
     public bool CanUnlock { get; set; }
+    public bool CanOverrideMarginGate { get; set; }
     public List<SelectListItem> CustomerOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
     public List<SelectListItem> WarehouseOptions { get; set; } = new();
@@ -67,6 +68,7 @@ public class EditModel : AbpPageModel
     public async Task OnGetAsync()
     {
         CanUnlock = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Unlock);
+        CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
         OrderDetails = await _orderAppService.GetAsync(Id);
         Order = new CreateUpdateOrderDto
         {
@@ -117,6 +119,7 @@ public class EditModel : AbpPageModel
     {
         OrderDetails = await _orderAppService.GetAsync(Id);
         CanUnlock = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Unlock);
+        CanOverrideMarginGate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate);
         await LoadCustomerOptionsAsync();
         await LoadCurrencyOptionsAsync();
         await LoadWarehouseOptionsAsync();

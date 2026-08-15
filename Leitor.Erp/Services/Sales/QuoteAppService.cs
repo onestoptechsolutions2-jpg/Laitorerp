@@ -163,7 +163,7 @@ public class QuoteAppService :
             quote.Subtotal = lines.Sum(x => x.Subtotal());
             quote.TaxAmount = lines.Sum(x => x.TaxAmount());
             quote.Total = quote.Subtotal + quote.TaxAmount;
-            quote.MarginPercent = ComputeMarginPercent(lines);
+            quote.MarginPercent = lines.MarginPercent();
 
             if (quote.ProposalId.HasValue && proposalNumbersById.TryGetValue(quote.ProposalId.Value, out var proposalNumber))
             {
@@ -180,23 +180,6 @@ public class QuoteAppService :
                 quote.MarginOverrideByUserName = overrideByName;
             }
         }
-    }
-
-    // Weighted margin across every line: total revenue net of discount (excl. tax) vs total
-    // snapshotted Cost, not an average of each line's own MarginPercent - a Quote with one huge
-    // low-margin line and one tiny high-margin line should read as low-margin overall, which a
-    // simple average would mask. Null (not 0) when there's no revenue to divide by - same
-    // "can't compute a meaningful percentage" convention QuoteLineAppService already uses.
-    private static decimal? ComputeMarginPercent(IReadOnlyCollection<QuoteLine> lines)
-    {
-        var revenue = lines.Sum(x => x.Subtotal());
-        if (revenue <= 0)
-        {
-            return null;
-        }
-
-        var cost = lines.Sum(x => x.Cost * x.Quantity);
-        return Math.Round(100m * (revenue - cost) / revenue, 1);
     }
 
     // CreateUpdateQuoteDto -> Quote is mapped manually rather than via Mapperly - same reason as
@@ -297,7 +280,7 @@ public class QuoteAppService :
     private async Task EnforceMarginGateAsync(Quote entity, string? overrideReason)
     {
         var lines = await _lineRepository.GetListAsync(x => x.QuoteId == entity.Id);
-        var marginPercent = ComputeMarginPercent(lines);
+        var marginPercent = lines.MarginPercent();
         if (!marginPercent.HasValue)
         {
             return;

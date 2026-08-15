@@ -34,4 +34,10 @@ public class CreateUpdateOrderDto
     // Not exposed on the Create/Edit forms - purely attributive (commission/reporting), always
     // auto-resolved server-side (see OrderAppService.MapToEntityAsync).
     public Guid? SalespersonUserId { get; set; }
+
+    // Only meaningful when this edit pushes the Order from Submitted into Confirmed while its
+    // computed margin is below ErpSettings.SalesMarginFloorPercent - see OrderAppService's margin
+    // gate. Ignored on every other status transition or edit.
+    [StringLength(1000)]
+    public string? MarginOverrideReason { get; set; }
 }

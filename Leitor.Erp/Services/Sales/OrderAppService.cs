@@ -16,12 +16,15 @@ using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Inventory;
 using Leitor.Erp.Services;
+using Leitor.Erp.Settings;
+using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
+using Volo.Abp.Settings;
 
 namespace Leitor.Erp.Services.Sales;
 
@@ -53,6 +56,7 @@ public class OrderAppService :
     private readonly IRepository<Ticket, Guid> _ticketRepository;
     private readonly IDataFilter _dataFilter;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly ISettingProvider _settingProvider;
 
     public OrderAppService(
         IRepository<Order, Guid> repository,
@@ -80,7 +84,8 @@ public class OrderAppService :
         IRepository<PurchaseOrder, Guid> purchaseOrderRepository,
         IRepository<Ticket, Guid> ticketRepository,
         IDataFilter dataFilter,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        ISettingProvider settingProvider)
         : base(repository)
     {
         _lineRepository = lineRepository;
@@ -108,6 +113,7 @@ public class OrderAppService :
         _ticketRepository = ticketRepository;
         _dataFilter = dataFilter;
         _deletionRequestRepository = deletionRequestRepository;
+        _settingProvider = settingProvider;
 
         GetPolicyName = ErpPermissions.Sales.Default;
         GetListPolicyName = ErpPermissions.Sales.Default;
@@ -182,13 +188,15 @@ public class OrderAppService :
             ? (await _quoteRepository.GetListAsync(x => quoteIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.QuoteNumber)
             : new Dictionary<Guid, string>();
 
-        var salespersonIds = orders
-            .Where(x => x.SalespersonUserId.HasValue)
-            .Select(x => x.SalespersonUserId!.Value)
+        var userIds = orders
+            .Select(x => x.SalespersonUserId)
+            .Concat(orders.Select(x => x.MarginOverrideByUserId))
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
             .Distinct()
             .ToList();
-        var salespersonNamesById = salespersonIds.Count > 0
-            ? (await _identityUserRepository.GetListAsync(x => salespersonIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
+        var userNamesById = userIds.Count > 0
+            ? (await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.UserName)
             : new Dictionary<Guid, string>();
 
         foreach (var order in orders)
@@ -207,10 +215,16 @@ public class OrderAppService :
             order.Subtotal = lines.Sum(x => x.Subtotal());
             order.TaxAmount = lines.Sum(x => x.TaxAmount());
             order.Total = order.Subtotal + order.TaxAmount;
+            order.MarginPercent = lines.MarginPercent();
 
-            if (order.SalespersonUserId.HasValue && salespersonNamesById.TryGetValue(order.SalespersonUserId.Value, out var salespersonName))
+            if (order.SalespersonUserId.HasValue && userNamesById.TryGetValue(order.SalespersonUserId.Value, out var salespersonName))
             {
                 order.SalespersonName = salespersonName;
+            }
+
+            if (order.MarginOverrideByUserId.HasValue && userNamesById.TryGetValue(order.MarginOverrideByUserId.Value, out var overrideByName))
+            {
+                order.MarginOverrideByUserName = overrideByName;
             }
         }
     }
@@ -301,6 +315,7 @@ public class OrderAppService :
         if (!wasConfirmed && entity.Status == OrderStatus.Confirmed)
         {
             await EnsureCreditAvailableAsync(entity);
+            await EnsureMarginAvailableAsync(entity, updateInput.MarginOverrideReason);
             await OnOrderConfirmedAsync(entity);
         }
 
@@ -350,6 +365,46 @@ public class OrderAppService :
             order.CustomerId, total);
     }
 
+    // The Order-side half of the margin gate ([[feature_quote_margin_gate_2026-08-15]]) - most
+    // Orders inherit an already-gated margin from the Quote they were converted from
+    // (ConvertToOrderAsync copies QuoteLine.Cost forward unchanged), so this mainly catches an
+    // Order built with its own lines that never went through a gated Quote. Same shape as
+    // QuoteAppService.EnforceMarginGateAsync: block below-floor unless a Sales.OverrideMarginGate
+    // holder supplies a reason, then stamp a permanent audit record. Shared by ConfirmAsync and
+    // the direct-Update confirm transition, same as EnsureCreditAvailableAsync above.
+    private async Task EnsureMarginAvailableAsync(Order order, string? overrideReason)
+    {
+        var lines = await _lineRepository.GetListAsync(x => x.OrderId == order.Id);
+        var marginPercent = lines.MarginPercent();
+        if (!marginPercent.HasValue)
+        {
+            return;
+        }
+
+        var floorRaw = await _settingProvider.GetOrNullAsync(ErpSettings.SalesMarginFloorPercent);
+        var floorPercent = decimal.Parse(floorRaw!);
+        if (marginPercent.Value >= floorPercent)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(overrideReason) ||
+            !await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.OverrideMarginGate))
+        {
+            throw new UserFriendlyException(
+                $"This order's margin ({marginPercent.Value:N1}%) is below the {floorPercent:N1}% floor and can't be confirmed. " +
+                "A manager can override this with an explicit reason.");
+        }
+
+        order.MarginOverrideByUserId = CurrentUser.Id;
+        order.MarginOverrideAt = Clock.Now;
+        order.MarginOverrideReason = overrideReason;
+
+        await WorkflowStageLog.RecordAsync(
+            _stageEventRepository, GuidGenerator, CurrentUser, Clock, "Order", order.Id, WorkflowStage.MarginGateOverridden,
+            notes: $"Margin {marginPercent.Value:N1}% below {floorPercent:N1}% floor - {overrideReason}");
+    }
+
     // Only a holder of Sales.Unlock (Ops Manager) can unlock an approved Order for revision.
     public async Task UnlockForRevisionAsync(Guid id, string reason)
     {
@@ -370,8 +425,10 @@ public class OrderAppService :
     }
 
     // Confirms an order with validation checklist - transitions from Submitted to Confirmed status.
-    // Validates required fields and order lines before allowing confirmation.
-    public async Task ConfirmAsync(Guid id)
+    // Validates required fields and order lines before allowing confirmation. marginOverrideReason
+    // is only consulted if EnsureMarginAvailableAsync finds the order below the configured floor -
+    // see its own comment.
+    public async Task ConfirmAsync(Guid id, string? marginOverrideReason = null)
     {
         await CheckUpdatePolicyAsync();
 
@@ -407,6 +464,7 @@ public class OrderAppService :
         }
 
         await EnsureCreditAvailableAsync(order);
+        await EnsureMarginAvailableAsync(order, marginOverrideReason);
 
         // Confirmation passed - transition to Confirmed status
         order.Status = OrderStatus.Confirmed;

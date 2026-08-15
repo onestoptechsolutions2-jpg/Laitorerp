@@ -25,6 +25,9 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public Guid? ConfirmedByUserId { get; set; }
     public DateTime? ConfirmedAt { get; set; }
     public Guid? SalespersonUserId { get; set; }
+    public Guid? MarginOverrideByUserId { get; set; }
+    public DateTime? MarginOverrideAt { get; set; }
+    public string? MarginOverrideReason { get; set; }
 
     public string? CustomerName { get; set; }
     public string? QuoteNumber { get; set; }
@@ -32,4 +35,9 @@ public class OrderDto : FullAuditedEntityDto<Guid>
     public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
     public string? SalespersonName { get; set; }
+    public string? MarginOverrideByUserName { get; set; }
+
+    // Document-level weighted margin - see LineMath.MarginPercent. Null when there are no lines
+    // yet or every line is a 0-revenue giveaway.
+    public decimal? MarginPercent { get; set; }
 }

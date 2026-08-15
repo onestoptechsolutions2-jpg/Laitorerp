@@ -4,7 +4,7 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Leitor.Erp.Entities.Sales;
 
-public class OrderLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem
+public class OrderLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem, ICostedLineItem
 {
     public Guid OrderId { get; set; }
     public Guid? ProductId { get; set; }

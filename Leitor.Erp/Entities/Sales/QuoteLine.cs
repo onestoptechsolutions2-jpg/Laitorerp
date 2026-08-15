@@ -8,7 +8,7 @@ namespace Leitor.Erp.Entities.Sales;
 // allow one-off line items not tied to the catalog), so later Product edits/deletes never affect
 // an existing quote. LineTotal is intentionally not stored - always computed via
 // Services/LineMath.cs (ITaxableLineItem.Total()) by the app service, to avoid drift.
-public class QuoteLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem
+public class QuoteLine : FullAuditedAggregateRoot<Guid>, ITaxableLineItem, ICostedLineItem
 {
     public Guid QuoteId { get; set; }
     public Guid? ProductId { get; set; }
