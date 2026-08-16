@@ -15,7 +15,7 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Edit" asp-route-id="@Model.WarrantyClaim.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditWarrantyClaim"]">@L["Edit"]</a>
+                <a asp-page="./Edit" asp-route-id="@Model.WarrantyClaim.Id" class="btn btn-outline-primary">@L["Edit"]</a>
                 @if (!isTerminal)
                 {
                     @if (Model.WarrantyClaim.Status != WarrantyClaimStatus.Approved)

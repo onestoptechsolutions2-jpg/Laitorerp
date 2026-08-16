@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.Support;
@@ -34,12 +33,6 @@ public class CreateModel : AbpPageModel
         }
 
         var problem = await _problemAppService.CreateAsync(Problem);
-
-        if (OverlayRequest.Is(Request))
-        {
-            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = problem.Id }) });
-        }
-
         return RedirectToPage("./Detail", new { id = problem.Id });
     }
 }

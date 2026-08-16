@@ -15,7 +15,7 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Edit" asp-route-id="@Model.Ticket.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditTicket"]">@L["Edit"]</a>
+                <a asp-page="./Edit" asp-route-id="@Model.Ticket.Id" class="btn btn-outline-primary">@L["Edit"]</a>
                 @if (!isTerminal)
                 {
                     if (Model.Ticket.Status != TicketStatus.InProgress)

@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Leitor.Erp.Features;
-using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.KnowledgeBase;
 using Leitor.Erp.Services.KnowledgeBase;
@@ -58,12 +57,6 @@ public class EditModel : AbpPageModel
         }
 
         await _knowledgeArticleAppService.UpdateAsync(Id, Article);
-
-        if (OverlayRequest.Is(Request))
-        {
-            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = Id }) });
-        }
-
         return RedirectToPage("./Detail", new { id = Id });
     }
 }

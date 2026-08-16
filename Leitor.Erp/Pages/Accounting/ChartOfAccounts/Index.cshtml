@@ -10,7 +10,7 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewAccount"]">@L["NewAccount"]</a>
+                <a asp-page="./Create" class="btn btn-primary">@L["NewAccount"]</a>
             }
         </div>
     </div>
@@ -43,7 +43,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <a asp-page="./Edit" asp-route-id="@account.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditAccount"]">@L["Edit"]</a>
+                                    <a asp-page="./Edit" asp-route-id="@account.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@account.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>

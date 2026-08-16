@@ -15,7 +15,7 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Edit" asp-route-id="@Model.Problem.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditProblem"]">@L["Edit"]</a>
+                <a asp-page="./Edit" asp-route-id="@Model.Problem.Id" class="btn btn-outline-primary">@L["Edit"]</a>
                 @if (!isTerminal)
                 {
                     @if (Model.Problem.Status != ProblemStatus.Investigating)

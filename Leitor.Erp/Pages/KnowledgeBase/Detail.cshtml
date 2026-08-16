@@ -10,7 +10,7 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Edit" asp-route-id="@Model.Article.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditArticle"]">@L["Edit"]</a>
+                <a asp-page="./Edit" asp-route-id="@Model.Article.Id" class="btn btn-outline-primary">@L["Edit"]</a>
             }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>

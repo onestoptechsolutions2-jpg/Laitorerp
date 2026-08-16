@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
-using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.FieldService;
@@ -89,12 +88,6 @@ public class CreateModel : AbpPageModel
         try
         {
             var job = await _fieldServiceJobAppService.CreateAsync(Job);
-
-            if (OverlayRequest.Is(Request))
-            {
-                return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = job.Id }) });
-            }
-
             return RedirectToPage("./Detail", new { id = job.Id });
         }
         catch (Volo.Abp.UserFriendlyException ex)

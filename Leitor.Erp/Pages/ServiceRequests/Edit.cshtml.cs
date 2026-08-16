@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.ServiceCatalog;
 using Leitor.Erp.Features;
-using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.ServiceRequests;
 using Leitor.Erp.Services.ServiceRequests;
@@ -77,12 +76,6 @@ public class EditModel : AbpPageModel
         }
 
         await _serviceRequestAppService.UpdateAsync(Id, ServiceRequest);
-
-        if (OverlayRequest.Is(Request))
-        {
-            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = Id }) });
-        }
-
         return RedirectToPage("./Detail", new { id = Id });
     }
 
