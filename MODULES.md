@@ -49,7 +49,11 @@ from hard delete, for data-retention compliance.
 ### Sales & Quoting
 Quote → Order → Invoice → Payment, each stage converting the last (line items copy forward
 automatically). Invoice payment status (Unpaid/Overdue/PartiallyPaid/PaidInFull/Overpaid) is
-always computed live from Payments, never stored — matches how Manager.io behaves.
+always computed live from Payments, never stored — matches how Manager.io behaves. A Quote/Order
+can't cross into Sent/Confirmed while its computed margin sits below the admin-editable
+`Erp.Sales.MarginFloorPercent` setting (Administration → App Settings) — a `Sales.OverrideMarginGate`
+holder can override with a logged reason; anyone else's override reason instead files a request
+in the Escalations queue for a manager to approve.
 
 ### Catalog & Inventory
 What you sell (Catalog: products/services, tax rates, categories, price lists) plus what you
@@ -96,6 +100,12 @@ current user, plus a pending-approvals count if they can decide on Deletion Requ
 - **Deletion Approvals** — deleting one of 7 top-level records (Customer, Vendor, Order,
   Invoice, Ticket, FieldServiceJob, PurchaseOrder) either happens immediately (if you hold
   `DeletionApprovals.Decide`) or files an approval request instead.
+- **Escalations** — a generic version of the same maker/checker idea, for actions other than
+  deletion: any blocked action can file an `EscalationItem` (carrying whichever permission is
+  needed to decide it, plus a JSON payload of parameters) instead of hard-failing. A registered
+  `IEscalationActionHandler` carries out the action on approval. Currently used by the Sales
+  margin gate (see above); designed so a future consumer is a new handler class, not a change to
+  this page or AppService.
 - **Workflow Monitor** — cross-module visibility into records moving through approval/workflow
   stages.
 
