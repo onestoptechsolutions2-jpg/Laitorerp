@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.ServiceCatalog;
 using Leitor.Erp.Services.ServiceCatalog;
@@ -58,6 +59,12 @@ public class CreateModel : AbpPageModel
         }
 
         await _serviceCatalogItemAppService.CreateAsync(Item);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Index") });
+        }
+
         return RedirectToPage("./Index");
     }
 

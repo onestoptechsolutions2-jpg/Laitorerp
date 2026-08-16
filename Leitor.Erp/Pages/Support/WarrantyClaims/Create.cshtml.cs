@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Support;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.Support;
@@ -73,6 +74,12 @@ public class CreateModel : AbpPageModel
         }
 
         var claim = await _warrantyClaimAppService.CreateAsync(WarrantyClaim);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = claim.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = claim.Id });
     }
 
