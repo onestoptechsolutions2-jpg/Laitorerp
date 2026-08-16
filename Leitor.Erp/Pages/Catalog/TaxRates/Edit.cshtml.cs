@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
@@ -45,6 +46,12 @@ public class EditModel : AbpPageModel
         }
 
         await _taxRateAppService.UpdateAsync(Id, TaxRate);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Index") });
+        }
+
         return RedirectToPage("./Index");
     }
 }

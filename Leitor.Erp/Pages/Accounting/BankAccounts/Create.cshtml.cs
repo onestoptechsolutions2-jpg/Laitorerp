@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Accounting;
@@ -51,6 +52,12 @@ public class CreateModel : AbpPageModel
         }
 
         await _bankAccountAppService.CreateAsync(BankAccount);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Index") });
+        }
+
         return RedirectToPage("./Index");
     }
 

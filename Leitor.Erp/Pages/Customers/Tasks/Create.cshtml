@@ -3,6 +3,9 @@
 @using Leitor.Erp.Localization
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Customers.Tasks.CreateModel
+@{
+    if (OverlayRequest.Is(Request)) { Layout = null; }
+}
 
 <div class="card">
     <div class="card-header">

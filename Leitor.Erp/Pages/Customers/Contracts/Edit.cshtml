@@ -4,6 +4,9 @@
 @using Leitor.Erp.Entities.Customers
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Customers.Contracts.EditModel
+@{
+    if (OverlayRequest.Is(Request)) { Layout = null; }
+}
 
 <div class="card">
     <div class="card-header">

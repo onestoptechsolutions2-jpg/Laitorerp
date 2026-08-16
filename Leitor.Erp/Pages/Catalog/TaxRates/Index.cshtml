@@ -11,7 +11,7 @@
             <a asp-page="../Index" class="btn btn-outline-secondary">@L["BackToCatalog"]</a>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Create" class="btn btn-primary">@L["NewTaxRate"]</a>
+                <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewTaxRate"]">@L["NewTaxRate"]</a>
             }
         </div>
     </div>
@@ -42,7 +42,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <a asp-page="./Edit" asp-route-id="@taxRate.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <a asp-page="./Edit" asp-route-id="@taxRate.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditTaxRate"]">@L["Edit"]</a>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@taxRate.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>

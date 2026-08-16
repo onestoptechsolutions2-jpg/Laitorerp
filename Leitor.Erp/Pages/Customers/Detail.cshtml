@@ -349,7 +349,7 @@
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Contacts"]</h5>
-        <a asp-page="/Customers/Contacts/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["NewContact"]</a>
+        <a asp-page="/Customers/Contacts/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewContact"]">@L["NewContact"]</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -374,7 +374,7 @@
                             <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="contact.PhoneNumber" /></td>
                             <td>@(contact.IsPrimary ? "✓" : "")</td>
                             <td>
-                                <a asp-page="/Customers/Contacts/Edit" asp-route-id="@contact.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <a asp-page="/Customers/Contacts/Edit" asp-route-id="@contact.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditContact"]">@L["Edit"]</a>
                                 <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
@@ -390,7 +390,7 @@
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Contracts"]</h5>
-        <a asp-page="/Customers/Contracts/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["NewContract"]</a>
+        <a asp-page="/Customers/Contracts/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewContract"]">@L["NewContract"]</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -437,7 +437,7 @@
                                 {
                                     <a asp-page="./Detail" asp-route-id="@Model.Customer.Id" asp-page-handler="ContractPdf" asp-route-contractId="@contract.Id" class="btn btn-sm btn-outline-secondary" target="_blank">@L["Pdf"]</a>
                                 }
-                                <a asp-page="/Customers/Contracts/Edit" asp-route-id="@contract.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <a asp-page="/Customers/Contracts/Edit" asp-route-id="@contract.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditContract"]">@L["Edit"]</a>
                                 <form method="post" asp-page-handler="DeleteContract" asp-route-contractId="@contract.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
@@ -453,7 +453,7 @@
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Tasks"]</h5>
-        <a asp-page="/Customers/Tasks/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm">@L["NewTask"]</a>
+        <a asp-page="/Customers/Tasks/Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewTask"]">@L["NewTask"]</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -479,7 +479,7 @@
                                 <form method="post" asp-page-handler="ToggleTask" asp-route-taskId="@task.Id" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">@(task.IsCompleted ? L["Reopen"] : L["MarkComplete"])</button>
                                 </form>
-                                <a asp-page="/Customers/Tasks/Edit" asp-route-id="@task.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <a asp-page="/Customers/Tasks/Edit" asp-route-id="@task.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditTask"]">@L["Edit"]</a>
                                 <form method="post" asp-page-handler="DeleteTask" asp-route-taskId="@task.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>

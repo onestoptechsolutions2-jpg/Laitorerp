@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
@@ -33,6 +34,12 @@ public class CreateModel : AbpPageModel
         }
 
         var priceList = await _priceListAppService.CreateAsync(PriceList);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = priceList.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = priceList.Id });
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Opportunities;
@@ -43,6 +44,12 @@ public class CreateModel : AbpPageModel
         }
 
         await _needsAssessmentAppService.CreateAsync(Assessment);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("/Opportunities/Detail", new { id = OpportunityId }) });
+        }
+
         return RedirectToPage("/Opportunities/Detail", new { id = OpportunityId });
     }
 }

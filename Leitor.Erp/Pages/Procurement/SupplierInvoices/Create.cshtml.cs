@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Procurement;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Procurement;
@@ -125,6 +126,11 @@ public class CreateModel : AbpPageModel
             {
                 // Swallowed deliberately - see comment above.
             }
+        }
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = invoice.Id }) });
         }
 
         return RedirectToPage("./Detail", new { id = invoice.Id });

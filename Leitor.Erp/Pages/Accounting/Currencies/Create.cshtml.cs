@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Accounting;
@@ -33,6 +34,12 @@ public class CreateModel : AbpPageModel
         }
 
         await _currencyAppService.CreateAsync(Currency);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Index") });
+        }
+
         return RedirectToPage("./Index");
     }
 }

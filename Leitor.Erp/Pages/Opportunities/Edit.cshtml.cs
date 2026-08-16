@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Opportunities;
@@ -85,6 +86,12 @@ public class EditModel : AbpPageModel
         }
 
         await _opportunityAppService.UpdateAsync(Id, Opportunity);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = Id });
     }
 

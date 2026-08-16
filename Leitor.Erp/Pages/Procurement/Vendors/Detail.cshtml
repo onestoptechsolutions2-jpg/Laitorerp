@@ -60,7 +60,7 @@
         <h5 class="card-title mb-0">@L["Contacts"]</h5>
         @if (Model.CanEdit)
         {
-            <a asp-page="/Procurement/Vendors/Contacts/Create" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-primary btn-sm">@L["NewContact"]</a>
+            <a asp-page="/Procurement/Vendors/Contacts/Create" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewContact"]">@L["NewContact"]</a>
         }
     </div>
     <div class="card-body">
@@ -92,7 +92,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <a asp-page="/Procurement/Vendors/Contacts/Edit" asp-route-id="@contact.Id" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                    <a asp-page="/Procurement/Vendors/Contacts/Edit" asp-route-id="@contact.Id" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditContact"]">@L["Edit"]</a>
                                     <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>

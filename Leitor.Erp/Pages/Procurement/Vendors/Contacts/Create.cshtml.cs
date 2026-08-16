@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Procurement;
@@ -40,6 +41,12 @@ public class CreateModel : AbpPageModel
         }
 
         await _vendorContactAppService.CreateAsync(Contact);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("/Procurement/Vendors/Detail", new { id = VendorId }) });
+        }
+
         return RedirectToPage("/Procurement/Vendors/Detail", new { id = VendorId });
     }
 }

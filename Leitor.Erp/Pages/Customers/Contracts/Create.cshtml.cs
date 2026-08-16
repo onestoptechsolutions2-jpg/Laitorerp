@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -89,6 +90,11 @@ public class CreateModel : AbpPageModel
                 project.ConvertedToContractId = contract.Id;
                 await _projectRepository.UpdateAsync(project);
             }
+        }
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("/Customers/Detail", new { id = CustomerId }) });
         }
 
         return RedirectToPage("/Customers/Detail", new { id = CustomerId });

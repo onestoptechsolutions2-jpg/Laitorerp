@@ -11,7 +11,7 @@
             <a asp-page="../Index" class="btn btn-outline-secondary">@L["BackToCatalog"]</a>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Create" class="btn btn-primary">@L["NewPriceList"]</a>
+                <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewPriceList"]">@L["NewPriceList"]</a>
             }
         </div>
     </div>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Opportunities;
@@ -57,6 +58,12 @@ public class CreateModel : AbpPageModel
         }
 
         var opportunity = await _opportunityAppService.CreateAsync(Opportunity);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = opportunity.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = opportunity.Id });
     }
 

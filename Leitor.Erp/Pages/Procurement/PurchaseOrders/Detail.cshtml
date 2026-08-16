@@ -224,7 +224,7 @@
         <h5 class="card-title mb-0">@L["SupplierInvoices"]</h5>
         @if (Model.CanEdit)
         {
-            <a asp-page="/Procurement/SupplierInvoices/Create" asp-route-purchaseOrderId="@Model.PurchaseOrder.Id" class="btn btn-primary btn-sm">@L["NewSupplierInvoice"]</a>
+            <a asp-page="/Procurement/SupplierInvoices/Create" asp-route-purchaseOrderId="@Model.PurchaseOrder.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewSupplierInvoice"]">@L["NewSupplierInvoice"]</a>
         }
     </div>
     <div class="card-body">
