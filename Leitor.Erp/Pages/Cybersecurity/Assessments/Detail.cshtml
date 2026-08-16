@@ -15,7 +15,7 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Edit" asp-route-id="@Model.Assessment.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+                <a asp-page="./Edit" asp-route-id="@Model.Assessment.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditSecurityAssessment"]">@L["Edit"]</a>
                 @if (!isCompleted)
                 {
                     @if (Model.Assessment.Status != SecurityAssessmentStatus.InProgress)

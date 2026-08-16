@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Partners;
@@ -60,6 +61,12 @@ public class EditModel : AbpPageModel
         }
 
         await _agentAppService.UpdateAsync(Id, Agent);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Index") });
+        }
+
         return RedirectToPage("./Index");
     }
 }

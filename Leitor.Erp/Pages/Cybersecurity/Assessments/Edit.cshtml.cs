@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Cybersecurity;
 using Leitor.Erp.Services.Dtos.Cybersecurity;
@@ -81,6 +82,12 @@ public class EditModel : AbpPageModel
         }
 
         await _securityAssessmentAppService.UpdateAsync(Id, Assessment);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = Id });
     }
 

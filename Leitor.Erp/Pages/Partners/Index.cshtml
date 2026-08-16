@@ -9,7 +9,7 @@
         <h5 class="card-title mb-0">@L["Partners"]</h5>
         @if (Model.CanCreate)
         {
-            <a asp-page="./Create" class="btn btn-primary">@L["NewPartner"]</a>
+            <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewPartner"]">@L["NewPartner"]</a>
         }
     </div>
     <div class="card-body">
@@ -45,7 +45,7 @@
                             <td>@L[$"Enum:CommissionBasis:{(int)item.CommissionBasis}"]</td>
                             <td>@item.CommissionRate.ToString("N2")</td>
                             <td>
-                                <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
+                                <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditPartner"]">@L["Edit"]</a>
                                 @if (Model.CanDelete)
                                 {
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
