@@ -4,6 +4,7 @@ public class ErpMenus
 {
     private const string Prefix = "Erp";
     public const string Home = Prefix + ".Home";
+    public const string Calendar = Prefix + ".Calendar";
 
     // CRM - Lead -> Opportunity -> Customer is one pipeline; grouped as one funnel instead of
     // three unrelated-looking top-level entries.

@@ -1,0 +1,101 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Calendar.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Menu:Calendar"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="/Calendar/Create" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewCalendarEvent"]">@L["NewCalendarEvent"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form id="leitor-calendar-antiforgery">@Html.AntiForgeryToken()</form>
+        <div id="leitor-calendar"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/libs/fullcalendar/index.global.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var calendarEl = document.getElementById("leitor-calendar");
+            if (!calendarEl || typeof FullCalendar === "undefined") {
+                return;
+            }
+
+            var canCreate = @Json.Serialize(Model.CanCreate);
+
+            function openOverlay(url, title) {
+                var a = document.createElement("a");
+                a.setAttribute("data-overlay", "");
+                a.setAttribute("data-overlay-title", title);
+                a.setAttribute("href", url);
+                a.style.display = "none";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                headerToolbar: {
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth,timeGridWeek,listMonth"
+                },
+                height: "auto",
+                editable: true,
+                events: function (info, successCallback, failureCallback) {
+                    fetch("/Calendar?handler=Feed&from=" + encodeURIComponent(info.startStr) + "&to=" + encodeURIComponent(info.endStr))
+                        .then(function (response) { return response.json(); })
+                        .then(function (data) {
+                            successCallback(data.map(function (item) {
+                                return {
+                                    id: item.id,
+                                    title: item.title,
+                                    start: item.start,
+                                    end: item.end,
+                                    editable: item.isEditable,
+                                    extendedProps: { sourceType: item.sourceType, url: item.url }
+                                };
+                            }));
+                        })
+                        .catch(failureCallback);
+                },
+                eventClick: function (info) {
+                    var props = info.event.extendedProps;
+                    if (props.sourceType === "CalendarEvent") {
+                        openOverlay("/Calendar/Edit/" + info.event.id, "@L["EditCalendarEvent"]");
+                    } else if (props.url) {
+                        window.location.href = props.url;
+                    }
+                },
+                dateClick: function (info) {
+                    if (canCreate) {
+                        openOverlay("/Calendar/Create?StartDate=" + encodeURIComponent(info.dateStr), "@L["NewCalendarEvent"]");
+                    }
+                },
+                eventDrop: function (info) { moveEvent(info.event, calendar); },
+                eventResize: function (info) { moveEvent(info.event, calendar); }
+            });
+            calendar.render();
+
+            function moveEvent(event, cal) {
+                var tokenInput = document.querySelector('#leitor-calendar-antiforgery input[name="__RequestVerificationToken"]');
+                var formData = new FormData();
+                formData.append("__RequestVerificationToken", tokenInput.value);
+                formData.append("id", event.id);
+                formData.append("start", event.start.toISOString());
+                if (event.end) {
+                    formData.append("end", event.end.toISOString());
+                }
+                fetch("/Calendar?handler=Move", { method: "POST", body: formData })
+                    .catch(function () { cal.refetchEvents(); });
+            }
+        });
+    </script>
+}

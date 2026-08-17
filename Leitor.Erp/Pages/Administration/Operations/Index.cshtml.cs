@@ -245,7 +245,10 @@ public class IndexModel : AbpPageModel
             await ToModuleRowAsync(ErpFeatures.KnowledgeManagement, _l["Feature:KnowledgeManagement"]),
             await ToModuleRowAsync(ErpFeatures.PointOfSale, _l["Feature:PointOfSale"]),
             await ToModuleRowAsync(ErpFeatures.PartnerCommission, _l["Feature:PartnerCommission"]),
-            await ToModuleRowAsync(ErpFeatures.Cybersecurity, _l["Feature:Cybersecurity"])
+            await ToModuleRowAsync(ErpFeatures.Cybersecurity, _l["Feature:Cybersecurity"]),
+            await ToModuleRowAsync(ErpFeatures.ChangeEnablement, _l["Feature:ChangeEnablement"]),
+            await ToModuleRowAsync(ErpFeatures.Calendar, _l["Feature:Calendar"]),
+            await ToModuleRowAsync(ErpFeatures.HumanResources, _l["Feature:HumanResources"])
         };
     }
 

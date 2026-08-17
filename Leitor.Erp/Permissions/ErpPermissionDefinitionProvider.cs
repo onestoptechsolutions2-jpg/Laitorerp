@@ -120,6 +120,12 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         projectsPermission.AddChild(ErpPermissions.Projects.Edit, L("Permission:Edit"));
         projectsPermission.AddChild(ErpPermissions.Projects.Delete, L("Permission:Delete"));
 
+        var calendarGroup = context.AddGroup(ErpPermissions.Calendar.GroupName, L("Permission:Calendar"));
+        var calendarPermission = calendarGroup.AddPermission(ErpPermissions.Calendar.Default, L("Permission:Calendar"));
+        calendarPermission.AddChild(ErpPermissions.Calendar.Create, L("Permission:Create"));
+        calendarPermission.AddChild(ErpPermissions.Calendar.Edit, L("Permission:Edit"));
+        calendarPermission.AddChild(ErpPermissions.Calendar.Delete, L("Permission:Delete"));
+
         var taxComplianceGroup = context.AddGroup(ErpPermissions.TaxCompliance.GroupName, L("Permission:TaxCompliance"));
         taxComplianceGroup.AddPermission(ErpPermissions.TaxCompliance.Default, L("Permission:TaxCompliance"));
 

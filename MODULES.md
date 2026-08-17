@@ -134,6 +134,7 @@ stock on hand/low stock, support analytics (including reopen-rate trend), audit 
 | **Partner Commission** | Commission calculation/tracking on top of the core Partner/Agent directory. |
 | **Cybersecurity** | The upsell-tier module: `SecurityAssessment` records (Vulnerability/CyberRisk/PolicyReview/AwarenessTraining/BackupDrReview, with risk rating and status tracking). This is stream 3 of the business model made concrete. |
 | **Change Enablement** | `ChangeRequest` tracking (tiered: Standard/Normal/Emergency, with approval gating on Normal+) for deliberate changes to a Configuration Item — patches, config changes, migrations — kept separate from Tickets, which model something reported broken. Depends on Asset Management being meaningful (nothing to change without a CI). |
+| **Shared Calendar** | Standalone `CalendarEvent` records (create/drag/reassign) merged at read time with a read-only feed of `FieldServiceJob`/`Ticket`/`ProjectTask`/`CustomerTask` dates — never a second source of truth for those, just a combined view. |
 
 ---
 

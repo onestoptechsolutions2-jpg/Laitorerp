@@ -1,0 +1,38 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Calendar.EditModel
+@{
+    if (OverlayRequest.Is(Request)) { Layout = null; }
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["EditCalendarEvent"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <abp-input asp-for="EventInput.Title" />
+            <abp-input asp-for="EventInput.Description" />
+            <abp-input asp-for="EventInput.StartDate" />
+            <abp-input asp-for="EventInput.EndDate" />
+            <abp-select asp-for="EventInput.AssignedToUserId" asp-items="Model.UserOptions" label="@L["AssignedTo"].Value" />
+            <abp-select asp-for="EventInput.AgentId" asp-items="Model.AgentOptions" label="@L["Agent"].Value" />
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">@L["Save"]</button>
+                <a asp-page="/Calendar/Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+        </form>
+        @if (Model.CanDelete)
+        {
+            <form method="post" asp-page-handler="Delete" class="mt-2" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-outline-danger">@L["Delete"]</button>
+            </form>
+        }
+    </div>
+</div>

@@ -192,6 +192,19 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Gated behind ErpFeatures.Calendar (see Features/ErpFeatures.cs). Covers only standalone
+    // CalendarEvent rows - the read-only feed items merged in from other modules (FieldServiceJob/
+    // Ticket/ProjectTask/CustomerTask) stay gated by each of those modules' own Default permission,
+    // checked per-section in CalendarEventAppService.GetFeedAsync.
+    public static class Calendar
+    {
+        public const string GroupName = "Erp.Calendar";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
     // Gated behind ErpFeatures.TaxCompliance (see Features/ErpFeatures.cs) - a single view
     // permission, since the VAT return is a read-only report over data already captured
     // elsewhere (Sales/Procurement lines, Vendor withholding rates).

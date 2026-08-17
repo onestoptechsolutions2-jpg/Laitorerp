@@ -77,6 +77,18 @@ public class ErpFeatureDefinitionProvider : FeatureDefinitionProvider
             defaultValue: "false",
             displayName: L("Feature:ChangeEnablement"),
             valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.Calendar,
+            defaultValue: "false",
+            displayName: L("Feature:Calendar"),
+            valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.HumanResources,
+            defaultValue: "false",
+            displayName: L("Feature:HumanResources"),
+            valueType: new ToggleStringValueType());
     }
 
     private static LocalizableString L(string name)

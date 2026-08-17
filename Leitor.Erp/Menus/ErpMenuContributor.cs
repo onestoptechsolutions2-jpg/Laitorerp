@@ -80,6 +80,20 @@ public class ErpMenuContributor : IMenuContributor
             )
         );
 
+        if (await context.IsGrantedAsync(ErpPermissions.Calendar.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.Calendar))
+        {
+            context.Menu.Items.Add(
+                new ApplicationMenuItem(
+                    ErpMenus.Calendar,
+                    l["Menu:Calendar"],
+                    "~/Calendar",
+                    icon: "fas fa-calendar-days",
+                    order: 2
+                )
+            );
+        }
+
         // CRM - Lead -> Opportunity -> Customer is one pipeline; grouped as one funnel instead of
         // three separate top-level entries.
         var canViewLeads = await context.IsGrantedAsync(ErpPermissions.Leads.Default);

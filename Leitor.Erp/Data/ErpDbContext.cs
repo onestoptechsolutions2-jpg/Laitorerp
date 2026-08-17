@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Assets;
+using Leitor.Erp.Entities.Calendar;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Cybersecurity;
 using Leitor.Erp.Entities.FieldService;
@@ -111,6 +112,8 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
 
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
+
+    public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
 
     public DbSet<ServiceCatalogItem> ServiceCatalogItems { get; set; } = null!;
 
@@ -876,6 +879,16 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Name).IsRequired().HasMaxLength(256);
             b.Property(x => x.Description).HasMaxLength(2000);
             b.Property(x => x.Category).HasMaxLength(128);
+        });
+
+        builder.Entity<CalendarEvent>(b =>
+        {
+            b.ToTable("CalendarEvents");
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.HasIndex(x => x.StartDate);
+            b.HasIndex(x => x.AssignedToUserId);
         });
 
         builder.Entity<ServiceRequest>(b =>

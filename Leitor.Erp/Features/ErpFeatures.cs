@@ -24,4 +24,13 @@ public static class ErpFeatures
     // extra change-approval overhead, same reasoning as ServiceRequestManagement being separate
     // from ServiceCatalog.
     public const string ChangeEnablement = GroupName + ".ChangeEnablement";
+
+    // Shared team calendar: standalone CalendarEvent rows plus a read-only merged view of
+    // FieldServiceJob/Ticket/ProjectTask/CustomerTask dates. Toggleable like every other module
+    // here for consistency, even though nothing else in the app depends on it being on.
+    public const string Calendar = GroupName + ".Calendar";
+
+    // Employee directory, leave management, and Kenya statutory payroll (PAYE/NSSF/SHA/Housing
+    // Levy). See Entities/Hr/.
+    public const string HumanResources = GroupName + ".HumanResources";
 }
