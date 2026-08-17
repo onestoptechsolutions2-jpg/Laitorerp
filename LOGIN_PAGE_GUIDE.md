@@ -1,282 +1,118 @@
-# Leitor ERP - Modern Login Page Design Guide
+# Leitor ERP — Login Page Guide
 
 ## Overview
 
-The login page has been redesigned with a modern, professional corporate aesthetic featuring:
+The login page uses the same "Warm Sunrise" design system as the rest of the app — the same
+`.card`/`.btn`/`.form-control`/`.alert` component styles, not a bespoke look. What makes this
+page different from every other page in the app is purely structural: it renders under ABP's
+**Account layout** (`ThemeManager.CurrentTheme.GetAccountLayout()`), not the standard
+Application layout every other page uses, so it doesn't get the app's Global style bundle
+automatically and links its own stylesheets directly.
 
-- **Clean card-based layout** with gradient background
-- **Professional branding** with logo and company name
-- **Smooth animations** and transitions
-- **Enhanced accessibility** for all users
-- **Responsive design** for mobile and desktop
-- **Dark mode support** via CSS media queries
-- **Password visibility toggle** for better UX
-- **Social login integration** (Google, GitHub, Microsoft)
-- **Comprehensive form validation**
+There is no logo/title markup in `Login.cshtml` itself — that chrome comes from the theme's own
+Account layout wrapper.
 
-## File Structure
+## File structure
 
 ```
 Leitor.Erp/Pages/Account/
-├── Login.cshtml          # Razor page template (updated)
-├── login.css             # Modern styling
-├── login.js              # Interactivity & validation
-└── Login.cshtml.cs       # Code-behind (unchanged)
+├── Login.cshtml       # Razor page - standard Bootstrap/app classes (.card, .btn, .form-control),
+│                       # plus the direct <link> tags this page needs (see below)
+├── login.css           # ONLY the page-specific chrome with no main-app equivalent: the auth
+│                        # container/hero decoration, password-visibility toggle positioning,
+│                        # the inline "Forgot password?" layout, validation-summary list reset
+├── login.js             # Password visibility toggle, Enter-to-advance, double-submit guard
+└── Login.cshtml.cs      # Code-behind (ABP's own LoginModel — not overridden)
 ```
 
-## Key Features
+## Why this page links its own stylesheets
 
-### 1. Visual Design
+`ErpModule.ConfigureLayoutHooks()`/`ConfigureBundles()` register the app's design system
+(`leitor-tokens.css`, `leitor-theme.css`, and the `ThemeFontsViewComponent` that loads Inter)
+against `StandardLayouts.Application` only — the Account layout is deliberately excluded from
+that wiring, since ABP's own Account module owns that layout. So `Login.cshtml`'s own
+`@section styles` block links the same three things directly:
 
-**Color Scheme:**
-- Primary: `#0ea5e9` (Sky Blue) - Gradient to `#0284c7` (Darker Blue)
-- Background: `#0f172a` to `#1e293b` (Deep Navy Gradient)
-- Text: `#1e293b` (Dark Slate)
-- Secondary Text: `#64748b` (Slate)
-- Borders: `#e2e8f0` (Light Slate)
-
-**Typography:**
-- Headings: 24px, weight 600
-- Labels: 14px, weight 500
-- Body: 14px, weight 400
-
-### 2. Responsive Breakpoints
-
-- **Desktop (> 480px)**: Full width 420px card
-- **Mobile (≤ 480px)**: Adjusted padding and font sizes
-- **Social buttons**: 2-column grid on desktop, 1-column on mobile
-
-### 3. Interactive Elements
-
-**Password Visibility Toggle:**
-- Click the eye icon to show/hide password
-- Icon changes from `fa-eye-slash` to `fa-eye`
-- Smooth color transitions on hover
-
-**Form Validation:**
-- Real-time validation feedback
-- Error messages below fields
-- Focus on first invalid field on submit
-
-**Animations:**
-- Card slides in on page load (300ms)
-- Buttons have hover lift effect (2px transform)
-- Smooth color transitions (200ms)
-
-## Customization Guide
-
-### Changing Colors
-
-Edit `login.css`:
-
-```css
-/* Primary color (blue) - change these */
-background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-border-color: #0ea5e9;
-color: #0ea5e9;
-
-/* Background gradient - change these */
-background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-
-/* Text colors - change these */
-color: #1e293b;        /* Primary text */
-color: #64748b;        /* Secondary text */
-color: #94a3b8;        /* Muted text */
+```cshtml
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="/leitor-tokens.css" />
+<link rel="stylesheet" href="/leitor-theme.css" />
+<link rel="stylesheet" href="/Pages/Account/login.css" />
 ```
 
-### Changing Logo
+`leitor-tokens.css` is the single source of truth for every color/shape/shadow value in the app
+(see its own header comment) — both `leitor-theme.css` and `login.css` reference its
+`var(--leitor-*)` custom properties rather than each hardcoding their own copy of the palette.
+If you're changing a color, shape, or shadow, **edit `leitor-tokens.css` — never redeclare a
+value locally in `login.css`.**
 
-Edit `Login.cshtml`:
+## What's standardized vs. what's page-specific
 
-```html
-<div class="leitor-logo-icon">
-    <span>L</span>  <!-- Change this to your logo or img tag -->
-</div>
-<div class="leitor-logo-text">
-    <h1>@EL["App:Title"]</h1>  <!-- Title from localization -->
-    <p>@EL["Auth:SignInSubtitle"]</p>  <!-- Subtitle from localization -->
-</div>
-```
+Standardized (comes from `leitor-theme.css`, identical to every other page in the app):
+- The card (`.card`/`.card-body`)
+- The primary/secondary buttons (`.btn.btn-primary`, `.btn.btn-secondary`)
+- Form controls and labels (`.form-control`, `.form-label`, `.form-check`)
+- Alerts (`.alert.alert-danger`, `.alert.alert-warning`)
 
-Or use an image:
+Page-specific (lives in `login.css`, no equivalent elsewhere in the app):
+- `.leitor-auth-container` / `.leitor-auth-wrapper` — centers the card in whatever space the
+  Account layout leaves. Deliberately no `min-height: 100vh` — the theme's own layout already
+  puts logo/title chrome above this content, so claiming a full viewport height on top of that
+  reintroduces a scrollbar (this was a real, previously-fixed bug — don't reintroduce it).
+- The hero decoration — blurred amber/purple/pink gradient blobs, a faint SVG-noise grain
+  texture, and two dashed rings that slow-rotate (`prefers-reduced-motion`-aware). All
+  `position: fixed`, specifically so they can't affect the container's box size/scrolling.
+- `.leitor-password-wrapper`/`.leitor-password-toggle` — the show/hide password button.
+- `.leitor-form-label-wrapper` — puts "Forgot password?" inline with the Password label.
+- `.leitor-validation-summary` — strips the bullet/margin off `asp-validation-summary`'s raw
+  `<ul><li>` output so it reads as plain stacked lines inside the shared alert box.
 
-```html
-<div class="leitor-logo-icon">
-    <img src="/images/logo.png" alt="Leitor Logo" style="width: 100%; height: 100%;" />
-</div>
-```
+## Interactivity (`login.js`)
 
-### Adjusting Card Size
+- **Password visibility toggle** — click the eye icon to show/hide the password; swaps the
+  Font Awesome icon and `aria-label`.
+- **Enter-to-advance** — pressing Enter in the username field focuses the password field instead
+  of submitting.
+- **Double-submit guard** — disables the submit button once the form actually POSTs (valid
+  client-side state), so a slow connection or double-click can't fire a second login attempt.
+  No re-enable needed — the page either navigates away or reloads fresh with a server error.
 
-Edit `login.css`:
+If you rename a class in `Login.cshtml` that `login.js` selects by (currently:
+`.leitor-auth-wrapper form`, `.mb-3`, `button[type="submit"].btn-primary`,
+`.leitor-password-wrapper`), update the selector in `login.js` too — nothing enforces this at
+compile time since it's plain DOM querying.
 
-```css
-.leitor-auth-wrapper {
-    width: 100%;
-    max-width: 420px;  /* Change this value */
-}
-```
+## Accessibility
 
-### Changing Padding/Spacing
-
-Edit `login.css`:
-
-```css
-.leitor-login-card {
-    padding: 48px 40px;  /* Top/Bottom Left/Right */
-}
-
-.leitor-logo-section {
-    margin-bottom: 32px;  /* Space below logo */
-}
-
-.leitor-form-group {
-    margin-bottom: 20px;  /* Space between form fields */
-}
-```
-
-### Font Family
-
-Edit `login.css`:
-
-```css
-.leitor-form-control {
-    font-family: 'Your Font Name', sans-serif;
-}
-```
-
-## Localization
-
-Strings are pulled from ABP localization resources. Key strings:
-
-- `@L["Login"]` - Login button text
-- `@L["EmailOrUsername"]` - Email field label
-- `@L["Password"]` - Password field label
-- `@L["RememberMe"]` - Remember me checkbox
-- `@L["ForgotPassword"]` - Forgot password link
-- `@L["OrLoginWith"]` - Social login divider
-- `@L["AreYouANewUser"]` - Sign up prompt
-- `@EL["App:Title"]` - Application title
-- `@EL["Auth:SignInSubtitle"]` - Subtitle
-
-Add these to your `Localization/Erp/en.json`:
-
-```json
-{
-  "EmailOrUsername": "Email or Username",
-  "EnterPassword": "Enter your password",
-  "TogglePasswordVisibility": "Toggle password visibility",
-  "App:Title": "Leitor ERP",
-  "Auth:SignInSubtitle": "Enterprise Resource Planning"
-}
-```
-
-## Browser Support
-
-- ✅ Chrome/Edge (latest)
-- ✅ Firefox (latest)
-- ✅ Safari (latest)
-- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
-
-## Accessibility Features
-
-- **Semantic HTML**: Proper `<label>` and `<input>` associations
-- **ARIA attributes**: `aria-label` on password toggle button
-- **Keyboard navigation**: Tab through all interactive elements
-- **Focus rings**: Clear visual focus indicators
-- **Color contrast**: WCAG AA compliant ratios
-- **Error announcements**: Screen reader friendly error messages
-
-## Dark Mode
-
-The page automatically adapts to system dark mode preferences via `@media (prefers-color-scheme: dark)`.
-
-**Testing dark mode:**
-1. macOS: System Preferences → General → Appearance → Dark
-2. Windows: Settings → Personalization → Colors → Dark
-3. Browser DevTools: Ctrl+Shift+P → "Dark mode"
-
-## Performance Optimizations
-
-- Minimal CSS (no external frameworks)
-- Inline critical styles
-- Efficient JavaScript (no dependencies)
-- Optimized animations (GPU accelerated transforms)
-- Proper image compression for logo
-
-## Security Considerations
-
-- ✅ Password field masked by default
-- ✅ No hardcoded credentials
-- ✅ Secure form submission (POST only)
-- ✅ CSRF token support (handled by ABP)
-- ✅ Input validation on both client & server
-- ✅ No password logging in JavaScript
+- Semantic `<label>`/`<input>` pairing via `asp-for`.
+- `aria-label` on the password-toggle button, updated on each click.
+- Visible focus rings on every interactive element (`:focus-visible`), including the toggle.
+- Dashed decorative rings and blurred blobs are `pointer-events: none` and purely decorative —
+  never load-bearing for information, and their rotation respects
+  `prefers-reduced-motion: reduce`.
 
 ## Troubleshooting
 
-**Password toggle not working:**
-- Ensure `login.js` is loading (check Network tab)
-- Check browser console for JavaScript errors
-- Verify Font Awesome is installed for icons
+**Password toggle not working** — check that `login.js` loaded (Network tab) and that
+`#PasswordVisibilityButton` still exists with that exact id; the script queries it directly.
 
-**Styling looks broken:**
-- Clear browser cache (Ctrl+Shift+Delete)
-- Check that `login.css` is loading
-- Verify no CSS conflicts from other stylesheets
+**Styling looks wrong / colors don't match the rest of the app** — confirm all three stylesheet
+links are present in `Login.cshtml`'s `@section styles` and load in this order:
+`leitor-tokens.css` → `leitor-theme.css` → `login.css` (order matters — `login.css`'s rules
+should win for anything it overrides, and everything depends on the custom properties
+`leitor-tokens.css` defines).
 
-**Form not submitting:**
-- Ensure JavaScript is enabled
-- Check server-side validation errors
-- Verify ASP.NET form tokens are present
+**A new color/radius/shadow is needed** — add it to `wwwroot/leitor-tokens.css` as a
+`--leitor-*` custom property, not as a literal value in `login.css`. That keeps this page and
+the rest of the app on one shared palette instead of two independent copies.
 
-**Mobile layout issues:**
-- Check viewport meta tag in layout
-- Test responsive breakpoints at 480px
-- Ensure touch targets are 44px+ minimum
-
-## Future Enhancements
-
-Consider adding:
-
-1. **Two-Factor Authentication (2FA)** - TOTP/SMS support
-2. **Passwordless login** - Magic links or biometric auth
-3. **Multi-tenant selection** - Tenant picker before login
-4. **Language selector** - For multi-language apps
-5. **Session management** - "Remember device" option
-6. **Login history** - Recent login activity display
-7. **Custom themes** - User-selectable themes
-8. **Progressive enhancement** - Work without JavaScript
-
-## Testing Checklist
-
-- [ ] Desktop layout (> 1024px)
-- [ ] Tablet layout (768px - 1024px)
-- [ ] Mobile layout (< 768px)
-- [ ] Password visibility toggle
-- [ ] Form validation errors
-- [ ] Keyboard navigation (Tab key)
-- [ ] Screen reader testing (NVDA/JAWS)
-- [ ] Dark mode appearance
-- [ ] Social login buttons (if configured)
-- [ ] Error messages display correctly
-- [ ] Forgot password link works
-- [ ] Sign up link works
-- [ ] Browser autofill works
-- [ ] Session timeout behavior
-
-## Support & Issues
-
-For issues or questions:
-
-1. Check this guide first
-2. Review browser console for errors
-3. Test in different browsers
-4. Verify ABP modules are loaded
-5. Check localization strings are defined
+**Live-verifying this page in a browser** — as of this writing, blocked in the local dev
+environment by an unresolved native Postgres `leitor_erp` credential gap (`dotnet run` starts
+fine but every page 500s with `28P01: password authentication failed`). The `docker-compose.yml`
+path (its own Postgres container, default password matching `appsettings.json`) is the likely
+working alternative if this needs live-testing — not yet attempted end-to-end.
 
 ---
-
-**Design Version:** 1.0  
-**Last Updated:** 2026-08-04  
-**Compatibility:** Leitor.Erp with ABP Framework 10.5.0+
+**Last updated:** 2026-08-17 · matches the "Warm Sunrise" design system.

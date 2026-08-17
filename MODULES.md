@@ -126,7 +126,7 @@ stock on hand/low stock, support analytics (including reopen-rate trend), audit 
 |---|---|
 | **Project Management** | `Project`/`ProjectTask` entities, project-tagged journal entries, project-level P&L reporting. |
 | **Tax Compliance** | VAT return report (Output VAT exact from invoice lines, Input VAT approximated) and withholding tax posting. |
-| **Service Catalog** | Reference list of the standardized services the business offers, for consistent quoting/service requests. |
+| **Service Catalog** | Reference list of the standardized services the business offers, for consistent quoting/service requests. Seeded with 25 real Leitor services on first run — the 13 retainer services (one per `ContractServiceScope` flag), the 7 project types, and the 5 cybersecurity assessment types — editable/extendable afterward via the Service Catalog pages. |
 | **Service Request Management** | `ServiceRequest`, deliberately separate from Ticket — ITIL4 distinguishes fulfilling a request from resolving an incident. |
 | **Asset Management (CMDB)** | `ConfigurationItem` + relationship graph, plus encrypted `AssetCredential` storage (admin logins/secrets, gated by a separate `RevealCredentials` permission) and security posture fields (endpoint protection, backup verification, patch status). This is what the recurring-retainer's "manage your network gear" promise is actually built on. |
 | **Knowledge Management** | `KnowledgeArticle` library; a resolved Ticket can be promoted straight to a knowledge article. |
@@ -164,3 +164,13 @@ sits underneath all of it, posting every invoice, payment, and supplier bill to 
   section, with extra fine-grained permissions only where an action is genuinely a distinct,
   rarer responsibility (e.g. `Assets.RevealCredentials`, `Changes.Approve`,
   `FiscalPeriods.Manage`).
+- UI design system ("Warm Sunrise"): every color/shape/shadow value lives in one file,
+  `wwwroot/leitor-tokens.css` — both the main app's `leitor-theme.css` and the login page's own
+  `Pages/Account/login.css` reference its `var(--leitor-*)` custom properties rather than each
+  keeping an independent copy of the palette. See [LOGIN_PAGE_GUIDE.md](LOGIN_PAGE_GUIDE.md) for
+  why the login page needs its own direct `<link>` tags instead of the shared bundle. Most
+  Create/Edit forms open as an in-page overlay modal (AJAX fetch + JSON redirect) instead of a
+  full navigation — see `Pages/Shared/OverlayRequest.cs` and `wwwroot/leitor-layout.js`'s
+  `initFormOverlay()`; copy the pattern from any existing Create/Edit page pair when adding one
+  (a few pages with embedded line-item sub-tables or multi-handler edit flows are deliberately
+  excluded — full-page navigation there instead).

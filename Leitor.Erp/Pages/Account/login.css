@@ -1,11 +1,13 @@
 /* ========================================
    Leitor ERP - Login Page Styles ("Warm Sunrise")
-   Component-level rules only - color/shape/shadow token VALUES come from wwwroot/leitor-tokens.css
-   (single source of truth, shared with leitor-theme.css), linked directly in Login.cshtml's
-   styles section since the Account layout doesn't include the main Global style bundle (see
-   ErpModule.ConfigureLayoutHooks - StandardLayouts.Application excludes Account). Inter is
-   likewise loaded via a direct <link> in Login.cshtml, not a CSS @import here - see
-   ThemeFontsViewComponent's comment for why @import is the wrong tool for this.
+   Standardized on the main app's real components: the card/button/form-control/alert styling
+   below comes from leitor-theme.css itself (linked directly in Login.cshtml, since the Account
+   layout doesn't include the main app's Global bundle - see ErpModule.ConfigureLayoutHooks).
+   What's left here is only what's genuinely login-page-specific and has no main-app
+   equivalent: the auth container/hero decoration, the password-visibility toggle, and small
+   layout details (the inline "Forgot password?" link next to its label, the validation-summary
+   list reset). Token VALUES (colors/shape/shadow) come from wwwroot/leitor-tokens.css, also
+   linked directly in Login.cshtml - single source of truth shared with leitor-theme.css.
    ======================================== */
 
 /* Root container - warm cream background, matching the rest of the app. No min-height: this
@@ -18,9 +20,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--leitor-paper);
     padding: 20px;
-    font-family: var(--leitor-font-sans);
 }
 
 .leitor-auth-wrapper {
@@ -28,6 +28,10 @@
     max-width: 420px;
     position: relative;
     z-index: 1;
+}
+
+.leitor-auth-wrapper .card-body {
+    padding: 32px 40px;
 }
 
 /* Hero decoration - layered blurred color blobs + a faint grain texture, both fixed to the
@@ -94,98 +98,36 @@
     }
 }
 
-/* Card styling - warm shadow language, large "xl" radius per the Warm Sunrise shape scale. */
-.leitor-login-card {
-    background: var(--leitor-surface);
-    border-radius: var(--leitor-radius-xl);
-    border: 1.5px solid var(--leitor-border-light);
-    box-shadow: var(--leitor-shadow-floating);
-    padding: 32px 40px;
-}
-
-/* Form styling */
-.leitor-login-form {
-    margin-bottom: 0;
-}
-
-.leitor-form-group {
-    margin-bottom: 16px;
-}
-
+/* Puts the "Forgot password?" link inline with the Password label instead of below the field -
+   no main-app equivalent (no other form label in the app pairs with an inline link like this). */
 .leitor-form-label-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+}
+.leitor-form-label-wrapper .form-label {
+    margin-bottom: 0;
 }
 
-.leitor-form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--leitor-ink);
-    margin: 0;
-}
-
-.leitor-form-control {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid var(--leitor-border);
-    border-radius: var(--leitor-radius);
-    font-size: 14px;
-    font-family: inherit;
-    transition: all 0.2s ease;
-    background-color: var(--leitor-surface);
-}
-
-.leitor-form-control:hover {
-    border-color: var(--leitor-primary);
-}
-
-.leitor-form-control:focus {
-    outline: none;
-    border-color: var(--leitor-primary);
-    box-shadow: 0 0 0 3px rgba(var(--leitor-primary-rgb), 0.18);
-}
-
-.leitor-form-control::placeholder {
-    color: var(--leitor-ink-soft);
-}
-
-.leitor-form-error {
-    display: block;
-    font-size: 12px;
-    color: var(--leitor-danger);
-    margin-top: 6px;
-}
-
-/* Page-level errors (e.g. "invalid username or password") - ASP.NET's validation summary tag
-   helper, distinct from the per-field .leitor-form-error spans above. Visibility (hidden until
-   there's actually an error) comes from the theme's own .validation-summary-valid rule, same as
-   every asp-validation-summary usage elsewhere in this app - only the "has errors" look is
-   defined here. */
-.leitor-form-summary-error ul {
+/* asp-validation-summary renders a raw <ul><li> list - reset it to read as plain stacked lines
+   inside the shared .alert.alert-danger box rather than a bulleted list. Visibility (hidden
+   until there's actually an error) comes from the theme's own .validation-summary-valid rule,
+   same as every asp-validation-summary usage elsewhere in this app. */
+.leitor-validation-summary ul {
     list-style: none;
-    margin: 0 0 20px;
-    padding: 12px 16px;
-    border-radius: var(--leitor-radius);
-    background-color: var(--leitor-danger-bg);
-    border: 1px solid var(--leitor-danger-bg);
-    color: var(--leitor-danger);
-    font-size: 13px;
+    margin: 0;
+    padding: 0;
 }
 
-/* Password wrapper with toggle button */
+/* Password field's show/hide toggle button, absolutely positioned inside the input. */
 .leitor-password-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
-
-.leitor-password-wrapper .leitor-form-control {
+.leitor-password-wrapper .form-control {
     padding-right: 40px;
 }
-
 .leitor-password-toggle {
     position: absolute;
     right: 12px;
@@ -202,184 +144,36 @@
     justify-content: center;
     transition: color 0.2s ease;
 }
-
 .leitor-password-toggle:hover {
     color: var(--leitor-ink);
 }
-
-.leitor-password-toggle:focus {
-    outline: none;
+.leitor-password-toggle:focus-visible {
+    outline: 2px solid var(--leitor-primary-dark);
+    outline-offset: 2px;
     color: var(--leitor-primary-dark);
-}
-
-/* Remember me checkbox */
-.leitor-remember-me {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.leitor-checkbox {
-    width: 18px;
-    height: 18px;
-    margin-right: 8px;
-    cursor: pointer;
-    accent-color: var(--leitor-primary);
-    border-radius: 4px;
-}
-
-.leitor-checkbox-label {
-    font-size: 14px;
-    color: var(--leitor-ink-soft);
-    cursor: pointer;
-    margin: 0;
-    user-select: none;
-}
-
-/* Buttons */
-.leitor-btn {
-    width: 100%;
-    padding: 12px 16px;
-    border: none;
-    border-radius: var(--leitor-radius);
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: inherit;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* Primary button (Sign In) - amber gradient with a colored glow, lift + brighten on hover,
-   same treatment as .btn-primary in leitor-theme.css. */
-.leitor-btn-primary {
-    background: linear-gradient(135deg, var(--leitor-primary-dark), var(--leitor-primary));
-    color: #ffffff;
-    margin-bottom: 8px;
-    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
-}
-
-.leitor-btn-primary:hover {
-    background: linear-gradient(135deg, var(--leitor-primary), var(--leitor-primary-light));
-    transform: translateY(-1px);
-    box-shadow: 0 6px 22px rgba(245, 158, 11, 0.42);
-}
-
-.leitor-btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Secondary button (Cancel) - warm cream fill, border turns amber on hover. */
-.leitor-btn-secondary {
-    background: var(--leitor-surface-sunken);
-    color: var(--leitor-body);
-    border: 1.5px solid var(--leitor-border);
-}
-
-.leitor-btn-secondary:hover {
-    background: var(--leitor-surface-sunken);
-    border-color: var(--leitor-primary);
-    color: var(--leitor-ink);
-}
-
-.leitor-btn-secondary:active {
-    background: var(--leitor-border-light);
-}
-
-/* Forgot password link */
-.leitor-forgot-password {
-    font-size: 13px;
-    color: var(--leitor-primary-dark);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.leitor-forgot-password:hover {
-    color: var(--leitor-ink);
-}
-
-/* Alert styling */
-.leitor-auth-alert {
-    margin-bottom: 24px;
-    padding: 12px 16px;
-    border-radius: var(--leitor-radius);
-    background-color: var(--leitor-danger-bg);
-    border: 1px solid var(--leitor-danger-bg);
-    color: var(--leitor-danger);
-}
-
-.leitor-auth-alert h4 {
-    font-size: 14px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-}
-
-.leitor-auth-alert p {
-    font-size: 13px;
-    margin: 0;
-}
-
-/* Validation errors */
-.alert-danger {
-    background-color: var(--leitor-danger-bg);
-    border-color: var(--leitor-danger-bg);
-    color: var(--leitor-danger);
-    padding: 12px 16px;
-    border-radius: var(--leitor-radius);
-    border: 1px solid var(--leitor-danger-bg);
-}
-
-.alert-warning {
-    background-color: var(--leitor-warning-bg);
-    border-color: var(--leitor-warning-bg);
-    color: var(--leitor-warning);
-    padding: 12px 16px;
-    border-radius: var(--leitor-radius);
-    border: 1px solid var(--leitor-warning-bg);
-}
-
-/* Responsive design */
-@media (max-width: 480px) {
-    .leitor-auth-container {
-        padding: 16px;
-    }
-
-    .leitor-login-card {
-        padding: 32px 24px;
-    }
-
-    .leitor-form-control {
-        font-size: 16px;
-        padding: 12px 14px;
-    }
 }
 
 /* Short viewports (a resized browser window, landscape phone/tablet) - shrink vertical padding
    further so the card keeps fitting without a scrollbar even when there isn't much height to
-   work with. */
+   work with. Compound selectors (not just .card-body/.mb-3) so this outranks the shared/utility
+   rules it's overriding without needing !important. */
 @media (max-height: 700px) {
-    .leitor-login-card {
+    .leitor-auth-wrapper .card-body {
         padding: 20px 40px;
     }
-
-    .leitor-form-group {
-        margin-bottom: 12px;
-    }
-
-    .leitor-remember-me {
-        margin-bottom: 12px;
+    .leitor-auth-wrapper .mb-3 {
+        margin-bottom: 10px !important;
     }
 }
 
-/* Focus visible for accessibility */
-.leitor-btn:focus-visible,
-.leitor-form-control:focus-visible {
-    outline: 2px solid var(--leitor-primary-dark);
-    outline-offset: 2px;
+@media (max-width: 480px) {
+    .leitor-auth-container {
+        padding: 16px;
+    }
+    .leitor-auth-wrapper .card-body {
+        padding: 32px 24px;
+    }
+    .leitor-auth-wrapper .form-control {
+        font-size: 16px;
+    }
 }

@@ -36,12 +36,12 @@
 
     // Form submission handler with validation
     const setupFormValidation = function () {
-        const form = document.querySelector('.leitor-login-form');
+        const form = document.querySelector('.leitor-auth-wrapper form');
         if (!form) return;
 
         form.addEventListener('submit', function (e) {
             // Clear previous error states
-            document.querySelectorAll('.leitor-form-group').forEach(group => {
+            document.querySelectorAll('.leitor-auth-wrapper .mb-3').forEach(group => {
                 group.classList.remove('has-error');
             });
 
@@ -54,7 +54,7 @@
                 const errorField = form.querySelector('input:invalid');
                 if (errorField) {
                     errorField.focus();
-                    errorField.closest('.leitor-form-group')?.classList.add('has-error');
+                    errorField.closest('.mb-3')?.classList.add('has-error');
                 }
                 return;
             }
@@ -62,7 +62,7 @@
             // Disable the submit button once the form is actually going to POST, so a slow
             // connection or double-click can't fire a second login attempt. No need to
             // re-enable it - the page either navigates away or reloads fresh with an error.
-            const submitButton = form.querySelector('.leitor-btn-primary');
+            const submitButton = form.querySelector('button[type="submit"].btn-primary');
             if (submitButton) {
                 submitButton.disabled = true;
             }
