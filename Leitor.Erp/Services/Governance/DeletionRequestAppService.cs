@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Assets;
 using Leitor.Erp.Services.Customers;
+using Leitor.Erp.Services.Cybersecurity;
 using Leitor.Erp.Services.Dtos.Governance;
 using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Procurement;
+using Leitor.Erp.Services.Projects;
 using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.Support;
 using Microsoft.AspNetCore.Authorization;
@@ -36,6 +39,10 @@ public class DeletionRequestAppService : ApplicationService
     private readonly FieldServiceJobAppService _fieldServiceJobAppService;
     private readonly PurchaseOrderAppService _purchaseOrderAppService;
     private readonly LeadAppService _leadAppService;
+    private readonly ProblemAppService _problemAppService;
+    private readonly ProjectAppService _projectAppService;
+    private readonly ConfigurationItemAppService _configurationItemAppService;
+    private readonly SecurityAssessmentAppService _securityAssessmentAppService;
 
     public DeletionRequestAppService(
         IRepository<DeletionRequest, Guid> repository,
@@ -47,7 +54,11 @@ public class DeletionRequestAppService : ApplicationService
         TicketAppService ticketAppService,
         FieldServiceJobAppService fieldServiceJobAppService,
         PurchaseOrderAppService purchaseOrderAppService,
-        LeadAppService leadAppService)
+        LeadAppService leadAppService,
+        ProblemAppService problemAppService,
+        ProjectAppService projectAppService,
+        ConfigurationItemAppService configurationItemAppService,
+        SecurityAssessmentAppService securityAssessmentAppService)
     {
         _repository = repository;
         _identityUserRepository = identityUserRepository;
@@ -59,6 +70,10 @@ public class DeletionRequestAppService : ApplicationService
         _fieldServiceJobAppService = fieldServiceJobAppService;
         _purchaseOrderAppService = purchaseOrderAppService;
         _leadAppService = leadAppService;
+        _problemAppService = problemAppService;
+        _projectAppService = projectAppService;
+        _configurationItemAppService = configurationItemAppService;
+        _securityAssessmentAppService = securityAssessmentAppService;
     }
 
     public virtual async Task<PagedResultDto<DeletionRequestDto>> GetListAsync(GetDeletionRequestListInput input)
@@ -151,6 +166,10 @@ public class DeletionRequestAppService : ApplicationService
             "FieldServiceJob" => _fieldServiceJobAppService.DeleteAsync(entityId),
             "PurchaseOrder" => _purchaseOrderAppService.DeleteAsync(entityId),
             "Lead" => _leadAppService.DeleteAsync(entityId),
+            "Problem" => _problemAppService.DeleteAsync(entityId),
+            "Project" => _projectAppService.DeleteAsync(entityId),
+            "ConfigurationItem" => _configurationItemAppService.DeleteAsync(entityId),
+            "SecurityAssessment" => _securityAssessmentAppService.DeleteAsync(entityId),
             _ => throw new UserFriendlyException($"Unknown entity type: {entityType}")
         };
     }

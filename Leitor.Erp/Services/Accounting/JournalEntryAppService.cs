@@ -9,6 +9,7 @@ using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Accounting;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
@@ -58,27 +59,48 @@ public class JournalEntryAppService : ApplicationService
         _dataFilter = dataFilter;
     }
 
-    public async Task<List<JournalEntryDto>> GetListAsync(GetJournalEntryListInput input)
+    // Paged and filtered at the query level rather than loading every JournalEntry into memory -
+    // this is the one table nearly every transaction (Invoices, Payments, POS sales, recurring
+    // journals, FX revaluation, bank rec) auto-posts to via JournalPostingService, so it grows
+    // faster than any other table in the schema and was flagged in a 2026-08-17 performance audit
+    // as the first thing likely to become visibly slow. AccountId filtering can't be a plain
+    // Where on JournalEntry (the account lives on its child JournalEntryLine rows) - composing an
+    // Any() subquery against a second repository's IQueryable was tried first but EF Core rejects
+    // it ("cannot use multiple context instances within a single query execution", confirmed via
+    // a failing test), since each repository resolves its own DbContext instance. Two targeted
+    // queries instead: only the lines for the requested account are loaded (bounded by how many
+    // entries touch that one account, not the whole ledger), then their distinct JournalEntryIds
+    // filter the main paged query.
+    public async Task<PagedResultDto<JournalEntryDto>> GetListAsync(GetJournalEntryListInput input)
     {
         await CheckPolicyAsync(ErpPermissions.Accounting.Default);
 
-        var entries = await _repository.GetListAsync();
-        entries = entries.OrderByDescending(x => x.EntryDate).ToList();
+        var queryable = await _repository.GetQueryableAsync();
+
+        if (input.AccountId.HasValue)
+        {
+            var matchingEntryIds = (await _lineRepository.GetListAsync(x => x.AccountId == input.AccountId!.Value))
+                .Select(x => x.JournalEntryId)
+                .Distinct()
+                .ToList();
+            queryable = queryable.Where(x => matchingEntryIds.Contains(x.Id));
+        }
+
+        var totalCount = queryable.Count();
+        var entries = queryable
+            .OrderByDescending(x => x.EntryDate)
+            .Skip(input.SkipCount)
+            .Take(input.MaxResultCount)
+            .ToList();
 
         var entryIds = entries.Select(x => x.Id).ToList();
         var allLines = entryIds.Count > 0
             ? await _lineRepository.GetListAsync(x => entryIds.Contains(x.JournalEntryId))
             : new List<JournalEntryLine>();
-
-        if (input.AccountId.HasValue)
-        {
-            var matchingEntryIds = allLines.Where(x => x.AccountId == input.AccountId.Value).Select(x => x.JournalEntryId).ToHashSet();
-            entries = entries.Where(x => matchingEntryIds.Contains(x.Id)).ToList();
-        }
-
         var linesByEntryId = allLines.ToLookup(x => x.JournalEntryId);
 
-        return entries.Select(entry => ToDto(entry, linesByEntryId[entry.Id].ToList())).ToList();
+        var dtos = entries.Select(entry => ToDto(entry, linesByEntryId[entry.Id].ToList())).ToList();
+        return new PagedResultDto<JournalEntryDto>(totalCount, dtos);
     }
 
     public async Task<JournalEntryDto> GetAsync(Guid id)

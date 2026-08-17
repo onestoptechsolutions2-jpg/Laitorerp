@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.AspNetCore.TestBase;
+using Volo.Abp.Authorization;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.Identity;
@@ -72,6 +73,19 @@ public abstract class ErpTestBase : AbpWebApplicationFactoryIntegratedTest<Progr
         services.AddSingleton(keepAliveConnection);
 
         services.Replace(ServiceDescriptor.Singleton<IAuthorizationService, AlwaysAllowAuthorizationService>());
+
+        // The line above covers manual `AuthorizationService.IsGrantedAsync(...)` calls (they
+        // resolve the plain Microsoft.AspNetCore.Authorization.IAuthorizationService directly),
+        // but ABP's own [Authorize(...)] attribute goes through a *different* DI type -
+        // AuthorizationInterceptor resolves IAbpAuthorizationService specifically, which was never
+        // replaced, so any class relying on the attribute (not a manual check) still hit the real
+        // permission checker and got denied against this empty test database. Confirmed
+        // empirically: DeletionRequestDispatchTests (the first tests to call
+        // DeletionRequestAppService.ApproveAsync/RejectAsync, both [Authorize]-attributed) failed
+        // with AbpAuthorizationException until this line was added. AlwaysAllowAuthorizationService
+        // already implements IAbpAuthorizationService (it always has) - it just wasn't registered
+        // under this interface too.
+        services.Replace(ServiceDescriptor.Singleton<IAbpAuthorizationService, AlwaysAllowAuthorizationService>());
     }
 
     // Each test class instance gets its own fresh in-memory Sqlite connection, so the schema
