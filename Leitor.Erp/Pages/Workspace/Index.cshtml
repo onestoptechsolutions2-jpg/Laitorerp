@@ -42,6 +42,62 @@
 
 <div class="card mb-3">
     <div class="card-header">
+        <h5 class="card-title mb-0">@L["MyReminders"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Workspace.Reminders.Count == 0)
+        {
+            <p class="text-muted mb-0">@L["NoneYet"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["Title"]</th>
+                            <th>@L["Customer"]</th>
+                            <th>@L["DueDate"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reminder in Model.Workspace.Reminders)
+                        {
+                            <tr>
+                                <td>
+                                    @if (reminder.EntityType == "ProjectTask")
+                                    {
+                                        <a asp-page="/Projects/Detail" asp-route-id="@reminder.ParentId">@reminder.Title</a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-page="/Customers/Detail" asp-route-id="@reminder.ParentId">@reminder.Title</a>
+                                    }
+                                </td>
+                                <td>@reminder.ParentName</td>
+                                <td>@(reminder.DueDate?.ToShortDateString())</td>
+                                <td>
+                                    @if (reminder.IsOverdue)
+                                    {
+                                        <span class="pill pill-danger">@L["Overdue"]</span>
+                                    }
+                                    else if (reminder.IsDueSoon)
+                                    {
+                                        <span class="pill pill-warning">@L["DueSoon"]</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
         <h5 class="card-title mb-0">@L["MyOpenTickets"]</h5>
     </div>
     <div class="card-body">

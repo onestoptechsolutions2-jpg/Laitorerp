@@ -10,6 +10,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
+using Volo.Abp.Timing;
 
 namespace Leitor.Erp.Services.Customers;
 
@@ -21,13 +22,16 @@ public class CustomerNoteAppService :
     CrudAppService<CustomerNote, CustomerNoteDto, Guid, GetCustomerNoteListInput, CreateCustomerNoteDto>
 {
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IClock _clock;
 
     public CustomerNoteAppService(
         IRepository<CustomerNote, Guid> repository,
-        IRepository<IdentityUser, Guid> identityUserRepository)
+        IRepository<IdentityUser, Guid> identityUserRepository,
+        IClock clock)
         : base(repository)
     {
         _identityUserRepository = identityUserRepository;
+        _clock = clock;
 
         GetPolicyName = ErpPermissions.Customers.Default;
         GetListPolicyName = ErpPermissions.Customers.Default;
@@ -38,7 +42,7 @@ public class CustomerNoteAppService :
 
     protected override async Task<IQueryable<CustomerNote>> CreateFilteredQueryAsync(GetCustomerNoteListInput input)
     {
-        input.Sorting ??= $"{nameof(CustomerNote.CreationTime)} DESC";
+        input.Sorting ??= $"{nameof(CustomerNote.TouchedAt)} DESC";
 
         var query = await base.CreateFilteredQueryAsync(input);
         return query.WhereIf(input.CustomerId.HasValue, x => x.CustomerId == input.CustomerId!.Value);
@@ -73,14 +77,25 @@ public class CustomerNoteAppService :
 
     protected override Task<CustomerNote> MapToEntityAsync(CreateCustomerNoteDto createInput)
     {
-        var entity = new CustomerNote(GuidGenerator.Create(), createInput.CustomerId, createInput.Type, createInput.Text);
+        var entity = new CustomerNote(
+            GuidGenerator.Create(),
+            createInput.CustomerId,
+            createInput.Type,
+            createInput.Direction,
+            createInput.Text,
+            createInput.TouchedAt ?? _clock.Now);
         return Task.FromResult(entity);
     }
 
     protected override Task MapToEntityAsync(CreateCustomerNoteDto updateInput, CustomerNote entity)
     {
         entity.Type = updateInput.Type;
+        entity.Direction = updateInput.Direction;
         entity.Text = updateInput.Text;
+        if (updateInput.TouchedAt.HasValue)
+        {
+            entity.TouchedAt = updateInput.TouchedAt.Value;
+        }
         return Task.CompletedTask;
     }
 }

@@ -57,7 +57,8 @@ public class IndexModel : AbpPageModel
             await ToRowAsync(ErpSettings.SlaHoursHigh, _l["Setting:SlaHoursHigh"]),
             await ToRowAsync(ErpSettings.SlaHoursMedium, _l["Setting:SlaHoursMedium"]),
             await ToRowAsync(ErpSettings.SlaHoursLow, _l["Setting:SlaHoursLow"]),
-            await ToRowAsync(ErpSettings.ContractExpiryAlertLeadDays, _l["Setting:ContractExpiryAlertLeadDays"])
+            await ToRowAsync(ErpSettings.ContractExpiryAlertLeadDays, _l["Setting:ContractExpiryAlertLeadDays"]),
+            await ToRowAsync(ErpSettings.TaskDueSoonLeadDays, _l["Setting:TaskDueSoonLeadDays"])
         };
     }
 

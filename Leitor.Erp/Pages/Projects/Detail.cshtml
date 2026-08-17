@@ -172,9 +172,16 @@
                     }
                     @foreach (var task in Model.Tasks)
                     {
+                        var duePillClass = TaskDueStatus.PillClass(task.DueDate, task.IsCompleted, DateTime.Now, Model.TaskDueSoonLeadDays);
                         <tr>
                             <td>@task.Title</td>
-                            <td>@(task.DueDate?.ToShortDateString())</td>
+                            <td>
+                                @(task.DueDate?.ToShortDateString())
+                                @if (!string.IsNullOrEmpty(duePillClass))
+                                {
+                                    <span class="pill @duePillClass">@(duePillClass == "pill-danger" ? L["Overdue"] : L["DueSoon"])</span>
+                                }
+                            </td>
                             <td>@(task.AgentName ?? task.PartnerName ?? task.AssignedToUserName)</td>
                             <td><span class="pill @(task.IsCompleted ? "pill-success" : "pill-neutral")">@(task.IsCompleted ? L["Completed"] : L["Open"])</span></td>
                             <td>

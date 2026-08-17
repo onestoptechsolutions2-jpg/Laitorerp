@@ -159,12 +159,14 @@ public class DetailModel : AbpPageModel
     public bool CanEdit { get; set; }
     public bool CanErase { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
+    public int TaskDueSoonLeadDays { get; set; } = 3;
 
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
         CanErase = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Erase);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Customer", Id);
+        TaskDueSoonLeadDays = int.TryParse(await _settingProvider.GetOrNullAsync(ErpSettings.TaskDueSoonLeadDays), out var leadDays) ? leadDays : 3;
 
         await LoadAsync();
     }

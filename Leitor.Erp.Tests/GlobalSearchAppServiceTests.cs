@@ -19,6 +19,15 @@ namespace Leitor.Erp.Tests;
 // friction gap. AlwaysAllowAuthorizationService means every permission check here always passes
 // (same limitation as every other governance-adjacent test in this suite), so these tests cover
 // the query/matching/DTO-mapping logic itself, not the per-entity-type permission gating.
+//
+// The URL assertions below caught a real live bug the first time this file was written: all 4
+// target pages use `@page "{id}"` (a route SEGMENT, e.g. /Customers/Detail/{guid}), but the
+// original code generated query-string URLs (/Customers/Detail?id={guid}) instead - which don't
+// match that route at all, so every search-result click threw. The original assertions here
+// mirrored that same bug (both sides agreed, so the test passed despite being wrong) - a live
+// user clicking an actual result is what caught it, not this suite. Worth remembering: a URL
+// string assertion only catches a routing mismatch if it's checked against the real page's
+// @page directive, not just re-derived from the same code being tested.
 public class GlobalSearchAppServiceTests : ErpTestBase
 {
     [Fact]
@@ -47,7 +56,7 @@ public class GlobalSearchAppServiceTests : ErpTestBase
         var result = Assert.Single(results);
         Assert.Equal("Customer", result.EntityType);
         Assert.Equal("Globex Corporation", result.Title);
-        Assert.Equal($"/Customers/Detail?id={customer.Id}", result.Url);
+        Assert.Equal($"/Customers/Detail/{customer.Id}", result.Url);
     }
 
     [Fact]
@@ -62,7 +71,7 @@ public class GlobalSearchAppServiceTests : ErpTestBase
 
         var result = Assert.Single(results);
         Assert.Equal("Lead", result.EntityType);
-        Assert.Equal($"/Leads/Detail?id={lead.Id}", result.Url);
+        Assert.Equal($"/Leads/Detail/{lead.Id}", result.Url);
     }
 
     [Fact]
@@ -86,7 +95,7 @@ public class GlobalSearchAppServiceTests : ErpTestBase
         var result = Assert.Single(results);
         Assert.Equal("Ticket", result.EntityType);
         Assert.Equal("Umbrella Corp", result.Subtitle);
-        Assert.Equal($"/Support/Tickets/Detail?id={ticket.Id}", result.Url);
+        Assert.Equal($"/Support/Tickets/Detail/{ticket.Id}", result.Url);
     }
 
     [Fact]
@@ -112,6 +121,7 @@ public class GlobalSearchAppServiceTests : ErpTestBase
         var result = Assert.Single(results);
         Assert.Equal("Invoice", result.EntityType);
         Assert.Equal("Wayne Enterprises", result.Subtitle);
+        Assert.Equal($"/Sales/Invoices/Detail/{invoice.Id}", result.Url);
     }
 
     [Fact]

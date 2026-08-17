@@ -64,68 +64,68 @@
     </div>
     <div class="card-body">
         <div class="row mb-3">
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex mb-3">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6 d-flex mb-3">
                 <div class="card w-100 kpi-card">
                     <div class="card-body">
                         <div class="kpi-icon"><i class="fas fa-sack-dollar"></i></div>
                         <div class="kpi-body">
                             <div class="text-muted small">@L["LifetimeRevenue"]</div>
-                            <div class="h4 mb-0">@Model.LifetimeRevenue.ToString("N2")</div>
+                            <div class="display-6">@Model.LifetimeRevenue.ToString("N2")</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex mb-3">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6 d-flex mb-3">
                 <div class="card w-100 kpi-card">
                     <div class="card-body">
                         <div class="kpi-icon"><i class="fas fa-hand-holding-dollar"></i></div>
                         <div class="kpi-body">
                             <div class="text-muted small">@L["OutstandingBalance"]</div>
-                            <div class="h4 mb-0">@Model.OutstandingBalance.ToString("N2")</div>
+                            <div class="display-6">@Model.OutstandingBalance.ToString("N2")</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex mb-3">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6 d-flex mb-3">
                 <div class="card w-100 kpi-card">
                     <div class="card-body">
                         <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                         <div class="kpi-body">
                             <div class="text-muted small">@L["TotalOrders"]</div>
-                            <div class="h4 mb-0">@Model.TotalOrders</div>
+                            <div class="display-6">@Model.TotalOrders</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex mb-3">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6 d-flex mb-3">
                 <div class="card w-100 kpi-card">
                     <div class="card-body">
                         <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
                         <div class="kpi-body">
                             <div class="text-muted small">@L["OpenOpportunities"]</div>
-                            <div class="h4 mb-0">@Model.OpenOpportunities</div>
+                            <div class="display-6">@Model.OpenOpportunities</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex mb-3">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6 d-flex mb-3">
                 <div class="card w-100 kpi-card">
                     <div class="card-body">
                         <div class="kpi-icon"><i class="fas fa-percent"></i></div>
                         <div class="kpi-body">
                             <div class="text-muted small">@L["WinRate"]</div>
-                            <div class="h4 mb-0">@(Model.WinRate.HasValue ? (Model.WinRate.Value * 100).ToString("N0") + "%" : "-")</div>
+                            <div class="display-6">@(Model.WinRate.HasValue ? (Model.WinRate.Value * 100).ToString("N0") + "%" : "-")</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex mb-3">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6 d-flex mb-3">
                 <div class="card w-100 kpi-card">
                     <div class="card-body">
                         <div class="kpi-icon"><i class="fas fa-scale-balanced"></i></div>
                         <div class="kpi-body">
                             <div class="text-muted small">@L["AverageDealSize"]</div>
-                            <div class="h4 mb-0">@(Model.AverageDealSize.HasValue ? Model.AverageDealSize.Value.ToString("N2") : "-")</div>
+                            <div class="display-6">@(Model.AverageDealSize.HasValue ? Model.AverageDealSize.Value.ToString("N2") : "-")</div>
                         </div>
                     </div>
                 </div>
@@ -470,9 +470,16 @@
                 <tbody>
                     @foreach (var task in Model.TaskItems)
                     {
+                        var duePillClass = TaskDueStatus.PillClass(task.DueDate, task.IsCompleted, DateTime.Now, Model.TaskDueSoonLeadDays);
                         <tr class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
                             <td>@task.Title</td>
-                            <td>@(task.DueDate?.ToShortDateString())</td>
+                            <td>
+                                @(task.DueDate?.ToShortDateString())
+                                @if (!string.IsNullOrEmpty(duePillClass))
+                                {
+                                    <span class="pill @duePillClass">@(duePillClass == "pill-danger" ? L["Overdue"] : L["DueSoon"])</span>
+                                }
+                            </td>
                             <td>@task.AssignedToUserName</td>
                             <td>@(task.IsCompleted ? "✓" : "")</td>
                             <td>
@@ -530,8 +537,9 @@
 </div>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Activity"]</h5>
+        <partial name="/Pages/Shared/_PhoneActions.cshtml" model="Model.Customer.PhoneNumber" />
     </div>
     <div class="card-body">
         <form method="post" asp-page-handler="AddNote" class="row g-2 mb-3">
@@ -541,6 +549,12 @@
                     <option value="1">@L["Enum:CustomerNoteType:1"]</option>
                     <option value="2">@L["Enum:CustomerNoteType:2"]</option>
                     <option value="3">@L["Enum:CustomerNoteType:3"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select asp-for="NewNote.Direction" class="form-select">
+                    <option value="0">@L["Enum:LeadDirection:0"]</option>
+                    <option value="1">@L["Enum:LeadDirection:1"]</option>
                 </select>
             </div>
             <div class="col">
@@ -557,8 +571,9 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <span class="badge bg-secondary">@L[$"Enum:CustomerNoteType:{(int)note.Type}"]</span>
+                        <span class="badge bg-info">@L[$"Enum:LeadDirection:{(int)note.Direction}"]</span>
                         <strong class="ms-2">@note.CreatorUserName</strong>
-                        <span class="text-muted ms-2">@note.CreationTime.ToString("g")</span>
+                        <span class="text-muted ms-2">@note.TouchedAt.ToString("g")</span>
                     </div>
                     <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>

@@ -11,6 +11,11 @@ public static class ErpSettings
 
     public const string ContractExpiryAlertLeadDays = GroupName + ".Contracts.ExpiryAlertLeadDays";
 
+    // How many days before a CustomerTask/ProjectTask's DueDate it starts showing as "due soon"
+    // (amber) rather than plain, on the My Workspace reminders list and the Customer/Project
+    // Detail task tables - see Pages/Shared/TaskDueStatus.cs.
+    public const string TaskDueSoonLeadDays = GroupName + ".Tasks.DueSoonLeadDays";
+
     // The minimum acceptable Quote contribution margin (revenue vs snapshotted line Cost, see
     // QuoteAppService's margin gate) - a Quote can't move Draft -> Sent below this without an
     // explicit, permission-gated, logged override. See Sales.OverrideMarginGate.

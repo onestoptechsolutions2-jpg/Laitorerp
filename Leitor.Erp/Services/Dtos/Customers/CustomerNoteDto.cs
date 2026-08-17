@@ -8,7 +8,9 @@ public class CustomerNoteDto : FullAuditedEntityDto<Guid>
 {
     public Guid CustomerId { get; set; }
     public CustomerNoteType Type { get; set; }
+    public LeadDirection Direction { get; set; }
     public string Text { get; set; } = string.Empty;
+    public DateTime TouchedAt { get; set; }
 
     // Resolved by CustomerNoteAppService from IIdentityUserRepository using CreatorId - not a
     // stored column, Mapperly won't map it.

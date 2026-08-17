@@ -12,12 +12,14 @@ using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Projects;
 using Leitor.Erp.Services.Sales;
+using Leitor.Erp.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
+using Volo.Abp.Settings;
 
 namespace Leitor.Erp.Pages.Projects;
 
@@ -33,6 +35,7 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<Agent, Guid> _agentRepository;
     private readonly IRepository<Partner, Guid> _partnerRepository;
     private readonly IFeatureChecker _featureChecker;
+    private readonly ISettingProvider _settingProvider;
 
     public DetailModel(
         ProjectAppService projectAppService,
@@ -43,7 +46,8 @@ public class DetailModel : AbpPageModel
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IRepository<Agent, Guid> agentRepository,
         IRepository<Partner, Guid> partnerRepository,
-        IFeatureChecker featureChecker)
+        IFeatureChecker featureChecker,
+        ISettingProvider settingProvider)
     {
         _projectAppService = projectAppService;
         _projectTaskAppService = projectTaskAppService;
@@ -54,6 +58,7 @@ public class DetailModel : AbpPageModel
         _agentRepository = agentRepository;
         _partnerRepository = partnerRepository;
         _featureChecker = featureChecker;
+        _settingProvider = settingProvider;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -73,6 +78,7 @@ public class DetailModel : AbpPageModel
     public bool CanEdit { get; set; }
     public bool CanConvertToContract { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
+    public int TaskDueSoonLeadDays { get; set; } = 3;
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -84,6 +90,7 @@ public class DetailModel : AbpPageModel
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Projects.Edit);
         CanConvertToContract = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Project", Id);
+        TaskDueSoonLeadDays = int.TryParse(await _settingProvider.GetOrNullAsync(ErpSettings.TaskDueSoonLeadDays), out var leadDays) ? leadDays : 3;
         await LoadAsync();
         await LoadTaskAssigneeOptionsAsync();
         return Page();

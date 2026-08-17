@@ -10,6 +10,11 @@ public class MyWorkspaceDto
     public List<MyTicketDto> Tickets { get; set; } = new();
     public List<MyJobDto> Jobs { get; set; } = new();
 
+    // CustomerTask + (feature-gated) ProjectTask assigned to the current user, not yet completed,
+    // ordered by DueDate - passive, on-screen-only reminders (see MyWorkspaceAppService), no
+    // background worker/email involved.
+    public List<MyReminderDto> Reminders { get; set; } = new();
+
     // Null when the current user doesn't hold DeletionApprovals.Decide - distinct from a genuine
     // zero, same "section only appears if you can see it" convention as DashboardAppService.
     public int? PendingDeletionRequestCount { get; set; }
@@ -44,4 +49,18 @@ public class MyJobDto
     public FieldServiceJobType Type { get; set; }
     public FieldServiceJobStatus Status { get; set; }
     public DateTime ScheduledDate { get; set; }
+}
+
+public class MyReminderDto
+{
+    public Guid Id { get; set; }
+
+    // "CustomerTask" or "ProjectTask" - lets the page link to the right Detail page/anchor.
+    public string EntityType { get; set; } = string.Empty;
+    public Guid ParentId { get; set; }
+    public string ParentName { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public DateTime? DueDate { get; set; }
+    public bool IsOverdue { get; set; }
+    public bool IsDueSoon { get; set; }
 }

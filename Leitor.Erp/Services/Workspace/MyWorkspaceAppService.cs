@@ -5,13 +5,20 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.Support;
+using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Workspace;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Features;
+using Volo.Abp.Settings;
+using Volo.Abp.Timing;
 
 namespace Leitor.Erp.Services.Workspace;
 
@@ -27,7 +34,13 @@ public class MyWorkspaceAppService : ApplicationService
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IRepository<ChangeRequest, Guid> _changeRequestRepository;
     private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
+    private readonly IRepository<CustomerTask, Guid> _customerTaskRepository;
+    private readonly IRepository<ProjectTask, Guid> _projectTaskRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
     private readonly EscalationItemAppService _escalationItemAppService;
+    private readonly IFeatureChecker _featureChecker;
+    private readonly ISettingProvider _settingProvider;
+    private readonly IClock _clock;
 
     public MyWorkspaceAppService(
         IRepository<Ticket, Guid> ticketRepository,
@@ -36,7 +49,13 @@ public class MyWorkspaceAppService : ApplicationService
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
         IRepository<ChangeRequest, Guid> changeRequestRepository,
         IRepository<EscalationItem, Guid> escalationItemRepository,
-        EscalationItemAppService escalationItemAppService)
+        IRepository<CustomerTask, Guid> customerTaskRepository,
+        IRepository<ProjectTask, Guid> projectTaskRepository,
+        IRepository<Project, Guid> projectRepository,
+        EscalationItemAppService escalationItemAppService,
+        IFeatureChecker featureChecker,
+        ISettingProvider settingProvider,
+        IClock clock)
     {
         _ticketRepository = ticketRepository;
         _customerRepository = customerRepository;
@@ -44,7 +63,13 @@ public class MyWorkspaceAppService : ApplicationService
         _deletionRequestRepository = deletionRequestRepository;
         _changeRequestRepository = changeRequestRepository;
         _escalationItemRepository = escalationItemRepository;
+        _customerTaskRepository = customerTaskRepository;
+        _projectTaskRepository = projectTaskRepository;
+        _projectRepository = projectRepository;
         _escalationItemAppService = escalationItemAppService;
+        _featureChecker = featureChecker;
+        _settingProvider = settingProvider;
+        _clock = clock;
     }
 
     public async Task<MyWorkspaceDto> GetAsync()
@@ -131,6 +156,65 @@ public class MyWorkspaceAppService : ApplicationService
             dto.PendingEscalationCount = decidableCount;
         }
 
+        await LoadRemindersAsync(dto, userId);
+
         return dto;
+    }
+
+    // Passive, on-screen-only reminders - no worker/email, computed fresh on every request, same
+    // convention DashboardAppService.GetSalesStatsAsync uses for OverdueInvoices. CustomerTask
+    // always contributes; ProjectTask only when ProjectManagement is enabled, since the entity is
+    // meaningless with the module off (mirrors every other optional-module read in this app).
+    private async Task LoadRemindersAsync(MyWorkspaceDto dto, Guid userId)
+    {
+        var now = _clock.Now;
+        var dueSoonLeadDays = int.TryParse(await _settingProvider.GetOrNullAsync(ErpSettings.TaskDueSoonLeadDays), out var parsed) ? parsed : 3;
+
+        var reminders = new List<MyReminderDto>();
+
+        var customerTasks = await _customerTaskRepository.GetListAsync(x =>
+            x.AssignedToUserId == userId && !x.IsCompleted);
+
+        var customerIds = customerTasks.Select(x => x.CustomerId).Distinct().ToList();
+        var customerNamesById = customerIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : (await _customerRepository.GetListAsync(x => customerIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name);
+
+        reminders.AddRange(customerTasks.Select(x => new MyReminderDto
+        {
+            Id = x.Id,
+            EntityType = "CustomerTask",
+            ParentId = x.CustomerId,
+            ParentName = customerNamesById.GetValueOrDefault(x.CustomerId, string.Empty),
+            Title = x.Title,
+            DueDate = x.DueDate,
+            IsOverdue = TaskDueStatus.IsOverdue(x.DueDate, x.IsCompleted, now),
+            IsDueSoon = TaskDueStatus.IsDueSoon(x.DueDate, x.IsCompleted, now, dueSoonLeadDays)
+        }));
+
+        if (await _featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement))
+        {
+            var projectTasks = await _projectTaskRepository.GetListAsync(x =>
+                x.AssignedToUserId == userId && !x.IsCompleted);
+
+            var projectIds = projectTasks.Select(x => x.ProjectId).Distinct().ToList();
+            var projectNamesById = projectIds.Count == 0
+                ? new Dictionary<Guid, string>()
+                : (await _projectRepository.GetListAsync(x => projectIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Title);
+
+            reminders.AddRange(projectTasks.Select(x => new MyReminderDto
+            {
+                Id = x.Id,
+                EntityType = "ProjectTask",
+                ParentId = x.ProjectId,
+                ParentName = projectNamesById.GetValueOrDefault(x.ProjectId, string.Empty),
+                Title = x.Title,
+                DueDate = x.DueDate,
+                IsOverdue = TaskDueStatus.IsOverdue(x.DueDate, x.IsCompleted, now),
+                IsDueSoon = TaskDueStatus.IsDueSoon(x.DueDate, x.IsCompleted, now, dueSoonLeadDays)
+            }));
+        }
+
+        dto.Reminders = reminders.OrderBy(x => x.DueDate ?? DateTime.MaxValue).ToList();
     }
 }

@@ -65,7 +65,7 @@ public class GlobalSearchAppService : ApplicationService
                 EntityType = "Customer",
                 Title = x.Name,
                 Subtitle = x.PhoneNumber ?? string.Empty,
-                Url = $"/Customers/Detail?id={x.Id}"
+                Url = $"/Customers/Detail/{x.Id}"
             }));
         }
 
@@ -81,7 +81,7 @@ public class GlobalSearchAppService : ApplicationService
                 EntityType = "Lead",
                 Title = x.Name,
                 Subtitle = x.CompanyName ?? x.Phone ?? string.Empty,
-                Url = $"/Leads/Detail?id={x.Id}"
+                Url = $"/Leads/Detail/{x.Id}"
             }));
         }
 
@@ -97,7 +97,7 @@ public class GlobalSearchAppService : ApplicationService
                 EntityType = "Ticket",
                 Title = $"{x.TicketNumber} - {x.Subject}",
                 Subtitle = ticketCustomerNames.GetValueOrDefault(x.CustomerId, string.Empty),
-                Url = $"/Support/Tickets/Detail?id={x.Id}"
+                Url = $"/Support/Tickets/Detail/{x.Id}"
             }));
         }
 
@@ -112,7 +112,7 @@ public class GlobalSearchAppService : ApplicationService
                 EntityType = "Invoice",
                 Title = x.InvoiceNumber,
                 Subtitle = invoiceCustomerNames.GetValueOrDefault(x.CustomerId, string.Empty),
-                Url = $"/Sales/Invoices/Detail?id={x.Id}"
+                Url = $"/Sales/Invoices/Detail/{x.Id}"
             }));
         }
 

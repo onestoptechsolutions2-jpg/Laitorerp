@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.FieldService;
@@ -12,9 +13,11 @@ using Leitor.Erp.Services.Dtos.Assets;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Dtos.Governance;
+using Leitor.Erp.Services.Dtos.Projects;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services.Projects;
 using Leitor.Erp.Services.Support;
 using Leitor.Erp.Services.Workspace;
 using Volo.Abp.Domain.Repositories;
@@ -175,6 +178,141 @@ public class MyWorkspaceAppServiceTests : ErpTestBase
             // per-row RequiredPermission gate - see GlobalSearchAppServiceTests' own comment for
             // the same standing limitation.
             Assert.Equal(1, workspace.PendingEscalationCount);
+        }
+    }
+
+    [Fact]
+    public async Task GetAsync_Reminders_Include_Overdue_And_DueSoon_CustomerTasks_Excludes_Others()
+    {
+        await EnsureDatabaseCreatedAsync();
+
+        var customerAppService = GetRequiredService<CustomerAppService>();
+        var customer = await customerAppService.CreateAsync(new CreateUpdateCustomerDto { Name = "Reminder Test Co" });
+
+        var myUserId = Guid.NewGuid();
+        var someoneElsesUserId = Guid.NewGuid();
+
+        var customerTaskAppService = GetRequiredService<CustomerTaskAppService>();
+
+        var overdueTask = await customerTaskAppService.CreateAsync(new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = customer.Id,
+            Title = "Overdue follow-up",
+            DueDate = DateTime.UtcNow.AddDays(-2),
+            AssignedToUserId = myUserId
+        });
+
+        var dueSoonTask = await customerTaskAppService.CreateAsync(new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = customer.Id,
+            Title = "Due soon follow-up",
+            DueDate = DateTime.UtcNow.AddDays(1),
+            AssignedToUserId = myUserId
+        });
+
+        var farOutTask = await customerTaskAppService.CreateAsync(new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = customer.Id,
+            Title = "Far out follow-up",
+            DueDate = DateTime.UtcNow.AddDays(30),
+            AssignedToUserId = myUserId
+        });
+
+        await customerTaskAppService.CreateAsync(new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = customer.Id,
+            Title = "Someone else's task",
+            DueDate = DateTime.UtcNow.AddDays(-2),
+            AssignedToUserId = someoneElsesUserId
+        });
+
+        var completedTask = await customerTaskAppService.CreateAsync(new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = customer.Id,
+            Title = "Already done",
+            DueDate = DateTime.UtcNow.AddDays(-10),
+            AssignedToUserId = myUserId
+        });
+        await customerTaskAppService.UpdateAsync(completedTask.Id, new CreateUpdateCustomerTaskDto
+        {
+            CustomerId = customer.Id,
+            Title = completedTask.Title,
+            DueDate = completedTask.DueDate,
+            AssignedToUserId = myUserId,
+            IsCompleted = true
+        });
+
+        using (ImpersonateAsUser(myUserId))
+        {
+            var workspaceAppService = GetRequiredService<MyWorkspaceAppService>();
+            var workspace = await workspaceAppService.GetAsync();
+
+            Assert.Equal(3, workspace.Reminders.Count);
+
+            var overdue = workspace.Reminders.Single(x => x.Id == overdueTask.Id);
+            Assert.True(overdue.IsOverdue);
+            Assert.False(overdue.IsDueSoon);
+            Assert.Equal("Reminder Test Co", overdue.ParentName);
+
+            var dueSoon = workspace.Reminders.Single(x => x.Id == dueSoonTask.Id);
+            Assert.False(dueSoon.IsOverdue);
+            Assert.True(dueSoon.IsDueSoon);
+
+            var farOut = workspace.Reminders.Single(x => x.Id == farOutTask.Id);
+            Assert.False(farOut.IsOverdue);
+            Assert.False(farOut.IsDueSoon);
+
+            // Ordered by DueDate ascending: overdue (oldest) first, far-out last.
+            Assert.Equal(overdueTask.Id, workspace.Reminders[0].Id);
+            Assert.Equal(farOutTask.Id, workspace.Reminders[2].Id);
+        }
+    }
+
+    [Fact]
+    public async Task GetAsync_Reminders_Include_ProjectTask_Only_When_ProjectManagement_Feature_Enabled()
+    {
+        await EnsureDatabaseCreatedAsync();
+
+        var customerAppService = GetRequiredService<CustomerAppService>();
+        var customer = await customerAppService.CreateAsync(new CreateUpdateCustomerDto { Name = "Project Reminder Co" });
+
+        var myUserId = Guid.NewGuid();
+
+        var featureManager = GetRequiredService<IFeatureManager>();
+        await featureManager.SetAsync(ErpFeatures.ProjectManagement, "true", "T", null);
+
+        var projectAppService = GetRequiredService<ProjectAppService>();
+        var project = await projectAppService.CreateAsync(new CreateUpdateProjectDto { CustomerId = customer.Id, Title = "Network Rollout" });
+
+        var projectTaskAppService = GetRequiredService<ProjectTaskAppService>();
+        var projectTask = await projectTaskAppService.CreateAsync(new CreateUpdateProjectTaskDto
+        {
+            ProjectId = project.Id,
+            Title = "Survey the site",
+            DueDate = DateTime.UtcNow.AddDays(-1),
+            AssignedToUserId = myUserId
+        });
+
+        using (ImpersonateAsUser(myUserId))
+        {
+            var workspaceAppService = GetRequiredService<MyWorkspaceAppService>();
+            var workspace = await workspaceAppService.GetAsync();
+
+            var reminder = Assert.Single(workspace.Reminders);
+            Assert.Equal(projectTask.Id, reminder.Id);
+            Assert.Equal("ProjectTask", reminder.EntityType);
+            Assert.Equal("Network Rollout", reminder.ParentName);
+            Assert.True(reminder.IsOverdue);
+        }
+
+        await featureManager.SetAsync(ErpFeatures.ProjectManagement, "false", "T", null);
+
+        using (ImpersonateAsUser(myUserId))
+        {
+            var workspaceAppService = GetRequiredService<MyWorkspaceAppService>();
+            var workspace = await workspaceAppService.GetAsync();
+
+            Assert.Empty(workspace.Reminders);
         }
     }
 }
