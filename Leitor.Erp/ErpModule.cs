@@ -13,6 +13,7 @@ using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
 using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
+using Leitor.Erp.Pages.Shared.Components.ThemeFonts;
 using Leitor.Erp.Services.Governance;
 using QuestPDF.Infrastructure;
 using OpenIddict.Validation.AspNetCore;
@@ -265,7 +266,7 @@ public class ErpModule : AbpModule
                 LeptonXLiteThemeBundles.Styles.Global,
                 bundle =>
                 {
-                    bundle.AddFiles("/global-styles.css", "/leitor-theme.css");
+                    bundle.AddFiles("/global-styles.css", "/leitor-tokens.css", "/leitor-theme.css");
                 }
             );
 
@@ -299,6 +300,15 @@ public class ErpModule : AbpModule
             options.Add(
                 LayoutHooks.Body.Last,
                 typeof(FormOverlayViewComponent),
+                layout: StandardLayouts.Application);
+
+            // Google Fonts <link> tags for Inter (see ThemeFontsViewComponent's own comment for
+            // why this is a real <head> link rather than a CSS @import). Account (login) layout
+            // is excluded same as the rest of this method - it loads the same fonts directly via
+            // a <link> in Login.cshtml's own styles section instead.
+            options.Add(
+                LayoutHooks.Head.Last,
+                typeof(ThemeFontsViewComponent),
                 layout: StandardLayouts.Application);
         });
     }

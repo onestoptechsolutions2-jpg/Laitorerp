@@ -1,90 +1,18 @@
 /* Leitor ERP design system - "Warm Sunrise".
    Layered on top of stock LeptonXLite + Bootstrap 5 - global-styles.css (logo swap) stays
-   separate and untouched; this file owns the app's visual identity. Loaded after the theme's
-   own CSS in the Global style bundle (Leitor.Erp/ErpModule.cs, ConfigureBundles()), so these
-   custom-property overrides win by source order without needing broad !important usage.
-   color-mix()/relative color syntax deliberately avoided in favor of plain hex/rgba values -
-   this is an internal business tool, not a place to risk a browser-support edge case.
-   Replaces the previous "deep technical teal" identity with a warm amber/purple system - see
-   Pages/Account/login.css for the matching treatment on the Account layout, which does NOT
-   include this bundle (ConfigureLayoutHooks excludes it) and is themed independently.
-   One new dependency this introduces: Inter is not a system font, so it's loaded from Google
-   Fonts below - the previous system-font-stack approach had zero external requests, this one
-   makes one. Falls back to the old system stack if that request ever fails. */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-:root {
-  /* Brand - amber as the primary accent, purple as a secondary accent for admin/tag contexts.
-     --leitor-primary stays the general-purpose brand token (links, icons, focus rings);
-     --leitor-primary-dark is used where amber itself would be too light for text contrast
-     (body-sized links on a cream background) and as the darker stop in gradients. */
-  --leitor-primary: #f59e0b;
-  --leitor-primary-rgb: 245, 158, 11;
-  --leitor-primary-dark: #d97706;
-  --leitor-primary-light: #fbbf24;
-  --leitor-primary-soft: rgba(245, 158, 11, 0.10);
-
-  --leitor-secondary: #7c3aed;
-  --leitor-secondary-rgb: 124, 58, 237;
-  --leitor-secondary-mid: #8b5cf6;
-  --leitor-secondary-soft: rgba(124, 58, 237, 0.08);
-
-  /* Neutrals - warm cream, never pure white/grey. --leitor-ink is reserved for headline-weight
-     text (h1-h6, card-title, key labels); body copy uses the lighter --leitor-body so headings
-     still read as the darkest thing on the page. */
-  --leitor-paper: #fffbf7;
-  --leitor-surface: #ffffff;
-  --leitor-surface-sunken: #fff8f0;
-  --leitor-ink: #1c1108;
-  --leitor-body: #4a3728;
-  --leitor-ink-soft: #7c6555;
-  --leitor-border: #e8ddd2;
-  --leitor-border-light: #f3ede6;
-  --leitor-border-soft: #f3ede6;
-
-  /* Semantic status colors - separate palette from the brand accent. Success stays green per
-     the design system (positive states only); danger/warning/info aren't specified by the
-     Warm Sunrise token list, so these are chosen to read warm-compatible (no cool greys) while
-     staying visually distinct from the amber/purple brand accents and from each other. */
-  --leitor-success: #059669;
-  --leitor-success-bg: rgba(5, 150, 105, 0.12);
-  --leitor-warning: #c2410c;
-  --leitor-warning-bg: rgba(194, 65, 12, 0.12);
-  --leitor-danger: #dc2626;
-  --leitor-danger-bg: rgba(220, 38, 38, 0.12);
-  --leitor-info: #2563eb;
-  --leitor-info-bg: rgba(37, 99, 235, 0.12);
-  --leitor-neutral: #7c6555;
-  --leitor-neutral-bg: var(--leitor-border-light);
-
-  --leitor-font-sans: "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --leitor-font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
-
-  /* Shape - large, consistent radii; nothing sharp-cornered. --leitor-radius-sm/--leitor-radius
-     ("md") are the workhorse tokens already referenced throughout this file (buttons, inputs,
-     dropdowns); -lg/-xl are for cards and feature surfaces specifically. */
-  --leitor-radius-sm: 10px;
-  --leitor-radius: 16px;
-  --leitor-radius-lg: 24px;
-  --leitor-radius-xl: 32px;
-  --leitor-radius-pill: 9999px;
-
-  /* Warm-tinted shadows (brown, not neutral grey/black) - three elevation tiers, same as
-     before: resting (sm), raised (md), floating (lg, for modals/dropdowns/dialogs). */
-  --leitor-shadow-sm: 0 2px 8px rgba(90, 40, 10, 0.07), 0 1px 2px rgba(90, 40, 10, 0.04);
-  --leitor-shadow: 0 6px 24px rgba(90, 40, 10, 0.09), 0 2px 6px rgba(90, 40, 10, 0.05);
-  --leitor-shadow-floating: 0 16px 48px rgba(90, 40, 10, 0.12), 0 4px 12px rgba(90, 40, 10, 0.06);
-
-  /* Warm-tinted scrim for modal/panel backdrops - replaces the old neutral rgba(35,36,31,...)
-     so even the "dim the page" layer stays on-brand rather than reading as generic grey/black. */
-  --leitor-scrim: rgba(28, 17, 8, 0.32);
-  --leitor-scrim-soft: rgba(28, 17, 8, 0.35);
-
-  /* Keyboard-focus ring, independent of the primary brand color so it stays visible against
-     both light surfaces and the --leitor-primary buttons it outlines. */
-  --leitor-focus-ring: 0 0 0 3px rgba(var(--leitor-primary-rgb), 0.32);
-}
+   separate and untouched; this file owns the app's component-level visual identity. Token
+   VALUES (colors/shape/shadows) live in wwwroot/leitor-tokens.css, loaded before this file in
+   the same bundle - that's the single source of truth shared with Pages/Account/login.css
+   (which gets leitor-tokens.css via a direct <link>, since the Account layout doesn't include
+   this bundle - see ErpModule.ConfigureBundles/ConfigureLayoutHooks). Loaded after the theme's
+   own CSS in the Global style bundle, so these overrides win by source order without needing
+   broad !important usage. color-mix()/relative color syntax deliberately avoided in favor of
+   plain hex/rgba values - this is an internal business tool, not a place to risk a browser-
+   support edge case.
+   Inter (loaded via ThemeFontsViewComponent at LayoutHooks.Head.Last, not a CSS @import - bundle
+   concatenation would put an @import after global-styles.css's own rules, which is invalid CSS
+   and gets silently dropped by the browser) is the one new external dependency this introduces;
+   the font stack below falls back to the old system stack if that request ever fails. */
 
 /* Motion is decorative here, never load-bearing for information - honor the OS-level request to
    turn it off instead of forcing every hover/press transition on everyone. */

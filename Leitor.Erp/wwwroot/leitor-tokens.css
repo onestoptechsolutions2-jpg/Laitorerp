@@ -1,0 +1,80 @@
+/* Leitor ERP design tokens - "Warm Sunrise".
+   Single source of truth for the app's color/shape/shadow palette. Loaded on EVERY layout,
+   including the Account (login) layout, which does NOT get the rest of leitor-theme.css (see
+   ErpModule.ConfigureBundles/ConfigureLayoutHooks - StandardLayouts.Application excludes
+   Account, so login needs its own direct <link>, added in Login.cshtml). Component-level rules
+   (buttons, cards, pills, etc.) stay in leitor-theme.css for the main app and in
+   Pages/Account/login.css for the login page - only the token values themselves are shared,
+   so there is exactly one place to change a color and have both surfaces follow. */
+
+:root {
+  /* Brand - amber as the primary accent, purple as a secondary accent for admin/tag contexts.
+     --leitor-primary stays the general-purpose brand token (links, icons, focus rings);
+     --leitor-primary-dark is used where amber itself would be too light for text contrast
+     (body-sized links on a cream background) and as the darker stop in gradients. */
+  --leitor-primary: #f59e0b;
+  --leitor-primary-rgb: 245, 158, 11;
+  --leitor-primary-dark: #d97706;
+  --leitor-primary-light: #fbbf24;
+  --leitor-primary-soft: rgba(245, 158, 11, 0.10);
+
+  --leitor-secondary: #7c3aed;
+  --leitor-secondary-rgb: 124, 58, 237;
+  --leitor-secondary-mid: #8b5cf6;
+  --leitor-secondary-soft: rgba(124, 58, 237, 0.08);
+
+  /* Neutrals - warm cream, never pure white/grey. --leitor-ink is reserved for headline-weight
+     text (h1-h6, card-title, key labels); body copy uses the lighter --leitor-body so headings
+     still read as the darkest thing on the page. */
+  --leitor-paper: #fffbf7;
+  --leitor-surface: #ffffff;
+  --leitor-surface-sunken: #fff8f0;
+  --leitor-ink: #1c1108;
+  --leitor-body: #4a3728;
+  --leitor-ink-soft: #7c6555;
+  --leitor-border: #e8ddd2;
+  --leitor-border-light: #f3ede6;
+  --leitor-border-soft: #f3ede6;
+
+  /* Semantic status colors - separate palette from the brand accent. Success stays green per
+     the design system (positive states only); danger/warning/info aren't specified by the
+     Warm Sunrise token list, so these are chosen to read warm-compatible (no cool greys) while
+     staying visually distinct from the amber/purple brand accents and from each other. */
+  --leitor-success: #059669;
+  --leitor-success-bg: rgba(5, 150, 105, 0.12);
+  --leitor-warning: #c2410c;
+  --leitor-warning-bg: rgba(194, 65, 12, 0.12);
+  --leitor-danger: #dc2626;
+  --leitor-danger-bg: rgba(220, 38, 38, 0.12);
+  --leitor-info: #2563eb;
+  --leitor-info-bg: rgba(37, 99, 235, 0.12);
+  --leitor-neutral: #7c6555;
+  --leitor-neutral-bg: var(--leitor-border-light);
+
+  --leitor-font-sans: "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --leitor-font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Shape - large, consistent radii; nothing sharp-cornered. --leitor-radius-sm/--leitor-radius
+     ("md") are the workhorse tokens (buttons, inputs, dropdowns); -lg/-xl are for cards and
+     feature surfaces specifically. */
+  --leitor-radius-sm: 10px;
+  --leitor-radius: 16px;
+  --leitor-radius-lg: 24px;
+  --leitor-radius-xl: 32px;
+  --leitor-radius-pill: 9999px;
+
+  /* Warm-tinted shadows (brown, not neutral grey/black) - three elevation tiers: resting (sm),
+     raised (md), floating (lg, for modals/dropdowns/dialogs). */
+  --leitor-shadow-sm: 0 2px 8px rgba(90, 40, 10, 0.07), 0 1px 2px rgba(90, 40, 10, 0.04);
+  --leitor-shadow: 0 6px 24px rgba(90, 40, 10, 0.09), 0 2px 6px rgba(90, 40, 10, 0.05);
+  --leitor-shadow-floating: 0 16px 48px rgba(90, 40, 10, 0.12), 0 4px 12px rgba(90, 40, 10, 0.06);
+
+  /* Warm-tinted scrim for modal/panel backdrops - replaces a neutral rgba(35,36,31,...) so even
+     the "dim the page" layer stays on-brand rather than reading as generic grey/black. */
+  --leitor-scrim: rgba(28, 17, 8, 0.32);
+  --leitor-scrim-soft: rgba(28, 17, 8, 0.35);
+
+  /* Keyboard-focus ring, independent of the primary brand color so it stays visible against
+     both light surfaces and the --leitor-primary buttons it outlines. */
+  --leitor-focus-ring: 0 0 0 3px rgba(var(--leitor-primary-rgb), 0.32);
+}
