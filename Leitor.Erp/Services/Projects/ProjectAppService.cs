@@ -108,10 +108,28 @@ public class ProjectAppService :
                 project.CustomerName = customerName;
             }
         }
+
+        var dependencyIds = projects.Where(x => x.DependsOnProjectId.HasValue).Select(x => x.DependsOnProjectId!.Value).Distinct().ToList();
+        if (dependencyIds.Count > 0)
+        {
+            var titlesById = (await Repository.GetListAsync(x => dependencyIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Title);
+            foreach (var project in projects)
+            {
+                if (project.DependsOnProjectId.HasValue && titlesById.TryGetValue(project.DependsOnProjectId.Value, out var title))
+                {
+                    project.DependsOnProjectTitle = title;
+                }
+            }
+        }
     }
 
     protected override async Task<Project> MapToEntityAsync(CreateUpdateProjectDto createInput)
     {
+        if (createInput.Status == ProjectStatus.Active)
+        {
+            await ProjectDependencyGuard.EnsureDependencyCompleteAsync(Repository, createInput.DependsOnProjectId);
+        }
+
         var projectNumber = await DocumentNumbering.NextAsync(Repository, _dataFilter, "PRJ-");
 
         var entity = new Project(GuidGenerator.Create(), projectNumber, createInput.CustomerId, createInput.Title);
@@ -119,10 +137,18 @@ public class ProjectAppService :
         return entity;
     }
 
-    protected override Task MapToEntityAsync(CreateUpdateProjectDto updateInput, Project entity)
+    protected override async Task MapToEntityAsync(CreateUpdateProjectDto updateInput, Project entity)
     {
+        // Only check when actually transitioning INTO Active - editing an already-Active project
+        // (or moving it to any other status) doesn't need to re-prove the dependency, same
+        // "check the transition, not the state" shape as QuoteAppService.EnforceMarginGateAsync.
+        var startingNow = entity.Status != ProjectStatus.Active && updateInput.Status == ProjectStatus.Active;
+        if (startingNow)
+        {
+            await ProjectDependencyGuard.EnsureDependencyCompleteAsync(Repository, updateInput.DependsOnProjectId ?? entity.DependsOnProjectId);
+        }
+
         CopyToEntity(updateInput, entity);
-        return Task.CompletedTask;
     }
 
     private static void CopyToEntity(CreateUpdateProjectDto input, Project entity)
@@ -134,5 +160,6 @@ public class ProjectAppService :
         entity.StartDate = input.StartDate;
         entity.EndDate = input.EndDate;
         entity.Budget = input.Budget;
+        entity.DependsOnProjectId = input.DependsOnProjectId;
     }
 }

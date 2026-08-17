@@ -8,6 +8,7 @@ public class OrderLineDto : FullAuditedEntityDto<Guid>, ILineItem
 {
     public Guid OrderId { get; set; }
     public Guid? ProductId { get; set; }
+    public Guid? ServiceCatalogItemId { get; set; }
     public string Description { get; set; } = string.Empty;
     public decimal UnitPrice { get; set; }
     public decimal Quantity { get; set; }

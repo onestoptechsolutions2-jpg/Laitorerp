@@ -121,7 +121,7 @@
         @if (Model.CanEdit)
         {
             <form method="post" asp-page-handler="AddLine" class="row g-2 mb-3 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">@L["Product"]</label>
                     <div class="input-group">
                         <select asp-for="NewLine.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
@@ -130,7 +130,11 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label">@L["Service"]</label>
+                    <select asp-for="NewLine.ServiceCatalogItemId" asp-items="Model.ServiceOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label">@L["Description"]</label>
                     <input asp-for="NewLine.Description" class="form-control" />
                 </div>

@@ -140,6 +140,7 @@ public class OrderLineAppService :
     {
         entity.OrderId = input.OrderId;
         entity.ProductId = input.ProductId;
+        entity.ServiceCatalogItemId = input.ServiceCatalogItemId;
         entity.Description = input.Description;
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
@@ -158,6 +159,23 @@ public class OrderLineAppService :
             {
                 entity.UnitPrice = await PriceListResolver.ResolveUnitPriceAsync(
                     _priceListItemRepository, _productRepository, customer?.DefaultPriceListId, input.ProductId.Value);
+            }
+
+            if (applyCustomerDefaults && entity.DiscountPercent == 0 && customer != null)
+            {
+                entity.DiscountPercent = customer.DiscountPercent;
+            }
+        }
+        else if (input.ServiceCatalogItemId.HasValue && entity.UnitPrice == 0)
+        {
+            var order = await _orderRepository.FindAsync(input.OrderId);
+            var customer = order != null ? await _customerRepository.FindAsync(order.CustomerId) : null;
+
+            var resolved = await PriceListResolver.ResolveServiceRateAsync(
+                _priceListItemRepository, customer?.DefaultPriceListId, input.ServiceCatalogItemId.Value);
+            if (resolved.HasValue)
+            {
+                entity.UnitPrice = resolved.Value.UnitPrice;
             }
 
             if (applyCustomerDefaults && entity.DiscountPercent == 0 && customer != null)

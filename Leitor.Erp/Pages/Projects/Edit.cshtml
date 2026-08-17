@@ -19,6 +19,7 @@
             <abp-input asp-for="Project.StartDate" />
             <abp-input asp-for="Project.EndDate" />
             <abp-input asp-for="Project.Budget" />
+            <abp-select asp-for="Project.DependsOnProjectId" asp-items="Model.DependsOnProjectOptions" label="@L["DependsOnProject"].Value" />
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">@L["Save"]</button>

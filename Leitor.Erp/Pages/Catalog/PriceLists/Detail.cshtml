@@ -1,6 +1,7 @@
 @page "{id}"
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Sales
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Catalog.PriceLists.DetailModel
 
@@ -14,20 +15,29 @@
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">@L["Products"]</h5>
+        <p class="text-muted small mb-0">@L["PriceListRateCardHint"]</p>
     </div>
     <div class="card-body">
         @if (Model.CanEdit)
         {
             <form method="post" asp-page-handler="AddItem" class="row g-2 mb-3 align-items-end">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label class="form-label">@L["Product"]</label>
                     <select asp-for="NewItem.ProductId" asp-items="Model.ProductOptions" class="form-select"></select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label">@L["Service"]</label>
+                    <select asp-for="NewItem.ServiceCatalogItemId" asp-items="Model.ServiceOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["RateType"]</label>
+                    <abp-input asp-for="NewItem.RateType" />
+                </div>
+                <div class="col-md-2">
                     <label class="form-label">@L["UnitPrice"]</label>
                     <input asp-for="NewItem.UnitPrice" class="form-control" />
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-primary">@L["AddPrice"]</button>
                 </div>
             </form>
@@ -37,6 +47,7 @@
                 <thead>
                     <tr>
                         <th>@L["Product"]</th>
+                        <th>@L["RateType"]</th>
                         <th>@L["UnitPrice"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
@@ -44,12 +55,13 @@
                 <tbody>
                     @if (!Model.Items.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="3">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var item in Model.Items)
                     {
                         <tr>
-                            <td>@item.ProductName</td>
+                            <td>@(item.ProductName ?? item.ServiceCatalogItemName)</td>
+                            <td>@(item.ServiceCatalogItemId.HasValue ? L[$"Enum:RateType:{(int)item.RateType}"].Value : "-")</td>
                             <td>@item.UnitPrice.ToString("N2")</td>
                             <td>
                                 @if (Model.CanEdit)

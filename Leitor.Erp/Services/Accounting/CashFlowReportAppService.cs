@@ -36,6 +36,26 @@ public class CashFlowReportAppService : ApplicationService
         _fixedAssetRepository = fixedAssetRepository;
     }
 
+    // "How much cash do we have right now" - distinct from GetCashFlowAsync above, which is
+    // always a period (fromDate/toDate) change, never a single as-of-today balance. Reuses the
+    // exact same SystemAccountRole.Cash + ComputeAccountBalanceAsync logic that role's balance
+    // already relies on elsewhere in this class, just called with today's date. Added 2026-08-17
+    // for a simple day-to-day cash KPI on the Dashboard - not more accounting depth, a single
+    // number for someone who doesn't want to read a Trial Balance.
+    public async Task<decimal> GetCurrentCashBalanceAsync()
+    {
+        await CheckPolicyAsync(ErpPermissions.Accounting.Default);
+
+        var accounts = await _accountRepository.GetListAsync();
+        var cashAccount = accounts.FirstOrDefault(x => x.SystemRole == SystemAccountRole.Cash);
+        if (cashAccount == null)
+        {
+            return 0;
+        }
+
+        return await ComputeAccountBalanceAsync(cashAccount.Id, Clock.Now, isAsset: true);
+    }
+
     public async Task<CashFlowDto> GetCashFlowAsync(DateTime fromDate, DateTime toDate)
     {
         await CheckPolicyAsync(ErpPermissions.Accounting.Default);

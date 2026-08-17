@@ -12,12 +12,14 @@ using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Dtos.Opportunities;
+using Leitor.Erp.Services.Dtos.Projects;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Dtos.ServiceRequests;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Opportunities;
+using Leitor.Erp.Services.Projects;
 using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.ServiceRequests;
 using Leitor.Erp.Services.Support;
@@ -56,6 +58,7 @@ public class DetailModel : AbpPageModel
     private readonly InvoiceAppService _invoiceAppService;
     private readonly LeadTouchAppService _leadTouchAppService;
     private readonly ServiceRequestAppService _serviceRequestAppService;
+    private readonly ProjectAppService _projectAppService;
     private readonly IFeatureChecker _featureChecker;
     private readonly IRepository<Lead, Guid> _leadRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
@@ -82,6 +85,7 @@ public class DetailModel : AbpPageModel
         InvoiceAppService invoiceAppService,
         LeadTouchAppService leadTouchAppService,
         ServiceRequestAppService serviceRequestAppService,
+        ProjectAppService projectAppService,
         IFeatureChecker featureChecker,
         IRepository<Lead, Guid> leadRepository,
         IRepository<Proposal, Guid> proposalRepository,
@@ -107,6 +111,7 @@ public class DetailModel : AbpPageModel
         _invoiceAppService = invoiceAppService;
         _leadTouchAppService = leadTouchAppService;
         _serviceRequestAppService = serviceRequestAppService;
+        _projectAppService = projectAppService;
         _featureChecker = featureChecker;
         _leadRepository = leadRepository;
         _proposalRepository = proposalRepository;
@@ -126,6 +131,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<TicketDto> Tickets { get; set; } = Array.Empty<TicketDto>();
     public CustomerSlaPerformanceDto? SlaPerformance { get; set; }
     public IReadOnlyList<ServiceRequestDto> ServiceRequests { get; set; } = Array.Empty<ServiceRequestDto>();
+    public IReadOnlyList<ProjectDto> Projects { get; set; } = Array.Empty<ProjectDto>();
 
     // 360 pipeline/finance view - the Quote/Order/Invoice repositories already existed in
     // CustomerAppService for cascade-delete; this surfaces the same data for display instead.
@@ -250,6 +256,17 @@ public class DetailModel : AbpPageModel
                 MaxResultCount = 1000
             });
             ServiceRequests = serviceRequests.Items;
+        }
+
+        if (await _featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement) &&
+            await AuthorizationService.IsGrantedAsync(ErpPermissions.Projects.Default))
+        {
+            var projects = await _projectAppService.GetListAsync(new GetProjectListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            Projects = projects.Items;
         }
 
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Default))

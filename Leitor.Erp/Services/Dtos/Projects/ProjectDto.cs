@@ -15,7 +15,9 @@ public class ProjectDto : FullAuditedEntityDto<Guid>
     public DateTime? EndDate { get; set; }
     public decimal? Budget { get; set; }
     public Guid? ConvertedToContractId { get; set; }
+    public Guid? DependsOnProjectId { get; set; }
 
-    // Resolved by ProjectAppService - not a stored column.
+    // Resolved by ProjectAppService - not stored columns.
     public string? CustomerName { get; set; }
+    public string? DependsOnProjectTitle { get; set; }
 }

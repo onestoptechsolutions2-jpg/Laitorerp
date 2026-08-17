@@ -25,4 +25,6 @@ public class CreateUpdateProjectDto
 
     [Range(0, double.MaxValue)]
     public decimal? Budget { get; set; }
+
+    public Guid? DependsOnProjectId { get; set; }
 }

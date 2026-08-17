@@ -10,6 +10,8 @@ public class CreateUpdateQuoteLineDto
 
     public Guid? ProductId { get; set; }
 
+    public Guid? ServiceCatalogItemId { get; set; }
+
     [Required]
     [StringLength(512)]
     public string Description { get; set; } = string.Empty;

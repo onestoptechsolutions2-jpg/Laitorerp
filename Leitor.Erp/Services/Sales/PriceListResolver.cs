@@ -31,4 +31,24 @@ public static class PriceListResolver
         var product = await productRepository.GetAsync(productId);
         return product.UnitPrice;
     }
+
+    // Services have no ServiceCatalogItem.UnitPrice to fall back to (unlike Product) - there's no
+    // "standard price" for a service outside a price list/rate card, only what's explicitly
+    // priced there. No match means the line stays at whatever the user typed (or 0, same as a
+    // one-off line with no catalog reference at all).
+    public static async Task<(decimal UnitPrice, RateType RateType)?> ResolveServiceRateAsync(
+        IRepository<PriceListItem, Guid> priceListItemRepository,
+        Guid? priceListId,
+        Guid serviceCatalogItemId)
+    {
+        if (!priceListId.HasValue)
+        {
+            return null;
+        }
+
+        var priceListItem = (await priceListItemRepository.GetListAsync(
+            x => x.PriceListId == priceListId.Value && x.ServiceCatalogItemId == serviceCatalogItemId)).FirstOrDefault();
+
+        return priceListItem == null ? null : (priceListItem.UnitPrice, priceListItem.RateType);
+    }
 }

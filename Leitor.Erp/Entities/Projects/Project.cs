@@ -26,6 +26,16 @@ public class Project : FullAuditedAggregateRoot<Guid>
     // hint. A loose reference (no FK), same convention as Ticket.ContractId.
     public Guid? ConvertedToContractId { get; set; }
 
+    // One field, two jobs: (a) sequencing - e.g. a CCTV/video-intercom project that needs network
+    // infrastructure in place first sets this to that network project, and
+    // ProjectDependencyGuard blocks moving Status to Active until the dependency is Completed;
+    // (b) lineage - a follow-up/maintenance project created from a completed one's Detail page
+    // ("Create Follow-up Project") sets this to the original, same "prefilled Create page + loose
+    // Guid back-reference" mechanism as ConvertedToContractId above. Both are really the same
+    // relationship shape (this project comes after that one), just initiated from different
+    // points in the UI.
+    public Guid? DependsOnProjectId { get; set; }
+
     protected Project()
     {
     }

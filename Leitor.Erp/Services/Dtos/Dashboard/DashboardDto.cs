@@ -11,6 +11,11 @@ public class DashboardDto
     public OpportunityStatsDto? Opportunities { get; set; }
     public FieldServiceStatsDto? FieldService { get; set; }
     public SalesStatsDto? Sales { get; set; }
+
+    // Null when the current user doesn't hold Accounting.Default - same "section only appears if
+    // you can see it" convention as every other DashboardDto section. A simple "how much cash do
+    // we have right now" figure, distinct from the full Cash Flow report.
+    public decimal? CashOnHand { get; set; }
 }
 
 public class OpportunityStatsDto

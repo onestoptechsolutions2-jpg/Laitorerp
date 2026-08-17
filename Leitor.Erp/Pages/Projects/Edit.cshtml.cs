@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Projects;
@@ -21,12 +22,18 @@ public class EditModel : AbpPageModel
 {
     private readonly ProjectAppService _projectAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IFeatureChecker _featureChecker;
 
-    public EditModel(ProjectAppService projectAppService, IRepository<Customer, Guid> customerRepository, IFeatureChecker featureChecker)
+    public EditModel(
+        ProjectAppService projectAppService,
+        IRepository<Customer, Guid> customerRepository,
+        IRepository<Project, Guid> projectRepository,
+        IFeatureChecker featureChecker)
     {
         _projectAppService = projectAppService;
         _customerRepository = customerRepository;
+        _projectRepository = projectRepository;
         _featureChecker = featureChecker;
     }
 
@@ -37,6 +44,7 @@ public class EditModel : AbpPageModel
     public CreateUpdateProjectDto Project { get; set; } = new();
 
     public List<SelectListItem> CustomerOptions { get; set; } = new();
+    public List<SelectListItem> DependsOnProjectOptions { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -54,7 +62,8 @@ public class EditModel : AbpPageModel
             Status = project.Status,
             StartDate = project.StartDate,
             EndDate = project.EndDate,
-            Budget = project.Budget
+            Budget = project.Budget,
+            DependsOnProjectId = project.DependsOnProjectId
         };
 
         await LoadOptionsAsync();
@@ -80,5 +89,12 @@ public class EditModel : AbpPageModel
             .OrderBy(x => x.Name)
             .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
             .ToList();
+
+        // Excludes this project itself - can't depend on itself.
+        var projects = await _projectRepository.GetListAsync(x => x.Id != Id);
+        DependsOnProjectOptions = new List<SelectListItem> { new(L["None"], "") };
+        DependsOnProjectOptions.AddRange(
+            projects.OrderBy(x => x.Title).Select(x => new SelectListItem($"{x.ProjectNumber} - {x.Title}", x.Id.ToString()))
+        );
     }
 }

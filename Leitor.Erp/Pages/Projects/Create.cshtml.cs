@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Projects;
@@ -21,12 +22,18 @@ public class CreateModel : AbpPageModel
 {
     private readonly ProjectAppService _projectAppService;
     private readonly IRepository<Customer, Guid> _customerRepository;
+    private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IFeatureChecker _featureChecker;
 
-    public CreateModel(ProjectAppService projectAppService, IRepository<Customer, Guid> customerRepository, IFeatureChecker featureChecker)
+    public CreateModel(
+        ProjectAppService projectAppService,
+        IRepository<Customer, Guid> customerRepository,
+        IRepository<Project, Guid> projectRepository,
+        IFeatureChecker featureChecker)
     {
         _projectAppService = projectAppService;
         _customerRepository = customerRepository;
+        _projectRepository = projectRepository;
         _featureChecker = featureChecker;
     }
 
@@ -36,13 +43,40 @@ public class CreateModel : AbpPageModel
         StartDate = DateTime.Today
     };
 
+    // Set when arriving via a Completed project's "Create Follow-up Project" link - same
+    // prefilled-Create-page mechanism as Contracts/Create's FromProjectId/PrefillTitle (no new
+    // wizard page). Unlike the Project->Contract link, this needs no write-back step: the new
+    // Project's own DependsOnProjectId field carries the relationship directly.
+    [BindProperty(SupportsGet = true)]
+    public Guid? DependsOnProjectId { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public Guid? PrefillCustomerId { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? PrefillTitle { get; set; }
+
     public List<SelectListItem> CustomerOptions { get; set; } = new();
+    public List<SelectListItem> DependsOnProjectOptions { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
         if (!await _featureChecker.IsEnabledAsync(ErpFeatures.ProjectManagement))
         {
             return NotFound();
+        }
+
+        if (DependsOnProjectId.HasValue)
+        {
+            Project.DependsOnProjectId = DependsOnProjectId;
+        }
+        if (PrefillCustomerId.HasValue)
+        {
+            Project.CustomerId = PrefillCustomerId.Value;
+        }
+        if (!string.IsNullOrWhiteSpace(PrefillTitle))
+        {
+            Project.Title = PrefillTitle;
         }
 
         await LoadOptionsAsync();
@@ -68,5 +102,11 @@ public class CreateModel : AbpPageModel
             .OrderBy(x => x.Name)
             .Select(x => new SelectListItem(x.Name, x.Id.ToString()))
             .ToList();
+
+        var projects = await _projectRepository.GetListAsync();
+        DependsOnProjectOptions = new List<SelectListItem> { new(L["None"], "") };
+        DependsOnProjectOptions.AddRange(
+            projects.OrderBy(x => x.Title).Select(x => new SelectListItem($"{x.ProjectNumber} - {x.Title}", x.Id.ToString()))
+        );
     }
 }

@@ -1,6 +1,7 @@
 @page "{id}"
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Projects
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Projects.DetailModel
 
@@ -23,6 +24,10 @@
                     <a asp-page="/Customers/Contracts/Create" asp-route-customerId="@Model.Project.CustomerId" asp-route-PrefillTitle="@Model.Project.Title" asp-route-FromProjectId="@Model.Project.Id" class="btn btn-outline-success">@L["ConvertToContract"]</a>
                 }
             }
+            @if (Model.CanEdit && Model.Project.Status == ProjectStatus.Completed)
+            {
+                <a asp-page="./Create" asp-route-PrefillCustomerId="@Model.Project.CustomerId" asp-route-DependsOnProjectId="@Model.Project.Id" asp-route-PrefillTitle="@($"Follow-up: {Model.Project.Title}")" class="btn btn-outline-primary">@L["CreateFollowUpProject"]</a>
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>
@@ -38,6 +43,12 @@
             <dd class="col-sm-4">@Model.Project.StartDate.ToShortDateString()</dd>
             <dt class="col-sm-2">@L["EndDate"]</dt>
             <dd class="col-sm-4">@(Model.Project.EndDate?.ToShortDateString())</dd>
+
+            @if (Model.Project.DependsOnProjectId.HasValue)
+            {
+                <dt class="col-sm-2">@L["DependsOnProject"]</dt>
+                <dd class="col-sm-4"><a asp-page="./Detail" asp-route-id="@Model.Project.DependsOnProjectId">@Model.Project.DependsOnProjectTitle</a></dd>
+            }
 
             @if (Model.Project.Budget.HasValue)
             {

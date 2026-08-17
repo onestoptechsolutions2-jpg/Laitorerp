@@ -124,6 +124,21 @@ else
                 </div>
             </div>
         }
+        @if (Model.Dashboard.CashOnHand.HasValue)
+        {
+            <div class="col-xl-3 col-md-6 d-flex mb-3 mb-xl-0">
+                <div class="card w-100 kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-icon"><i class="fas fa-sack-dollar"></i></div>
+                        <div class="kpi-body">
+                            <div class="text-muted">@L["Dashboard:CashOnHand"]</div>
+                            <div class="display-6">@Model.Dashboard.CashOnHand.Value.ToString("N2")</div>
+                            <a asp-page="/Accounting/Reports/CashFlow/Index" class="small">@L["Dashboard:ViewCashFlow"]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
     <div class="row">

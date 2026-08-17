@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Accounting;
 using Leitor.Erp.Services.Dtos.Dashboard;
 using Leitor.Erp.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -30,6 +31,7 @@ public class DashboardAppService : ApplicationService
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IRepository<InvoiceLine, Guid> _invoiceLineRepository;
     private readonly IRepository<Payment, Guid> _paymentRepository;
+    private readonly CashFlowReportAppService _cashFlowReportAppService;
 
     public DashboardAppService(
         IRepository<Lead, Guid> leadRepository,
@@ -41,7 +43,8 @@ public class DashboardAppService : ApplicationService
         IRepository<Order, Guid> orderRepository,
         IRepository<Invoice, Guid> invoiceRepository,
         IRepository<InvoiceLine, Guid> invoiceLineRepository,
-        IRepository<Payment, Guid> paymentRepository)
+        IRepository<Payment, Guid> paymentRepository,
+        CashFlowReportAppService cashFlowReportAppService)
     {
         _leadRepository = leadRepository;
         _leadTouchRepository = leadTouchRepository;
@@ -53,6 +56,7 @@ public class DashboardAppService : ApplicationService
         _invoiceRepository = invoiceRepository;
         _invoiceLineRepository = invoiceLineRepository;
         _paymentRepository = paymentRepository;
+        _cashFlowReportAppService = cashFlowReportAppService;
     }
 
     public async Task<DashboardDto> GetAsync()
@@ -82,6 +86,11 @@ public class DashboardAppService : ApplicationService
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Sales.Default))
         {
             dto.Sales = await GetSalesStatsAsync();
+        }
+
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Accounting.Default))
+        {
+            dto.CashOnHand = await _cashFlowReportAppService.GetCurrentCashBalanceAsync();
         }
 
         return dto;

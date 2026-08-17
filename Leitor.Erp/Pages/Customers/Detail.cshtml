@@ -653,6 +653,45 @@
     </div>
 </div>
 
+@if (Model.Projects.Any())
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["Projects"]</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["ProjectNumber"]</th>
+                            <th>@L["Title"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["DependsOnProject"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var project in Model.Projects)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/Projects/Detail" asp-route-id="@project.Id">@project.ProjectNumber</a></td>
+                                <td>@project.Title</td>
+                                <td><span class="pill @StatusPill.For(project.Status)">@L[$"Enum:ProjectStatus:{(int)project.Status}"]</span></td>
+                                <td>
+                                    @if (project.DependsOnProjectId.HasValue)
+                                    {
+                                        <a asp-page="/Projects/Detail" asp-route-id="@project.DependsOnProjectId">@project.DependsOnProjectTitle</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
 @if (Model.ServiceRequests.Any())
 {
     <div class="card mt-3">

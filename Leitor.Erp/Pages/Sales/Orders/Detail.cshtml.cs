@@ -7,12 +7,14 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Procurement;
 using Leitor.Erp.Services.Sales;
+using Leitor.Erp.Services.ServiceCatalog;
 using Leitor.Erp.Pages.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +25,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Emailing;
+using Volo.Abp.Features;
 
 namespace Leitor.Erp.Pages.Sales.Orders;
 
@@ -39,6 +42,8 @@ public class DetailModel : AbpPageModel
     private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly IRepository<PriceListItem, Guid> _priceListItemRepository;
+    private readonly ServiceCatalogItemAppService _serviceCatalogItemAppService;
+    private readonly IFeatureChecker _featureChecker;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyProfileProvider _companyProfileProvider;
     private ErpCompanyOptions _companyOptions = null!;
@@ -56,6 +61,8 @@ public class DetailModel : AbpPageModel
         IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
         IRepository<Invoice, Guid> invoiceRepository,
         IRepository<PriceListItem, Guid> priceListItemRepository,
+        ServiceCatalogItemAppService serviceCatalogItemAppService,
+        IFeatureChecker featureChecker,
         IEmailSender emailSender,
         ErpCompanyProfileProvider companyProfileProvider,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
@@ -71,6 +78,8 @@ public class DetailModel : AbpPageModel
         _fieldServiceJobRepository = fieldServiceJobRepository;
         _invoiceRepository = invoiceRepository;
         _priceListItemRepository = priceListItemRepository;
+        _serviceCatalogItemAppService = serviceCatalogItemAppService;
+        _featureChecker = featureChecker;
         _emailSender = emailSender;
         _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
@@ -83,6 +92,7 @@ public class DetailModel : AbpPageModel
     public OrderDto Order { get; set; } = null!;
     public IReadOnlyList<OrderLineDto> Lines { get; set; } = Array.Empty<OrderLineDto>();
     public List<SelectListItem> ProductOptions { get; set; } = new();
+    public List<SelectListItem> ServiceOptions { get; set; } = new();
     public List<SelectListItem> TaxRateOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
     public IReadOnlyList<PurchaseOrderDto> PurchaseOrders { get; set; } = Array.Empty<PurchaseOrderDto>();
@@ -141,10 +151,12 @@ public class DetailModel : AbpPageModel
         // Suggests the customer's price-list price where one exists, rather than the product's
         // standard price - purely a label/starting-point change, UnitPrice stays a plain editable
         // field on the Add Line form either way.
-        var priceOverridesByProductId = Customer.DefaultPriceListId.HasValue
-            ? (await _priceListItemRepository.GetListAsync(x => x.PriceListId == Customer.DefaultPriceListId.Value))
-                .ToDictionary(x => x.ProductId, x => x.UnitPrice)
-            : new Dictionary<Guid, decimal>();
+        var priceListItems = Customer.DefaultPriceListId.HasValue
+            ? await _priceListItemRepository.GetListAsync(x => x.PriceListId == Customer.DefaultPriceListId.Value)
+            : new List<PriceListItem>();
+        var priceOverridesByProductId = priceListItems
+            .Where(x => x.ProductId.HasValue)
+            .ToDictionary(x => x.ProductId!.Value, x => x.UnitPrice);
 
         ProductOptions = new List<SelectListItem> { new(L["None"], "") };
         ProductOptions.AddRange(
@@ -152,6 +164,27 @@ public class DetailModel : AbpPageModel
                 $"{x.Name} ({priceOverridesByProductId.GetValueOrDefault(x.Id, x.UnitPrice):N2})",
                 x.Id.ToString()))
         );
+
+        // ServiceCatalog is a toggleable module (unlike Product/Catalog, always on) - skip
+        // loading rather than let GetListAsync's [RequiresFeature] throw when it's off.
+        ServiceOptions = new List<SelectListItem> { new(L["None"], "") };
+        if (await _featureChecker.IsEnabledAsync(ErpFeatures.ServiceCatalog))
+        {
+            var services = await _serviceCatalogItemAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
+            var ratesByServiceId = priceListItems
+                .Where(x => x.ServiceCatalogItemId.HasValue)
+                .ToDictionary(x => x.ServiceCatalogItemId!.Value, x => (x.UnitPrice, x.RateType));
+
+            ServiceOptions.AddRange(
+                services.Items.Where(x => x.IsActive).OrderBy(x => x.Name).Select(x =>
+                {
+                    var label = ratesByServiceId.TryGetValue(x.Id, out var rate)
+                        ? $"{x.Name} ({rate.UnitPrice:N2}{(rate.RateType == RateType.Hourly ? "/hr" : "")})"
+                        : x.Name;
+                    return new SelectListItem(label, x.Id.ToString());
+                })
+            );
+        }
 
         var taxRates = await _taxRateAppService.GetListAsync(new PagedAndSortedResultRequestDto { MaxResultCount = 1000 });
         TaxRateOptions = new List<SelectListItem> { new(L["UseDefaultTaxRate"], "") };

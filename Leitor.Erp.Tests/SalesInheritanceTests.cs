@@ -34,7 +34,7 @@ public class SalesInheritanceTests : ErpTestBase
         var priceList = new PriceList(Guid.NewGuid(), "VIP Pricing");
         await priceListRepository.InsertAsync(priceList, autoSave: true);
 
-        var priceListItem = new PriceListItem(Guid.NewGuid(), priceList.Id, productId, listPrice);
+        var priceListItem = new PriceListItem(Guid.NewGuid(), priceList.Id, listPrice) { ProductId = productId };
         await priceListItemRepository.InsertAsync(priceListItem, autoSave: true);
 
         var customer = await customerAppService.CreateAsync(new CreateUpdateCustomerDto

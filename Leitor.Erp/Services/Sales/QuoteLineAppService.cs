@@ -146,6 +146,7 @@ public class QuoteLineAppService :
     {
         entity.QuoteId = input.QuoteId;
         entity.ProductId = input.ProductId;
+        entity.ServiceCatalogItemId = input.ServiceCatalogItemId;
         entity.Description = input.Description;
         entity.UnitPrice = input.UnitPrice;
         entity.Quantity = input.Quantity;
@@ -167,6 +168,26 @@ public class QuoteLineAppService :
                 var priceListId = quote?.PriceListId ?? customer?.DefaultPriceListId;
                 entity.UnitPrice = await PriceListResolver.ResolveUnitPriceAsync(
                     _priceListItemRepository, _productRepository, priceListId, input.ProductId.Value);
+            }
+
+            if (applyCustomerDefaults && entity.DiscountPercent == 0 && customer != null)
+            {
+                entity.DiscountPercent = customer.DiscountPercent;
+            }
+        }
+        // Services have no Product.UnitPrice-style fallback (see PriceListResolver.
+        // ResolveServiceRateAsync's own comment) - a service line with no rate-card match just
+        // stays at whatever was typed, same as a plain one-off line with no catalog reference.
+        else if (input.ServiceCatalogItemId.HasValue && entity.UnitPrice == 0)
+        {
+            var quote = await _quoteRepository.FindAsync(input.QuoteId);
+            var customer = quote != null ? await _customerRepository.FindAsync(quote.CustomerId) : null;
+            var priceListId = quote?.PriceListId ?? customer?.DefaultPriceListId;
+
+            var resolved = await PriceListResolver.ResolveServiceRateAsync(_priceListItemRepository, priceListId, input.ServiceCatalogItemId.Value);
+            if (resolved.HasValue)
+            {
+                entity.UnitPrice = resolved.Value.UnitPrice;
             }
 
             if (applyCustomerDefaults && entity.DiscountPercent == 0 && customer != null)
