@@ -1,34 +1,105 @@
 /* ========================================
-   Leitor ERP - Modern Login Page Styles
+   Leitor ERP - Login Page Styles ("Warm Sunrise")
+   Self-contained: the Account layout doesn't include leitor-theme.css's Global style bundle
+   (see ErpModule.ConfigureLayoutHooks's comment - StandardLayouts.Application only), so this
+   page carries its own copy of the design tokens it needs rather than sharing variables.
    ======================================== */
 
-/* Root container styling - flat warm paper background, matching every other page in the app
-   (this was previously the one page with a dramatic dark-navy gradient, unrelated to the rest
-   of the app's understated look). No min-height: this renders inside the LeptonXLite theme's own
-   Account layout, which already puts its own logo/title chrome above this content - claiming a
-   full 100vh for this section on top of that guarantees a scrollbar. Let it size to its content
-   and centering happens naturally in whatever space the theme leaves. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* Root container - warm cream background, matching the rest of the app. No min-height: this
+   renders inside the LeptonXLite theme's own Account layout, which already puts its own
+   logo/title chrome above this content - claiming a full 100vh for this section on top of that
+   guarantees a scrollbar. Let it size to its content and centering happens naturally in
+   whatever space the theme leaves. The hero decoration below uses position:fixed specifically
+   so it never affects this container's own box size/scrolling. */
 .leitor-auth-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f6f4f0;
+    background: #fffbf7;
     padding: 20px;
+    font-family: "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .leitor-auth-wrapper {
     width: 100%;
     max-width: 420px;
+    position: relative;
+    z-index: 1;
 }
 
-/* Card styling - same layered shadow language as .card elsewhere in the app (see
-   leitor-theme.css's --leitor-shadow), not the heavy single dark shadow a card needs to pop off
-   a dark background. Padding trimmed from the original 48px/20px to keep the whole card compact
-   enough to fit inside a typical viewport without scrolling. */
+/* Hero decoration - layered blurred color blobs + a faint grain texture, both fixed to the
+   viewport so they can't affect the container's height. Two separate pseudo-elements: ::before
+   stays crisp (grain), ::after gets the heavy blur (blobs) - blurring both together would wash
+   the grain out to nothing. */
+.leitor-auth-container::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 120px 120px;
+}
+
+.leitor-auth-container::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(245, 158, 11, 0.22), transparent 42%),
+        radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.16), transparent 45%),
+        radial-gradient(circle at 50% 95%, rgba(251, 146, 178, 0.14), transparent 42%);
+    filter: blur(70px);
+}
+
+/* Thin, slow-rotating decorative rings - real elements (not pseudo-elements, since ::before/
+   ::after on the container are already spent on the blobs/grain above), fixed to the viewport,
+   dashed so rotation is actually visible (a solid ring has no visible orientation). */
+.leitor-auth-ring {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 50%;
+    border: 1.5px dashed rgba(245, 158, 11, 0.22);
+}
+.leitor-auth-ring--lg {
+    width: 480px;
+    height: 480px;
+    top: -140px;
+    left: -120px;
+    animation: leitor-ring-spin 90s linear infinite;
+}
+.leitor-auth-ring--sm {
+    width: 320px;
+    height: 320px;
+    bottom: -100px;
+    right: -80px;
+    border-color: rgba(124, 58, 237, 0.18);
+    animation: leitor-ring-spin 60s linear infinite reverse;
+}
+@keyframes leitor-ring-spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .leitor-auth-ring {
+        animation: none;
+    }
+}
+
+/* Card styling - warm shadow language matching leitor-theme.css's --leitor-shadow tokens, large
+   "xl" radius per the Warm Sunrise shape scale. */
 .leitor-login-card {
     background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(35, 36, 31, 0.03), 0 6px 16px rgba(35, 36, 31, 0.06), 0 20px 40px -20px rgba(35, 36, 31, 0.12);
+    border-radius: 32px;
+    border: 1.5px solid #f3ede6;
+    box-shadow: 0 16px 48px rgba(90, 40, 10, 0.12), 0 4px 12px rgba(90, 40, 10, 0.06);
     padding: 32px 40px;
 }
 
@@ -51,16 +122,16 @@
 .leitor-form-label {
     display: block;
     font-size: 14px;
-    font-weight: 500;
-    color: #23241f;
+    font-weight: 600;
+    color: #1c1108;
     margin: 0;
 }
 
 .leitor-form-control {
     width: 100%;
     padding: 12px 14px;
-    border: 1px solid #e1ddd2;
-    border-radius: 6px;
+    border: 1.5px solid #e8ddd2;
+    border-radius: 16px;
     font-size: 14px;
     font-family: inherit;
     transition: all 0.2s ease;
@@ -68,17 +139,17 @@
 }
 
 .leitor-form-control:hover {
-    border-color: #c9c2b0;
+    border-color: #f59e0b;
 }
 
 .leitor-form-control:focus {
     outline: none;
-    border-color: #1b6b74;
-    box-shadow: 0 0 0 3px rgba(27, 107, 116, 0.14);
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
 }
 
 .leitor-form-control::placeholder {
-    color: #6b6b62;
+    color: #7c6555;
 }
 
 .leitor-form-error {
@@ -97,10 +168,10 @@
     list-style: none;
     margin: 0 0 20px;
     padding: 12px 16px;
-    border-radius: 6px;
-    background-color: #fee2e2;
-    border: 1px solid #fca5a5;
-    color: #7f1d1d;
+    border-radius: 16px;
+    background-color: rgba(220, 38, 38, 0.10);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    color: #dc2626;
     font-size: 13px;
 }
 
@@ -122,7 +193,7 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #6b6b62;
+    color: #7c6555;
     cursor: pointer;
     font-size: 16px;
     padding: 8px;
@@ -133,12 +204,12 @@
 }
 
 .leitor-password-toggle:hover {
-    color: #23241f;
+    color: #1c1108;
 }
 
 .leitor-password-toggle:focus {
     outline: none;
-    color: #1b6b74;
+    color: #d97706;
 }
 
 /* Remember me checkbox */
@@ -153,13 +224,13 @@
     height: 18px;
     margin-right: 8px;
     cursor: pointer;
-    accent-color: #1b6b74;
+    accent-color: #f59e0b;
     border-radius: 4px;
 }
 
 .leitor-checkbox-label {
     font-size: 14px;
-    color: #6b6b62;
+    color: #7c6555;
     cursor: pointer;
     margin: 0;
     user-select: none;
@@ -170,9 +241,9 @@
     width: 100%;
     padding: 12px 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: 16px;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
@@ -183,64 +254,69 @@
     gap: 8px;
 }
 
-/* Primary button (Sign In) - flat fill, same hover convention as .btn-primary elsewhere in the
-   app (background darkens, no lift/transform). */
+/* Primary button (Sign In) - amber gradient with a colored glow, lift + brighten on hover,
+   same treatment as .btn-primary in leitor-theme.css. */
 .leitor-btn-primary {
-    background-color: #1b6b74;
+    background: linear-gradient(135deg, #d97706, #f59e0b);
     color: #ffffff;
     margin-bottom: 8px;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
 }
 
 .leitor-btn-primary:hover {
-    background-color: #14525a;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(245, 158, 11, 0.42);
 }
 
 .leitor-btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
 }
 
-/* Secondary button (Cancel) */
+/* Secondary button (Cancel) - warm cream fill, border turns amber on hover. */
 .leitor-btn-secondary {
-    background: #ece9e1;
-    color: #5f5f57;
-    border: 1px solid #e1ddd2;
+    background: #fff8f0;
+    color: #4a3728;
+    border: 1.5px solid #e8ddd2;
 }
 
 .leitor-btn-secondary:hover {
-    background: #e1ddd2;
-    border-color: #c9c2b0;
+    background: #fff8f0;
+    border-color: #f59e0b;
+    color: #1c1108;
 }
 
 .leitor-btn-secondary:active {
-    background: #ddd8ca;
+    background: #f3ede6;
 }
 
 /* Forgot password link */
 .leitor-forgot-password {
     font-size: 13px;
-    color: #1b6b74;
+    color: #d97706;
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .leitor-forgot-password:hover {
-    color: #14525a;
+    color: #1c1108;
 }
 
 /* Alert styling */
 .leitor-auth-alert {
     margin-bottom: 24px;
     padding: 12px 16px;
-    border-radius: 6px;
-    background-color: #fee2e2;
-    border: 1px solid #fca5a5;
-    color: #7f1d1d;
+    border-radius: 16px;
+    background-color: rgba(220, 38, 38, 0.10);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    color: #dc2626;
 }
 
 .leitor-auth-alert h4 {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     margin: 0 0 8px 0;
 }
 
@@ -251,21 +327,21 @@
 
 /* Validation errors */
 .alert-danger {
-    background-color: #fee2e2;
-    border-color: #fca5a5;
-    color: #7f1d1d;
+    background-color: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.25);
+    color: #dc2626;
     padding: 12px 16px;
-    border-radius: 6px;
-    border: 1px solid #fca5a5;
+    border-radius: 16px;
+    border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
 .alert-warning {
-    background-color: #fef3c7;
-    border-color: #fcd34d;
-    color: #78350f;
+    background-color: rgba(194, 65, 12, 0.10);
+    border-color: rgba(194, 65, 12, 0.25);
+    color: #c2410c;
     padding: 12px 16px;
-    border-radius: 6px;
-    border: 1px solid #fcd34d;
+    border-radius: 16px;
+    border: 1px solid rgba(194, 65, 12, 0.25);
 }
 
 /* Responsive design */
@@ -304,6 +380,6 @@
 /* Focus visible for accessibility */
 .leitor-btn:focus-visible,
 .leitor-form-control:focus-visible {
-    outline: 2px solid #1b6b74;
+    outline: 2px solid #d97706;
     outline-offset: 2px;
 }

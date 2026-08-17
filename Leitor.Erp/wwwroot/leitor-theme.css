@@ -1,62 +1,89 @@
-/* Leitor ERP design system.
+/* Leitor ERP design system - "Warm Sunrise".
    Layered on top of stock LeptonXLite + Bootstrap 5 - global-styles.css (logo swap) stays
    separate and untouched; this file owns the app's visual identity. Loaded after the theme's
    own CSS in the Global style bundle (Leitor.Erp/ErpModule.cs, ConfigureBundles()), so these
    custom-property overrides win by source order without needing broad !important usage.
    color-mix()/relative color syntax deliberately avoided in favor of plain hex/rgba values -
-   this is an internal business tool, not a place to risk a browser-support edge case. */
+   this is an internal business tool, not a place to risk a browser-support edge case.
+   Replaces the previous "deep technical teal" identity with a warm amber/purple system - see
+   Pages/Account/login.css for the matching treatment on the Account layout, which does NOT
+   include this bundle (ConfigureLayoutHooks excludes it) and is themed independently.
+   One new dependency this introduces: Inter is not a system font, so it's loaded from Google
+   Fonts below - the previous system-font-stack approach had zero external requests, this one
+   makes one. Falls back to the old system stack if that request ever fails. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Brand - a deep technical teal, distinct from generic SaaS indigo/blue and grounded in
-     Leitor's actual work (electrical/lighting/systems integration). */
-  --leitor-primary: #1b6b74;
-  --leitor-primary-rgb: 27, 107, 116;
-  --leitor-primary-dark: #14525a;
-  --leitor-primary-soft: #e4efef;
+  /* Brand - amber as the primary accent, purple as a secondary accent for admin/tag contexts.
+     --leitor-primary stays the general-purpose brand token (links, icons, focus rings);
+     --leitor-primary-dark is used where amber itself would be too light for text contrast
+     (body-sized links on a cream background) and as the darker stop in gradients. */
+  --leitor-primary: #f59e0b;
+  --leitor-primary-rgb: 245, 158, 11;
+  --leitor-primary-dark: #d97706;
+  --leitor-primary-light: #fbbf24;
+  --leitor-primary-soft: rgba(245, 158, 11, 0.10);
 
-  /* Neutrals - warm-off, not pure grey. */
-  --leitor-paper: #f6f4f0;
+  --leitor-secondary: #7c3aed;
+  --leitor-secondary-rgb: 124, 58, 237;
+  --leitor-secondary-mid: #8b5cf6;
+  --leitor-secondary-soft: rgba(124, 58, 237, 0.08);
+
+  /* Neutrals - warm cream, never pure white/grey. --leitor-ink is reserved for headline-weight
+     text (h1-h6, card-title, key labels); body copy uses the lighter --leitor-body so headings
+     still read as the darkest thing on the page. */
+  --leitor-paper: #fffbf7;
   --leitor-surface: #ffffff;
-  --leitor-surface-sunken: #faf8f4;
-  --leitor-ink: #23241f;
-  --leitor-ink-soft: #6b6b62;
-  --leitor-border: #e1ddd2;
+  --leitor-surface-sunken: #fff8f0;
+  --leitor-ink: #1c1108;
+  --leitor-body: #4a3728;
+  --leitor-ink-soft: #7c6555;
+  --leitor-border: #e8ddd2;
+  --leitor-border-light: #f3ede6;
+  --leitor-border-soft: #f3ede6;
 
-  /* Semantic status colors - separate palette from the brand accent, muted rather than
-     Bootstrap's saturated defaults. success/warning/neutral are calibrated to clear WCAG AA's
-     4.5:1 text-contrast minimum against their own -bg tint (the pill/badge/alert use case) with
-     a safety margin, not just the bare pass/fail line - see accessibility pass, 2026-08-09. */
-  --leitor-success: #256a41;
-  --leitor-success-bg: #e4f1e8;
-  --leitor-warning: #875c11;
-  --leitor-warning-bg: #fbf0dc;
-  --leitor-danger: #b23b32;
-  --leitor-danger-bg: #f8e4e1;
-  --leitor-info: #3e6b93;
-  --leitor-info-bg: #e5edf3;
-  --leitor-neutral: #5f5f57;
-  --leitor-neutral-bg: #ece9e1;
+  /* Semantic status colors - separate palette from the brand accent. Success stays green per
+     the design system (positive states only); danger/warning/info aren't specified by the
+     Warm Sunrise token list, so these are chosen to read warm-compatible (no cool greys) while
+     staying visually distinct from the amber/purple brand accents and from each other. */
+  --leitor-success: #059669;
+  --leitor-success-bg: rgba(5, 150, 105, 0.12);
+  --leitor-warning: #c2410c;
+  --leitor-warning-bg: rgba(194, 65, 12, 0.12);
+  --leitor-danger: #dc2626;
+  --leitor-danger-bg: rgba(220, 38, 38, 0.12);
+  --leitor-info: #2563eb;
+  --leitor-info-bg: rgba(37, 99, 235, 0.12);
+  --leitor-neutral: #7c6555;
+  --leitor-neutral-bg: var(--leitor-border-light);
 
-  --leitor-font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --leitor-font-sans: "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --leitor-font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
 
-  /* Soft/elevated direction: bigger radii, cards float on shadow rather than sit behind a
-     hard border. --leitor-shadow is layered (contact + ambient) so cards read as raised
-     surfaces against --leitor-paper without needing a visible edge. */
-  --leitor-radius: 16px;
+  /* Shape - large, consistent radii; nothing sharp-cornered. --leitor-radius-sm/--leitor-radius
+     ("md") are the workhorse tokens already referenced throughout this file (buttons, inputs,
+     dropdowns); -lg/-xl are for cards and feature surfaces specifically. */
   --leitor-radius-sm: 10px;
-  --leitor-border-soft: rgba(35, 36, 31, 0.06);
-  --leitor-shadow: 0 1px 2px rgba(35, 36, 31, 0.03), 0 6px 16px rgba(35, 36, 31, 0.06), 0 20px 40px -20px rgba(35, 36, 31, 0.12);
-  --leitor-shadow-sm: 0 1px 2px rgba(35, 36, 31, 0.04), 0 2px 6px rgba(35, 36, 31, 0.05);
+  --leitor-radius: 16px;
+  --leitor-radius-lg: 24px;
+  --leitor-radius-xl: 32px;
+  --leitor-radius-pill: 9999px;
 
-  /* A third, deeper elevation tier for the layer that floats *above* page content - modals,
-     dropdown menus, SweetAlert2 dialogs - so the shell keeps a resting/floating distinction
-     instead of every surface reading at the same depth. */
-  --leitor-shadow-floating: 0 2px 4px rgba(35, 36, 31, 0.05), 0 12px 28px rgba(35, 36, 31, 0.10), 0 32px 64px -24px rgba(35, 36, 31, 0.22);
+  /* Warm-tinted shadows (brown, not neutral grey/black) - three elevation tiers, same as
+     before: resting (sm), raised (md), floating (lg, for modals/dropdowns/dialogs). */
+  --leitor-shadow-sm: 0 2px 8px rgba(90, 40, 10, 0.07), 0 1px 2px rgba(90, 40, 10, 0.04);
+  --leitor-shadow: 0 6px 24px rgba(90, 40, 10, 0.09), 0 2px 6px rgba(90, 40, 10, 0.05);
+  --leitor-shadow-floating: 0 16px 48px rgba(90, 40, 10, 0.12), 0 4px 12px rgba(90, 40, 10, 0.06);
+
+  /* Warm-tinted scrim for modal/panel backdrops - replaces the old neutral rgba(35,36,31,...)
+     so even the "dim the page" layer stays on-brand rather than reading as generic grey/black. */
+  --leitor-scrim: rgba(28, 17, 8, 0.32);
+  --leitor-scrim-soft: rgba(28, 17, 8, 0.35);
 
   /* Keyboard-focus ring, independent of the primary brand color so it stays visible against
      both light surfaces and the --leitor-primary buttons it outlines. */
-  --leitor-focus-ring: 0 0 0 3px rgba(var(--leitor-primary-rgb), 0.28);
+  --leitor-focus-ring: 0 0 0 3px rgba(var(--leitor-primary-rgb), 0.32);
 }
 
 /* Motion is decorative here, never load-bearing for information - honor the OS-level request to
@@ -81,9 +108,39 @@
   --lpx-info: var(--leitor-info);
   --lpx-content-bg: var(--leitor-paper);
   --lpx-card-bg: var(--leitor-surface);
-  --lpx-content-text: var(--leitor-ink);
+  --lpx-content-text: var(--leitor-body);
   --lpx-border-color: var(--leitor-border);
   --lpx-card-title-text-color: var(--leitor-ink);
+}
+
+/* Sticky, translucent header - glassmorphic instead of solid. LeptonXLite's header is a
+   precompiled component (see the file-level comment on the right-hand action rail below for
+   why source overrides aren't possible), so this targets its documented top-level class;
+   best-effort and not live-verified in a browser (standing Postgres credential gap - see
+   project memory), but degrades harmlessly to a solid header if the selector doesn't match. */
+.lpx-header {
+  background: rgba(255, 251, 247, 0.82) !important;
+  border-bottom: 1px solid var(--leitor-border-light);
+  box-shadow: 0 1px 0 rgba(90, 40, 10, 0.04), 0 8px 24px rgba(90, 40, 10, 0.05);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .lpx-header {
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+  }
+}
+
+/* Sidebar nav active-state tint - same "best-effort, harmless if unmatched" caveat as the
+   header above. Icons stay whatever the theme/menu definitions already render (FontAwesome
+   solid glyphs via ErpMenuContributor.cs) - swapping to a thin-stroke line-icon set is a
+   separate, much larger change (new icon library + rewriting every menu icon reference) and
+   is deliberately not part of this pass. */
+.lpx-sidebar-container .nav-link.active,
+.lpx-sidebar-container .nav-item.active > .nav-link,
+.lpx-sidebar-container .lpx-menu-item.active {
+  background: var(--leitor-primary-soft) !important;
+  color: var(--leitor-primary-dark) !important;
+  border-radius: var(--leitor-radius-sm);
 }
 
 /* ============================= Bootstrap base ============================= */
@@ -91,46 +148,52 @@
 :root {
   --bs-body-font-family: var(--leitor-font-sans);
   --bs-body-bg: var(--leitor-paper);
-  --bs-body-color: var(--leitor-ink);
+  --bs-body-color: var(--leitor-body);
   --bs-border-radius: var(--leitor-radius);
   --bs-border-radius-sm: var(--leitor-radius-sm);
   --bs-border-color: var(--leitor-border);
   --bs-primary: var(--leitor-primary);
   --bs-primary-rgb: var(--leitor-primary-rgb);
-  --bs-link-color: var(--leitor-primary);
-  --bs-link-color-rgb: var(--leitor-primary-rgb);
-  --bs-link-hover-color: var(--leitor-primary-dark);
+  --bs-link-color: var(--leitor-primary-dark);
+  --bs-link-color-rgb: 217, 119, 6;
+  --bs-link-hover-color: var(--leitor-ink);
 }
 
 body {
   font-family: var(--leitor-font-sans);
-  color: var(--leitor-ink);
+  font-weight: 400;
+  color: var(--leitor-body);
+  line-height: 1.6;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  letter-spacing: -0.01em;
-  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: var(--leitor-ink);
 }
 
 a {
-  color: var(--leitor-primary);
+  /* --bs-link-color already covers plain links; --leitor-primary-dark (amber-dark) rather than
+     the lighter base amber, since body-sized link text needs more contrast against --leitor-paper
+     than a button surface does. */
+  color: var(--leitor-primary-dark);
 }
 a:hover {
-  color: var(--leitor-primary-dark);
+  color: var(--leitor-ink);
 }
 
 /* ============================= Cards ============================= */
 
 .card {
-  border: 1px solid var(--leitor-border-soft);
-  border-radius: var(--leitor-radius);
-  box-shadow: var(--leitor-shadow);
+  border: 1.5px solid var(--leitor-border-light);
+  border-radius: var(--leitor-radius-lg);
+  box-shadow: var(--leitor-shadow-sm);
   background: var(--leitor-surface);
 }
 
 .card-header {
   background: transparent;
-  border-bottom: 1px solid var(--leitor-border-soft);
+  border-bottom: 1px solid var(--leitor-border-light);
   padding: 20px 24px 16px;
 }
 
@@ -140,17 +203,43 @@ a:hover {
 
 .card-title {
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--leitor-ink);
   letter-spacing: -0.015em;
+}
+
+/* Opt-in utilities - not applied to every card app-wide (that would be a much larger visual
+   pass across ~150 pages); available wherever a page wants the extra emphasis. */
+.card-accent-amber,
+.card-accent-purple {
+  border-left-width: 3px;
+}
+.card-accent-amber { border-left-color: var(--leitor-primary); }
+.card-accent-purple { border-left-color: var(--leitor-secondary); }
+
+.card-hover-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.card-hover-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(245, 158, 11, 0.10) 50%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.card-hover-shimmer:hover::after {
+  transform: translateX(120%);
 }
 
 /* ============================= Tables ============================= */
 
 .table {
-  --bs-table-striped-bg: #f8f6f2;
+  --bs-table-striped-bg: var(--leitor-surface-sunken);
   font-size: 14px;
-  color: var(--leitor-ink);
+  color: var(--leitor-body);
 }
 
 .table > thead > tr > th {
@@ -158,7 +247,7 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--leitor-ink-soft);
-  font-weight: 600;
+  font-weight: 700;
   border-bottom: 1.5px solid var(--leitor-border);
   background: transparent;
   padding-bottom: 12px;
@@ -169,7 +258,7 @@ a:hover {
   vertical-align: middle;
   padding-top: 0.65rem;
   padding-bottom: 0.65rem;
-  border-bottom-color: var(--leitor-border-soft);
+  border-bottom-color: var(--leitor-border-light);
 }
 
 .table.table-striped > tbody > tr:hover > td {
@@ -191,10 +280,10 @@ a:hover {
 /* ============================= Buttons ============================= */
 
 .btn {
-  border-radius: var(--leitor-radius-sm);
-  font-weight: 500;
+  border-radius: var(--leitor-radius);
+  font-weight: 600;
   padding: 0.45rem 1rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 /* Keyboard-only focus ring - :focus-visible so mouse/touch clicks stay clean, but tabbing
@@ -216,44 +305,54 @@ a:focus-visible,
   border-radius: calc(var(--leitor-radius-sm) - 2px);
 }
 
-.btn-primary,
-.btn-success {
-  box-shadow: var(--leitor-shadow-sm);
-}
-
+/* Primary: amber gradient, white bold text, colored glow, lift + brighten on hover. */
 .btn-primary {
-  background-color: var(--leitor-primary);
-  border-color: var(--leitor-primary);
+  background: linear-gradient(135deg, var(--leitor-primary-dark), var(--leitor-primary));
+  border-color: transparent;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
 }
 .btn-primary:hover,
 .btn-primary:focus {
-  background-color: var(--leitor-primary-dark);
-  border-color: var(--leitor-primary-dark);
+  background: linear-gradient(135deg, var(--leitor-primary), var(--leitor-primary-light));
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.42);
 }
 
+/* Secondary: warm cream fill, border turns amber on hover. */
 .btn-secondary {
-  background-color: var(--leitor-ink-soft);
-  border-color: var(--leitor-ink-soft);
+  background-color: var(--leitor-surface-sunken);
+  border: 1.5px solid var(--leitor-border);
+  color: var(--leitor-body);
+}
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: var(--leitor-surface-sunken);
+  border-color: var(--leitor-primary);
+  color: var(--leitor-ink);
 }
 
 .btn-success {
   background-color: var(--leitor-success);
   border-color: var(--leitor-success);
+  box-shadow: var(--leitor-shadow-sm);
 }
 
 /* Solid danger/warning/info buttons (Reject, MarkIncomplete, status-transition actions, etc.) -
    Bootstrap's compiled classes hard-code its own red/yellow/cyan rather than referencing a CSS
    variable, so (same as .btn-primary/.btn-success above) these need an explicit override rather
-   than a root-level --bs-* variable change. warning/info get white text because our darker,
-   muted tones (unlike Bootstrap's light default yellow/cyan) need it for contrast. */
+   than a root-level --bs-* variable change. */
 .btn-danger {
   background-color: var(--leitor-danger);
   border-color: var(--leitor-danger);
 }
 .btn-danger:hover,
 .btn-danger:focus {
-  background-color: #872c26;
-  border-color: #872c26;
+  background-color: #b91c1c;
+  border-color: #b91c1c;
 }
 
 .btn-warning {
@@ -263,8 +362,8 @@ a:focus-visible,
 }
 .btn-warning:hover,
 .btn-warning:focus {
-  background-color: #66450c;
-  border-color: #66450c;
+  background-color: #9a3412;
+  border-color: #9a3412;
   color: #fff;
 }
 
@@ -275,18 +374,19 @@ a:focus-visible,
 }
 .btn-info:hover,
 .btn-info:focus {
-  background-color: #2f516f;
-  border-color: #2f516f;
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
   color: #fff;
 }
 
 .btn-outline-primary {
-  color: var(--leitor-primary);
+  color: var(--leitor-primary-dark);
   border-color: var(--leitor-primary);
 }
 .btn-outline-primary:hover {
   background-color: var(--leitor-primary);
   border-color: var(--leitor-primary);
+  color: #fff;
 }
 
 .btn-outline-secondary {
@@ -320,12 +420,12 @@ a:focus-visible,
 .form-control:focus,
 .form-select:focus {
   border-color: var(--leitor-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--leitor-primary-rgb), 0.14);
+  box-shadow: 0 0 0 0.2rem rgba(var(--leitor-primary-rgb), 0.16);
 }
 
 .form-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--leitor-ink-soft);
   margin-bottom: 4px;
 }
@@ -343,25 +443,30 @@ dl.row dt {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--leitor-ink-soft);
-  font-weight: 600;
+  font-weight: 700;
   padding-top: 4px;
 }
 
 dl.row dd {
   margin-bottom: 14px;
   font-size: 14.5px;
+  color: var(--leitor-body);
 }
 
 /* ============================= Status pills ============================= */
-/* Applied via Pages/Shared/StatusPill.cs - replaces plain enum-label text app-wide. */
+/* Applied via Pages/Shared/StatusPill.cs - replaces plain enum-label text app-wide. Small
+   uppercase letter-spaced text, pill-shaped, pale tinted background matching the semantic
+   color - matches the Warm Sunrise badge/tag spec. */
 
 .pill {
   display: inline-flex;
   align-items: center;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--leitor-radius-pill);
   line-height: 1.5;
   white-space: nowrap;
 }
@@ -371,6 +476,12 @@ dl.row dd {
 .pill-info    { background: var(--leitor-info-bg);    color: var(--leitor-info); }
 .pill-neutral { background: var(--leitor-neutral-bg); color: var(--leitor-neutral); }
 
+/* Tag-style variants for role/category use (e.g. "Admin", "Popular") - amber for general
+   highlight, purple for admin/role per the design system's own convention. Not yet wired to a
+   specific page; available wherever one is needed rather than built speculatively into pages. */
+.pill-amber  { background: var(--leitor-primary-soft);  color: var(--leitor-primary-dark); }
+.pill-purple { background: var(--leitor-secondary-soft); color: var(--leitor-secondary); }
+
 /* ============================= Document numbers ============================= */
 /* Ties document-number fields (QuoteNumber, OrderNumber, PONumber, etc) to the systems/
    technical texture of the app - a small, deliberate typographic signal. */
@@ -378,6 +489,7 @@ dl.row dd {
 .doc-no {
   font-family: var(--leitor-font-mono);
   letter-spacing: -0.02em;
+  color: var(--leitor-ink);
 }
 
 /* ============================= Dashboard KPI cards ============================= */
@@ -393,7 +505,7 @@ dl.row dd {
   height: 44px;
   border-radius: 50%;
   background: var(--leitor-primary-soft);
-  color: var(--leitor-primary);
+  color: var(--leitor-primary-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -416,9 +528,10 @@ dl.row dd {
 
 .kpi-card .display-6 {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+  color: var(--leitor-ink);
 }
 
 /* ============================= Alerts ============================= */
@@ -450,14 +563,13 @@ dl.row dd {
 }
 
 /* ============================= Modals ============================= */
-/* Apple-style "sheet": frosted/translucent backdrop (System Settings, Mail compose) rather than
-   Bootstrap's flat black scrim, and the card itself gets a hairline instead of border: none so it
-   reads as a distinct pane against a blurred (not opaque) background. @supports-gated since
-   backdrop-filter has no visual fallback need - the plain rgba tint underneath is already a
-   complete, correct backdrop on its own. */
+/* Frosted/translucent warm-tinted backdrop rather than Bootstrap's flat black scrim, and the
+   card itself gets a hairline instead of border: none so it reads as a distinct pane against a
+   blurred (not opaque) background. @supports-gated since backdrop-filter has no visual fallback
+   need - the plain rgba tint underneath is already a complete, correct backdrop on its own. */
 
 .modal-backdrop {
-  background-color: rgba(35, 36, 31, 0.32);
+  background-color: var(--leitor-scrim);
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
   .modal-backdrop.show {
@@ -467,14 +579,14 @@ dl.row dd {
 }
 
 .modal-content {
-  border: 1px solid var(--leitor-border-soft);
-  border-radius: var(--leitor-radius);
+  border: 1.5px solid var(--leitor-border-light);
+  border-radius: var(--leitor-radius-lg);
   box-shadow: var(--leitor-shadow-floating);
 }
 
 .modal-header,
 .modal-footer {
-  border-color: var(--leitor-border-soft);
+  border-color: var(--leitor-border-light);
   padding: 18px 24px;
 }
 
@@ -526,13 +638,13 @@ dl.row dd {
    does, so they get the deeper "floating" shadow rather than the flatter "resting" card one. */
 
 .dropdown-menu {
-  border: 1px solid var(--leitor-border-soft);
+  border: 1.5px solid var(--leitor-border-light);
   border-radius: var(--leitor-radius-sm);
   box-shadow: var(--leitor-shadow-floating);
 }
 
 .swal2-popup {
-  border-radius: var(--leitor-radius) !important;
+  border-radius: var(--leitor-radius-lg) !important;
   box-shadow: var(--leitor-shadow-floating) !important;
 }
 
@@ -588,7 +700,7 @@ img, svg {
   flex: 1 1 180px;
   padding: 12px 16px;
   border-radius: var(--leitor-radius-sm);
-  border: 1px solid var(--leitor-border-soft);
+  border: 1px solid var(--leitor-border-light);
   background: var(--leitor-surface);
 }
 
@@ -605,7 +717,7 @@ img, svg {
 
 .order-stepper-label {
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--leitor-ink);
 }
 
@@ -618,12 +730,12 @@ img, svg {
 }
 
 .order-stepper-current {
-  background: var(--leitor-primary);
-  border-color: var(--leitor-primary);
-  box-shadow: var(--leitor-shadow-sm);
+  background: linear-gradient(135deg, var(--leitor-primary-dark), var(--leitor-primary));
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
 }
 .order-stepper-current .order-stepper-icon {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
   color: #fff;
 }
 .order-stepper-current .order-stepper-label,
@@ -727,7 +839,7 @@ img, svg {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--leitor-border-soft);
+  border-bottom: 1px solid var(--leitor-border-light);
   flex: none;
 }
 
@@ -740,7 +852,7 @@ img, svg {
 .leitor-action-panel-footer {
   flex: none;
   padding: 14px 20px;
-  border-top: 1px solid var(--leitor-border-soft);
+  border-top: 1px solid var(--leitor-border-light);
 }
 
 .leitor-action-panel-counts {
@@ -758,7 +870,7 @@ img, svg {
   border-radius: var(--leitor-radius-sm);
   background: var(--leitor-surface-sunken);
   font-size: 13.5px;
-  color: var(--leitor-ink);
+  color: var(--leitor-body);
 }
 .leitor-action-panel-count-row:hover {
   background: var(--leitor-primary-soft);
@@ -773,7 +885,7 @@ img, svg {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--leitor-ink-soft);
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 10px;
 }
 
@@ -782,7 +894,7 @@ img, svg {
   flex-direction: column;
   gap: 4px;
   padding: 10px 0;
-  border-bottom: 1px solid var(--leitor-border-soft);
+  border-bottom: 1px solid var(--leitor-border-light);
 }
 .leitor-action-panel-item:last-child {
   border-bottom: none;
@@ -790,8 +902,8 @@ img, svg {
 
 .leitor-action-panel-item-title {
   font-size: 13px;
-  font-weight: 500;
-  color: var(--leitor-ink);
+  font-weight: 600;
+  color: var(--leitor-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -815,7 +927,7 @@ img, svg {
 .leitor-action-panel-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(35, 36, 31, 0.35);
+  background: var(--leitor-scrim-soft);
   z-index: var(--leitor-z-panel-backdrop);
   opacity: 0;
   pointer-events: none;
@@ -847,7 +959,7 @@ img, svg {
   border-right: none;
   border-radius: var(--leitor-radius-sm) 0 0 var(--leitor-radius-sm);
   background: var(--leitor-surface);
-  color: var(--leitor-primary);
+  color: var(--leitor-primary-dark);
   box-shadow: var(--leitor-shadow-sm);
   display: flex;
   align-items: center;
