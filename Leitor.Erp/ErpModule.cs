@@ -199,6 +199,7 @@ public class ErpModule : AbpModule
         // added). One line per new escalation action type, alongside a new handler class.
         context.Services.AddTransient<IEscalationActionHandler, QuoteMarginOverrideEscalationHandler>();
         context.Services.AddTransient<IEscalationActionHandler, OrderMarginOverrideEscalationHandler>();
+        context.Services.AddTransient<IEscalationActionHandler, LeaveRequestEscalationHandler>();
 
         ConfigureAuthentication(context);
         ConfigureIdentityOptions();

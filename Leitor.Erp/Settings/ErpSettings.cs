@@ -16,6 +16,21 @@ public static class ErpSettings
     // Detail task tables - see Pages/Shared/TaskDueStatus.cs.
     public const string TaskDueSoonLeadDays = GroupName + ".Tasks.DueSoonLeadDays";
 
+    // Kenya statutory payroll (Services/PayeCalculator.cs, Services/Hr/PayrollRunAppService.cs).
+    // PAYE bands/NSSF tiers are seeded tables (Entities/Hr/PayeTaxBand.cs, NssfTier.cs) since
+    // they're genuine multi-row structures; these four are single tunable numbers instead, same
+    // reasoning as SalesMarginFloorPercent being a setting rather than a table. SHA (Social Health
+    // Insurance Act, replaced NHIF Oct 2024) is a flat percentage of gross pay with a minimum
+    // floor, not a genuine band table - modeled as a rate + floor here rather than a
+    // ShaContributionBand entity. All four values below are seeded with best-effort current rates
+    // and MUST be verified against current KRA/SHA published figures before real payroll use - see
+    // the seeded defaults in ErpSettingDefinitionProvider for the "verify" comment on each.
+    public const string PayePersonalReliefMonthly = GroupName + ".Payroll.PayePersonalReliefMonthly";
+    public const string ShaContributionRatePercent = GroupName + ".Payroll.ShaContributionRatePercent";
+    public const string ShaContributionMinimum = GroupName + ".Payroll.ShaContributionMinimum";
+    public const string HousingLevyEmployeeRatePercent = GroupName + ".Payroll.HousingLevyEmployeeRatePercent";
+    public const string HousingLevyEmployerRatePercent = GroupName + ".Payroll.HousingLevyEmployerRatePercent";
+
     // The minimum acceptable Quote contribution margin (revenue vs snapshotted line Cost, see
     // QuoteAppService's margin gate) - a Quote can't move Draft -> Sent below this without an
     // explicit, permission-gated, logged override. See Sales.OverrideMarginGate.

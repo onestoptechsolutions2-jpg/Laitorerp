@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Cybersecurity;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Hr;
 using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Opportunities;
@@ -114,6 +115,13 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
 
     public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
+
+    public DbSet<Employee> Employees { get; set; } = null!;
+    public DbSet<LeaveRequest> LeaveRequests { get; set; } = null!;
+    public DbSet<PayeTaxBand> PayeTaxBands { get; set; } = null!;
+    public DbSet<NssfTier> NssfTiers { get; set; } = null!;
+    public DbSet<PayrollRun> PayrollRuns { get; set; } = null!;
+    public DbSet<PayrollRunLine> PayrollRunLines { get; set; } = null!;
 
     public DbSet<ServiceCatalogItem> ServiceCatalogItems { get; set; } = null!;
 
@@ -889,6 +897,80 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.Description).HasMaxLength(2000);
             b.HasIndex(x => x.StartDate);
             b.HasIndex(x => x.AssignedToUserId);
+        });
+
+        builder.Entity<Employee>(b =>
+        {
+            b.ToTable("Employees");
+            b.ConfigureByConvention();
+            b.Property(x => x.FullName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.Phone).HasMaxLength(64);
+            b.Property(x => x.JobTitle).HasMaxLength(128);
+            b.Property(x => x.Department).HasMaxLength(128);
+            b.Property(x => x.KraPin).HasMaxLength(32);
+            b.Property(x => x.NssfNumber).HasMaxLength(32);
+            b.Property(x => x.ShaNumber).HasMaxLength(32);
+            b.Property(x => x.BasicSalary).HasColumnType("decimal(18,2)");
+            b.Property(x => x.BankName).HasMaxLength(128);
+            b.Property(x => x.BankAccountNumber).HasMaxLength(64);
+            b.HasIndex(x => x.UserId);
+            b.HasIndex(x => x.IsActive);
+        });
+
+        builder.Entity<LeaveRequest>(b =>
+        {
+            b.ToTable("LeaveRequests");
+            b.ConfigureByConvention();
+            b.Property(x => x.Reason).HasMaxLength(2000);
+            b.Property(x => x.DaysRequested).HasColumnType("decimal(6,1)");
+            b.HasIndex(x => x.EmployeeId);
+            b.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<PayeTaxBand>(b =>
+        {
+            b.ToTable("PayeTaxBands");
+            b.ConfigureByConvention();
+            b.Property(x => x.LowerBound).HasColumnType("decimal(18,2)");
+            b.Property(x => x.UpperBound).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Rate).HasColumnType("decimal(5,2)");
+        });
+
+        builder.Entity<NssfTier>(b =>
+        {
+            b.ToTable("NssfTiers");
+            b.ConfigureByConvention();
+            b.Property(x => x.LowerBound).HasColumnType("decimal(18,2)");
+            b.Property(x => x.UpperBound).HasColumnType("decimal(18,2)");
+            b.Property(x => x.EmployeeRate).HasColumnType("decimal(5,2)");
+            b.Property(x => x.EmployerRate).HasColumnType("decimal(5,2)");
+        });
+
+        builder.Entity<PayrollRun>(b =>
+        {
+            b.ToTable("PayrollRuns");
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.PeriodStart);
+        });
+
+        builder.Entity<PayrollRunLine>(b =>
+        {
+            b.ToTable("PayrollRunLines");
+            b.ConfigureByConvention();
+            b.Property(x => x.GrossPay).HasColumnType("decimal(18,2)");
+            b.Property(x => x.TaxableIncome).HasColumnType("decimal(18,2)");
+            b.Property(x => x.Paye).HasColumnType("decimal(18,2)");
+            b.Property(x => x.PersonalRelief).HasColumnType("decimal(18,2)");
+            b.Property(x => x.NssfEmployee).HasColumnType("decimal(18,2)");
+            b.Property(x => x.NssfEmployer).HasColumnType("decimal(18,2)");
+            b.Property(x => x.ShaContribution).HasColumnType("decimal(18,2)");
+            b.Property(x => x.HousingLevyEmployee).HasColumnType("decimal(18,2)");
+            b.Property(x => x.HousingLevyEmployer).HasColumnType("decimal(18,2)");
+            b.Property(x => x.OtherDeductions).HasColumnType("decimal(18,2)");
+            b.Property(x => x.NetPay).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.PayrollRunId);
+            b.HasIndex(x => x.EmployeeId);
         });
 
         builder.Entity<ServiceRequest>(b =>

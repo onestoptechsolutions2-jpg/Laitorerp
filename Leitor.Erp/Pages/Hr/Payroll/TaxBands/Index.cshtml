@@ -1,0 +1,109 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Hr.Payroll.TaxBands.IndexModel
+
+<div class="alert alert-warning">@L["TaxBandsVerifyWarning"]</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["PayeTaxBands"]</h5>
+        <a asp-page="/Hr/Payroll/Index" class="btn btn-secondary btn-sm">@L["BackToList"]</a>
+    </div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="AddPayeTaxBand" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewPayeTaxBand.LowerBound" class="form-control" placeholder="@L["LowerBound"]" />
+            </div>
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewPayeTaxBand.UpperBound" class="form-control" placeholder="@L["UpperBound"]" />
+            </div>
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewPayeTaxBand.Rate" class="form-control" placeholder="@L["Rate"]" />
+            </div>
+            <div class="col-auto">
+                <input type="date" asp-for="NewPayeTaxBand.EffectiveFrom" class="form-control" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">@L["Add"]</button>
+            </div>
+        </form>
+        <table class="table table-sm">
+            <thead>
+                <tr><th>@L["LowerBound"]</th><th>@L["UpperBound"]</th><th>@L["Rate"]</th><th>@L["EffectiveFrom"]</th><th>@L["Actions"]</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var band in Model.PayeTaxBands)
+                {
+                    <tr>
+                        <td>@band.LowerBound.ToString("N2")</td>
+                        <td>@(band.UpperBound?.ToString("N2") ?? L["NoLimit"].Value)</td>
+                        <td>@band.Rate.ToString("N2")%</td>
+                        <td>@band.EffectiveFrom.ToShortDateString()</td>
+                        <td>
+                            <form method="post" asp-page-handler="DeletePayeTaxBand" asp-route-id="@band.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["NssfTiers"]</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="AddNssfTier" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="number" asp-for="NewNssfTier.TierNumber" class="form-control" placeholder="@L["TierNumber"]" />
+            </div>
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewNssfTier.LowerBound" class="form-control" placeholder="@L["LowerBound"]" />
+            </div>
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewNssfTier.UpperBound" class="form-control" placeholder="@L["UpperBound"]" />
+            </div>
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewNssfTier.EmployeeRate" class="form-control" placeholder="@L["EmployeeRate"]" />
+            </div>
+            <div class="col-auto">
+                <input type="number" step="0.01" asp-for="NewNssfTier.EmployerRate" class="form-control" placeholder="@L["EmployerRate"]" />
+            </div>
+            <div class="col-auto">
+                <input type="date" asp-for="NewNssfTier.EffectiveFrom" class="form-control" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">@L["Add"]</button>
+            </div>
+        </form>
+        <table class="table table-sm">
+            <thead>
+                <tr><th>@L["TierNumber"]</th><th>@L["LowerBound"]</th><th>@L["UpperBound"]</th><th>@L["EmployeeRate"]</th><th>@L["EmployerRate"]</th><th>@L["EffectiveFrom"]</th><th>@L["Actions"]</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var tier in Model.NssfTiers)
+                {
+                    <tr>
+                        <td>@tier.TierNumber</td>
+                        <td>@tier.LowerBound.ToString("N2")</td>
+                        <td>@tier.UpperBound.ToString("N2")</td>
+                        <td>@tier.EmployeeRate.ToString("N2")%</td>
+                        <td>@tier.EmployerRate.ToString("N2")%</td>
+                        <td>@tier.EffectiveFrom.ToShortDateString()</td>
+                        <td>
+                            <form method="post" asp-page-handler="DeleteNssfTier" asp-route-id="@tier.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <p class="text-muted mt-2">@L["ShaHousingLevySettingsHint"] <a asp-page="/Administration/Operations/Index">@L["Menu:Operations"]</a>.</p>
+    </div>
+</div>

@@ -1,0 +1,71 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Hr.LeaveRequests.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["LeaveRequests"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewLeaveRequest"]">@L["NewLeaveRequest"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <select class="form-select" name="EmployeeId" asp-items="Model.EmployeeOptions"></select>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" name="Status">
+                    <option value="">@L["All"]</option>
+                    <option value="0" selected="@(Model.Status == Leitor.Erp.Entities.Hr.LeaveRequestStatus.Draft)">@L["Enum:LeaveRequestStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == Leitor.Erp.Entities.Hr.LeaveRequestStatus.PendingApproval)">@L["Enum:LeaveRequestStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == Leitor.Erp.Entities.Hr.LeaveRequestStatus.Approved)">@L["Enum:LeaveRequestStatus:2"]</option>
+                    <option value="3" selected="@(Model.Status == Leitor.Erp.Entities.Hr.LeaveRequestStatus.Rejected)">@L["Enum:LeaveRequestStatus:3"]</option>
+                    <option value="4" selected="@(Model.Status == Leitor.Erp.Entities.Hr.LeaveRequestStatus.Cancelled)">@L["Enum:LeaveRequestStatus:4"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Employee"]</th>
+                        <th>@L["Enum:LeaveType:0"] / @L["Type"]</th>
+                        <th>@L["StartDate"]</th>
+                        <th>@L["EndDate"]</th>
+                        <th>@L["Days"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.LeaveRequests.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="7">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var leave in Model.LeaveRequests)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@leave.Id">@leave.EmployeeName</a></td>
+                            <td>@L[$"Enum:LeaveType:{(int)leave.LeaveType}"]</td>
+                            <td>@leave.StartDate.ToShortDateString()</td>
+                            <td>@leave.EndDate.ToShortDateString()</td>
+                            <td>@leave.DaysRequested</td>
+                            <td><span class="pill @StatusPill.For(leave.Status)">@L[$"Enum:LeaveRequestStatus:{(int)leave.Status}"]</span></td>
+                            <td>
+                                <a asp-page="./Detail" asp-route-id="@leave.Id" class="btn btn-sm btn-outline-secondary">@L["View"]</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

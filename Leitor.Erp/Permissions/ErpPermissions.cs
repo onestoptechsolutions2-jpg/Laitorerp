@@ -205,6 +205,41 @@ public static class ErpPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    // Gated behind ErpFeatures.HumanResources (see Features/ErpFeatures.cs).
+    public static class Employees
+    {
+        public const string GroupName = "Erp.Employees";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Delete = Default + ".Delete";
+    }
+
+    // Approve is the RequiredPermission LeaveRequestAppService.SubmitAsync files an EscalationItem
+    // with (see Services/Governance/EscalationGate.cs) - a manager holding this can decide a leave
+    // request the same way ErpPermissions.Sales.OverrideMarginGate gates the margin-override
+    // escalation. Also gated behind ErpFeatures.HumanResources.
+    public static class Leave
+    {
+        public const string GroupName = "Erp.Leave";
+        public const string Default = GroupName;
+        public const string Create = Default + ".Create";
+        public const string Edit = Default + ".Edit";
+        public const string Approve = Default + ".Approve";
+    }
+
+    // Run posts a payroll journal entry (real money movement); ManageRates edits the seeded
+    // PAYE/NSSF/SHA rate tables - deliberately separate from Run so a compliance-focused user can
+    // update statutory rates without also being trusted to execute a payroll run. Both gated
+    // behind ErpFeatures.HumanResources.
+    public static class Payroll
+    {
+        public const string GroupName = "Erp.Payroll";
+        public const string Default = GroupName;
+        public const string Run = Default + ".Run";
+        public const string ManageRates = Default + ".ManageRates";
+    }
+
     // Gated behind ErpFeatures.TaxCompliance (see Features/ErpFeatures.cs) - a single view
     // permission, since the VAT return is a read-only report over data already captured
     // elsewhere (Sales/Procurement lines, Vendor withholding rates).

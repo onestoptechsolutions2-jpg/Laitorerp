@@ -94,6 +94,30 @@ public class ErpMenuContributor : IMenuContributor
             );
         }
 
+        // Human Resources - its own top-level group (Employees now; Leave/Payroll join it as
+        // their own sub-phases ship). Shown if the user can see any one child, same "shown if any
+        // child is visible" convention as every other multi-item menu group in this file.
+        if (await context.IsGrantedAsync(ErpPermissions.Employees.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.HumanResources))
+        {
+            var hrMenu = new ApplicationMenuItem(
+                ErpMenus.Hr,
+                l["Menu:Hr"],
+                icon: "fas fa-people-group",
+                order: 12
+            );
+            hrMenu.AddItem(new ApplicationMenuItem(ErpMenus.HrEmployees, l["Menu:HrEmployees"], "~/Hr/Employees", order: 1));
+            if (await context.IsGrantedAsync(ErpPermissions.Leave.Default))
+            {
+                hrMenu.AddItem(new ApplicationMenuItem(ErpMenus.HrLeaveRequests, l["Menu:HrLeaveRequests"], "~/Hr/LeaveRequests", order: 2));
+            }
+            if (await context.IsGrantedAsync(ErpPermissions.Payroll.Default))
+            {
+                hrMenu.AddItem(new ApplicationMenuItem(ErpMenus.HrPayroll, l["Menu:HrPayroll"], "~/Hr/Payroll", order: 3));
+            }
+            context.Menu.Items.Add(hrMenu);
+        }
+
         // CRM - Lead -> Opportunity -> Customer is one pipeline; grouped as one funnel instead of
         // three separate top-level entries.
         var canViewLeads = await context.IsGrantedAsync(ErpPermissions.Leads.Default);

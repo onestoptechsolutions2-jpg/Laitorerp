@@ -6,6 +6,11 @@ public class ErpMenus
     public const string Home = Prefix + ".Home";
     public const string Calendar = Prefix + ".Calendar";
 
+    public const string Hr = Prefix + ".Hr";
+    public const string HrEmployees = Hr + ".Employees";
+    public const string HrLeaveRequests = Hr + ".LeaveRequests";
+    public const string HrPayroll = Hr + ".Payroll";
+
     // CRM - Lead -> Opportunity -> Customer is one pipeline; grouped as one funnel instead of
     // three unrelated-looking top-level entries.
     public const string Crm = Prefix + ".Crm";

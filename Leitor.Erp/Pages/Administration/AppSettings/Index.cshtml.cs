@@ -58,7 +58,12 @@ public class IndexModel : AbpPageModel
             await ToRowAsync(ErpSettings.SlaHoursMedium, _l["Setting:SlaHoursMedium"]),
             await ToRowAsync(ErpSettings.SlaHoursLow, _l["Setting:SlaHoursLow"]),
             await ToRowAsync(ErpSettings.ContractExpiryAlertLeadDays, _l["Setting:ContractExpiryAlertLeadDays"]),
-            await ToRowAsync(ErpSettings.TaskDueSoonLeadDays, _l["Setting:TaskDueSoonLeadDays"])
+            await ToRowAsync(ErpSettings.TaskDueSoonLeadDays, _l["Setting:TaskDueSoonLeadDays"]),
+            await ToRowAsync(ErpSettings.PayePersonalReliefMonthly, _l["Setting:PayePersonalReliefMonthly"]),
+            await ToRowAsync(ErpSettings.ShaContributionRatePercent, _l["Setting:ShaContributionRatePercent"]),
+            await ToRowAsync(ErpSettings.ShaContributionMinimum, _l["Setting:ShaContributionMinimum"]),
+            await ToRowAsync(ErpSettings.HousingLevyEmployeeRatePercent, _l["Setting:HousingLevyEmployeeRatePercent"]),
+            await ToRowAsync(ErpSettings.HousingLevyEmployerRatePercent, _l["Setting:HousingLevyEmployerRatePercent"])
         };
     }
 

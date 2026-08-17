@@ -14,5 +14,14 @@ public enum SystemAccountRole
     Expense = 5,
     Inventory = 6,
     WithholdingTaxPayable = 7,
-    UnrealizedFxGainLoss = 8
+    UnrealizedFxGainLoss = 8,
+
+    // Payroll (Services/Hr/PayrollRunAppService.cs). StatutoryDeductionsPayable is one shared
+    // liability role for NSSF/SHA/PAYE/Housing Levy rather than four separate roles - the journal
+    // line description distinguishes which statutory body each credit is for, keeping the chart of
+    // accounts from growing four single-purpose entries for what's still fundamentally "money owed
+    // to the government/statutory funds, not yet remitted."
+    SalaryExpense = 9,
+    SalaryPayable = 10,
+    StatutoryDeductionsPayable = 11
 }

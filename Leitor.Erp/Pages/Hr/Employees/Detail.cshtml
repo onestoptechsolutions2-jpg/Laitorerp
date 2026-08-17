@@ -1,0 +1,57 @@
+@page "{id}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Hr.Employees.DetailModel
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@Model.Employee.FullName</h5>
+        <div>
+            @if (Model.CanEdit)
+            {
+                <a asp-page="./Edit" asp-route-id="@Model.Employee.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditEmployee"]">@L["Edit"]</a>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">@L["Status"]</dt>
+            <dd class="col-sm-4"><span class="pill @(Model.Employee.IsActive ? "pill-success" : "pill-neutral")">@(Model.Employee.IsActive ? L["Active"] : L["Inactive"])</span></dd>
+            <dt class="col-sm-2">@L["JobTitle"]</dt>
+            <dd class="col-sm-4">@Model.Employee.JobTitle</dd>
+
+            <dt class="col-sm-2">@L["Department"]</dt>
+            <dd class="col-sm-4">@Model.Employee.Department</dd>
+            <dt class="col-sm-2">@L["Email"]</dt>
+            <dd class="col-sm-4">@Model.Employee.Email</dd>
+
+            <dt class="col-sm-2">@L["PhoneNumber"]</dt>
+            <dd class="col-sm-4"><partial name="/Pages/Shared/_PhoneActions.cshtml" model="Model.Employee.Phone" /></dd>
+            <dt class="col-sm-2">@L["HireDate"]</dt>
+            <dd class="col-sm-4">@Model.Employee.HireDate.ToShortDateString()</dd>
+
+            @if (Model.Employee.TerminationDate.HasValue)
+            {
+                <dt class="col-sm-2">@L["TerminationDate"]</dt>
+                <dd class="col-sm-4">@Model.Employee.TerminationDate.Value.ToShortDateString()</dd>
+            }
+
+            <dt class="col-sm-2">@L["KraPin"]</dt>
+            <dd class="col-sm-4">@Model.Employee.KraPin</dd>
+            <dt class="col-sm-2">@L["NssfNumber"]</dt>
+            <dd class="col-sm-4">@Model.Employee.NssfNumber</dd>
+
+            <dt class="col-sm-2">@L["ShaNumber"]</dt>
+            <dd class="col-sm-4">@Model.Employee.ShaNumber</dd>
+            <dt class="col-sm-2">@L["BasicSalary"]</dt>
+            <dd class="col-sm-4">@Model.Employee.BasicSalary.ToString("N2")</dd>
+
+            <dt class="col-sm-2">@L["BankName"]</dt>
+            <dd class="col-sm-4">@Model.Employee.BankName</dd>
+            <dt class="col-sm-2">@L["BankAccountNumber"]</dt>
+            <dd class="col-sm-4">@Model.Employee.BankAccountNumber</dd>
+        </dl>
+    </div>
+</div>

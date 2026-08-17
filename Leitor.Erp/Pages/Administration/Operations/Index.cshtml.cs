@@ -219,7 +219,12 @@ public class IndexModel : AbpPageModel
             await ToSettingRowAsync(ErpSettings.SlaHoursLow, _l["Setting:SlaHoursLow"]),
             await ToSettingRowAsync(ErpSettings.ContractExpiryAlertLeadDays, _l["Setting:ContractExpiryAlertLeadDays"]),
             await ToSettingRowAsync(ErpSettings.SalesMarginFloorPercent, _l["Setting:SalesMarginFloorPercent"]),
-            await ToSettingRowAsync(ErpSettings.TaskDueSoonLeadDays, _l["Setting:TaskDueSoonLeadDays"])
+            await ToSettingRowAsync(ErpSettings.TaskDueSoonLeadDays, _l["Setting:TaskDueSoonLeadDays"]),
+            await ToSettingRowAsync(ErpSettings.PayePersonalReliefMonthly, _l["Setting:PayePersonalReliefMonthly"]),
+            await ToSettingRowAsync(ErpSettings.ShaContributionRatePercent, _l["Setting:ShaContributionRatePercent"]),
+            await ToSettingRowAsync(ErpSettings.ShaContributionMinimum, _l["Setting:ShaContributionMinimum"]),
+            await ToSettingRowAsync(ErpSettings.HousingLevyEmployeeRatePercent, _l["Setting:HousingLevyEmployeeRatePercent"]),
+            await ToSettingRowAsync(ErpSettings.HousingLevyEmployerRatePercent, _l["Setting:HousingLevyEmployerRatePercent"])
         };
     }
 

@@ -1,0 +1,75 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Hr.Employees.IndexModel
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">@L["Employees"]</h5>
+        @if (Model.CanCreate)
+        {
+            <a asp-page="./Create" class="btn btn-primary" data-overlay data-overlay-title="@L["NewEmployee"]">@L["NewEmployee"]</a>
+        }
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Name"]" />
+            </div>
+            <div class="col-auto">
+                <select class="form-select" name="IsActive">
+                    <option value="">@L["All"]</option>
+                    <option value="true" selected="@(Model.IsActive == true)">@L["Active"]</option>
+                    <option value="false" selected="@(Model.IsActive == false)">@L["Inactive"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">@L["Search"]</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["Name"]</th>
+                        <th>@L["JobTitle"]</th>
+                        <th>@L["Department"]</th>
+                        <th>@L["PhoneNumber"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Employees.Any())
+                    {
+                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                    }
+                    @foreach (var employee in Model.Employees)
+                    {
+                        <tr>
+                            <td><a class="doc-no" asp-page="./Detail" asp-route-id="@employee.Id">@employee.FullName</a></td>
+                            <td>@employee.JobTitle</td>
+                            <td>@employee.Department</td>
+                            <td><partial name="/Pages/Shared/_PhoneActions.cshtml" model="employee.Phone" /></td>
+                            <td><span class="pill @(employee.IsActive ? "pill-success" : "pill-neutral")">@(employee.IsActive ? L["Active"] : L["Inactive"])</span></td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@employee.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditEmployee"]">@L["Edit"]</a>
+                                }
+                                @if (Model.CanDelete)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@employee.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="/Pages/Shared/_Pagination.cshtml" model="Model.Pagination" />
+    </div>
+</div>

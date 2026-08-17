@@ -4,6 +4,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Cybersecurity;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Hr;
 using Leitor.Erp.Entities.KnowledgeBase;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Partners;
@@ -241,6 +242,16 @@ public static class StatusPill
         SecurityRiskRating.Medium => Warning,
         SecurityRiskRating.High => Danger,
         SecurityRiskRating.Critical => Danger,
+        _ => Neutral
+    };
+
+    public static string For(LeaveRequestStatus status) => status switch
+    {
+        LeaveRequestStatus.Draft => Neutral,
+        LeaveRequestStatus.PendingApproval => Warning,
+        LeaveRequestStatus.Approved => Success,
+        LeaveRequestStatus.Rejected => Danger,
+        LeaveRequestStatus.Cancelled => Neutral,
         _ => Neutral
     };
 

@@ -63,5 +63,21 @@ public class ErpChartOfAccountsDataSeeder : IDataSeedContributor, ITransientDepe
             SystemRole = SystemAccountRole.Expense
         });
         await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "5100", "Operating Expenses", AccountType.Expense));
+
+        // Payroll (only meaningful once HumanResources is switched on and PayrollRunAppService
+        // posts a run) - same "harmless to seed unconditionally" reasoning as Withholding Tax
+        // Payable above.
+        await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "6000", "Salary Expense", AccountType.Expense)
+        {
+            SystemRole = SystemAccountRole.SalaryExpense
+        });
+        await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "2200", "Salary Payable", AccountType.Liability)
+        {
+            SystemRole = SystemAccountRole.SalaryPayable
+        });
+        await _accountRepository.InsertAsync(new Account(_guidGenerator.Create(), "2300", "Statutory Deductions Payable", AccountType.Liability)
+        {
+            SystemRole = SystemAccountRole.StatutoryDeductionsPayable
+        });
     }
 }

@@ -126,6 +126,23 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         calendarPermission.AddChild(ErpPermissions.Calendar.Edit, L("Permission:Edit"));
         calendarPermission.AddChild(ErpPermissions.Calendar.Delete, L("Permission:Delete"));
 
+        var employeesGroup = context.AddGroup(ErpPermissions.Employees.GroupName, L("Permission:Employees"));
+        var employeesPermission = employeesGroup.AddPermission(ErpPermissions.Employees.Default, L("Permission:Employees"));
+        employeesPermission.AddChild(ErpPermissions.Employees.Create, L("Permission:Create"));
+        employeesPermission.AddChild(ErpPermissions.Employees.Edit, L("Permission:Edit"));
+        employeesPermission.AddChild(ErpPermissions.Employees.Delete, L("Permission:Delete"));
+
+        var leaveGroup = context.AddGroup(ErpPermissions.Leave.GroupName, L("Permission:Leave"));
+        var leavePermission = leaveGroup.AddPermission(ErpPermissions.Leave.Default, L("Permission:Leave"));
+        leavePermission.AddChild(ErpPermissions.Leave.Create, L("Permission:Create"));
+        leavePermission.AddChild(ErpPermissions.Leave.Edit, L("Permission:Edit"));
+        leavePermission.AddChild(ErpPermissions.Leave.Approve, L("Permission:Approve"));
+
+        var payrollGroup = context.AddGroup(ErpPermissions.Payroll.GroupName, L("Permission:Payroll"));
+        var payrollPermission = payrollGroup.AddPermission(ErpPermissions.Payroll.Default, L("Permission:Payroll"));
+        payrollPermission.AddChild(ErpPermissions.Payroll.Run, L("Permission:Run"));
+        payrollPermission.AddChild(ErpPermissions.Payroll.ManageRates, L("Permission:ManageRates"));
+
         var taxComplianceGroup = context.AddGroup(ErpPermissions.TaxCompliance.GroupName, L("Permission:TaxCompliance"));
         taxComplianceGroup.AddPermission(ErpPermissions.TaxCompliance.Default, L("Permission:TaxCompliance"));
 
