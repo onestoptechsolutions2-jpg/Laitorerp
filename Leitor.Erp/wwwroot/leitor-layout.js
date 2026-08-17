@@ -175,7 +175,131 @@
         });
     }
 
-    restoreSidebarCollapseState();
-    initActionPanel();
-    initFormOverlay();
+    // Floating global search (Pages/Shared/Components/GlobalSearch) - fetches
+    // Pages/Search/Index.cshtml.cs's JSON-only OnGetAsync as the user types (debounced), and
+    // renders results grouped by entity type. Every result is a real <a href> to that record's
+    // own Detail page - clicking one is a normal navigation, nothing to intercept.
+    function initGlobalSearch() {
+        var trigger = document.getElementById("leitor-global-search-trigger");
+        var panel = document.getElementById("leitor-global-search-panel");
+        var backdrop = document.getElementById("leitor-global-search-backdrop");
+        var input = document.getElementById("leitor-global-search-input");
+        var closeBtn = document.getElementById("leitor-global-search-close");
+        var resultsEl = document.getElementById("leitor-global-search-results");
+        if (!trigger || !panel || !backdrop || !input || !resultsEl) {
+            return;
+        }
+
+        var debounceTimer = null;
+        var hintHtml = resultsEl.innerHTML;
+
+        function escapeHtml(value) {
+            var div = document.createElement("div");
+            div.textContent = value || "";
+            return div.innerHTML;
+        }
+
+        function open() {
+            panel.hidden = false;
+            backdrop.hidden = false;
+            trigger.setAttribute("aria-expanded", "true");
+            input.focus();
+        }
+
+        function close() {
+            panel.hidden = true;
+            backdrop.hidden = true;
+            trigger.setAttribute("aria-expanded", "false");
+            input.value = "";
+            resultsEl.innerHTML = hintHtml;
+        }
+
+        function renderResults(results) {
+            if (!results || results.length === 0) {
+                resultsEl.innerHTML = '<p class="leitor-search-empty">' +
+                    (resultsEl.getAttribute("data-no-results-text") || "No results found.") + "</p>";
+                return;
+            }
+
+            var groups = {};
+            var order = [];
+            results.forEach(function (item) {
+                if (!groups[item.entityType]) {
+                    groups[item.entityType] = [];
+                    order.push(item.entityType);
+                }
+                groups[item.entityType].push(item);
+            });
+
+            var html = "";
+            order.forEach(function (type) {
+                html += '<div class="leitor-search-group-label">' + escapeHtml(type) + "</div>";
+                groups[type].forEach(function (item) {
+                    html += '<a class="leitor-search-result" href="' + escapeHtml(item.url) + '">' +
+                        '<div class="leitor-search-result-title">' + escapeHtml(item.title) + "</div>" +
+                        (item.subtitle ? '<div class="leitor-search-result-subtitle">' + escapeHtml(item.subtitle) + "</div>" : "") +
+                        "</a>";
+                });
+            });
+            resultsEl.innerHTML = html;
+        }
+
+        function doSearch(term) {
+            if (!term || term.trim().length < 2) {
+                resultsEl.innerHTML = hintHtml;
+                return;
+            }
+            fetch("/Search?term=" + encodeURIComponent(term.trim()))
+                .then(function (response) {
+                    return response.ok ? response.json() : [];
+                })
+                .then(renderResults)
+                .catch(function () {
+                    resultsEl.innerHTML = hintHtml;
+                });
+        }
+
+        trigger.addEventListener("click", open);
+        closeBtn && closeBtn.addEventListener("click", close);
+        backdrop.addEventListener("click", close);
+
+        input.addEventListener("input", function () {
+            clearTimeout(debounceTimer);
+            var term = input.value;
+            debounceTimer = setTimeout(function () {
+                doSearch(term);
+            }, 250);
+        });
+
+        document.addEventListener("keydown", function (e) {
+            var isSearchShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k";
+            if (isSearchShortcut) {
+                e.preventDefault();
+                open();
+                return;
+            }
+            if (e.key === "Escape" && !panel.hidden) {
+                close();
+            }
+        });
+    }
+
+    // Deferred to DOMContentLoaded rather than run immediately at parse time: initFormOverlay()
+    // looks up #leitor-overlay-modal, which is injected via LayoutHooks.Body.Last (right before
+    // </body>) - if this script tag is placed anywhere earlier in the document than that (theme-
+    // dependent, and not something this file controls), the lookup would silently fail and every
+    // [data-overlay] trigger would fall back to being a plain link with no JS attached. Waiting
+    // for DOMContentLoaded is correct regardless of where the script tag actually ends up.
+    function init() {
+        restoreSidebarCollapseState();
+        initActionPanel();
+        initFormOverlay();
+        initGlobalSearch();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
 })();

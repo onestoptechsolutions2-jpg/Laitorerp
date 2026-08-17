@@ -8,6 +8,7 @@ using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Workspace;
+using Leitor.Erp.Services.Governance;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -25,19 +26,25 @@ public class MyWorkspaceAppService : ApplicationService
     private readonly IRepository<FieldServiceJob, Guid> _jobRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IRepository<ChangeRequest, Guid> _changeRequestRepository;
+    private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
+    private readonly EscalationItemAppService _escalationItemAppService;
 
     public MyWorkspaceAppService(
         IRepository<Ticket, Guid> ticketRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<FieldServiceJob, Guid> jobRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
-        IRepository<ChangeRequest, Guid> changeRequestRepository)
+        IRepository<ChangeRequest, Guid> changeRequestRepository,
+        IRepository<EscalationItem, Guid> escalationItemRepository,
+        EscalationItemAppService escalationItemAppService)
     {
         _ticketRepository = ticketRepository;
         _customerRepository = customerRepository;
         _jobRepository = jobRepository;
         _deletionRequestRepository = deletionRequestRepository;
         _changeRequestRepository = changeRequestRepository;
+        _escalationItemRepository = escalationItemRepository;
+        _escalationItemAppService = escalationItemAppService;
     }
 
     public async Task<MyWorkspaceDto> GetAsync()
@@ -102,6 +109,26 @@ public class MyWorkspaceAppService : ApplicationService
         {
             var pendingChanges = await _changeRequestRepository.GetListAsync(x => x.Status == ChangeRequestStatus.PendingApproval);
             dto.PendingChangeRequestCount = pendingChanges.Count;
+        }
+
+        // Unlike the two counts above (gated on one fixed permission), an EscalationItem's
+        // RequiredPermission varies per row - so "how many can I actually decide" needs a
+        // per-distinct-permission check rather than one flat count, reusing the exact same
+        // CanDecideAsync logic EscalationItemAppService.ApproveAsync/RejectAsync enforce (row
+        // permission OR the Escalations.Decide catch-all) so this count never overclaims what
+        // the Escalations page itself will actually let the user act on.
+        if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Escalations.Default))
+        {
+            var pendingEscalations = await _escalationItemRepository.GetListAsync(x => x.Status == EscalationItemStatus.Pending);
+            var decidableCount = 0;
+            foreach (var group in pendingEscalations.GroupBy(x => x.RequiredPermission))
+            {
+                if (await _escalationItemAppService.CanDecideAsync(group.Key))
+                {
+                    decidableCount += group.Count();
+                }
+            }
+            dto.PendingEscalationCount = decidableCount;
         }
 
         return dto;

@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+
+<button type="button" id="leitor-global-search-trigger" class="leitor-search-trigger" aria-haspopup="dialog" aria-expanded="false" title="@L["Search"] (Ctrl+K)">
+    <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+</button>
+
+<div id="leitor-global-search-backdrop" class="leitor-search-backdrop" hidden></div>
+
+<div id="leitor-global-search-panel" class="leitor-search-panel" role="dialog" aria-modal="true" aria-label="@L["Search"]" hidden>
+    <div class="leitor-search-panel-header">
+        <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="text" id="leitor-global-search-input" class="leitor-search-input" placeholder="@L["GlobalSearchPlaceholder"]" autocomplete="off" />
+        <button type="button" id="leitor-global-search-close" class="leitor-search-panel-close" aria-label="@L["Close"]">&times;</button>
+    </div>
+    <div id="leitor-global-search-results" class="leitor-search-panel-results">
+        <p class="leitor-search-hint">@L["GlobalSearchHint"]</p>
+    </div>
+</div>

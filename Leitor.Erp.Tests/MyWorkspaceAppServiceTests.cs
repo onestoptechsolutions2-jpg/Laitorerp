@@ -5,6 +5,7 @@ using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Features;
+using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Assets;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Assets;
@@ -16,6 +17,7 @@ using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Support;
 using Leitor.Erp.Services.Workspace;
+using Volo.Abp.Domain.Repositories;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Security.Claims;
 using Xunit;
@@ -143,6 +145,36 @@ public class MyWorkspaceAppServiceTests : ErpTestBase
 
             var job = Assert.Single(workspace.Jobs);
             Assert.Equal(myScheduledJob.Id, job.Id);
+        }
+    }
+
+    [Fact]
+    public async Task GetAsync_Counts_Only_Pending_Escalations_Decidable_By_The_Current_User()
+    {
+        await EnsureDatabaseCreatedAsync();
+
+        var escalationRepository = GetRequiredService<IRepository<EscalationItem, Guid>>();
+        var pending = new EscalationItem(
+            Guid.NewGuid(), "Quote.MarginOverride", "Quote", Guid.NewGuid(),
+            ErpPermissions.Sales.OverrideMarginGate, null, null, DateTime.UtcNow, "pending one");
+        await escalationRepository.InsertAsync(pending, autoSave: true);
+
+        var alreadyDecided = new EscalationItem(
+            Guid.NewGuid(), "Quote.MarginOverride", "Quote", Guid.NewGuid(),
+            ErpPermissions.Sales.OverrideMarginGate, null, null, DateTime.UtcNow, "already decided");
+        alreadyDecided.Status = EscalationItemStatus.Approved;
+        await escalationRepository.InsertAsync(alreadyDecided, autoSave: true);
+
+        using (ImpersonateAsUser(Guid.NewGuid()))
+        {
+            var workspaceAppService = GetRequiredService<MyWorkspaceAppService>();
+            var workspace = await workspaceAppService.GetAsync();
+
+            // AlwaysAllowAuthorizationService grants every permission check in this test host, so
+            // this covers the Pending-vs-already-decided filtering/grouping logic itself, not the
+            // per-row RequiredPermission gate - see GlobalSearchAppServiceTests' own comment for
+            // the same standing limitation.
+            Assert.Equal(1, workspace.PendingEscalationCount);
         }
     }
 }

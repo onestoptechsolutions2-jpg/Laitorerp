@@ -164,6 +164,12 @@ sits underneath all of it, posting every invoice, payment, and supplier bill to 
   section, with extra fine-grained permissions only where an action is genuinely a distinct,
   rarer responsibility (e.g. `Assets.RevealCredentials`, `Changes.Approve`,
   `FiscalPeriods.Manage`).
+- Global search: a floating search trigger (bottom-right on every page, `Ctrl+K`/`Cmd+K`) queries
+  Customers, Leads, Tickets, and Invoices by name/number — see `Services/Search/GlobalSearchAppService.cs`
+  and `Pages/Search/Index.cshtml.cs` (a JSON-only endpoint, not a page users navigate to
+  directly). Each entity type's results are gated on that module's own view permission. Added
+  2026-08-17 after a usability audit flagged "no way to find a record without already knowing
+  which of ~30 modules owns it" as the app's single highest-friction gap.
 - UI design system ("Warm Sunrise"): every color/shape/shadow value lives in one file,
   `wwwroot/leitor-tokens.css` — both the main app's `leitor-theme.css` and the login page's own
   `Pages/Account/login.css` reference its `var(--leitor-*)` custom properties rather than each

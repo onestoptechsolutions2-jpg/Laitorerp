@@ -17,6 +17,13 @@ public class MyWorkspaceDto
     // Null when the current user doesn't hold Changes.Approve - same convention as
     // PendingDeletionRequestCount above.
     public int? PendingChangeRequestCount { get; set; }
+
+    // Null when the current user doesn't hold Escalations.Default (can't view the Escalations
+    // page at all). Unlike the two counts above, this is filtered further to only items the
+    // user can actually decide (per-row RequiredPermission, or the Escalations.Decide catch-all)
+    // - so it can legitimately be 0 even when pending escalations exist system-wide, if none of
+    // them are this user's to act on.
+    public int? PendingEscalationCount { get; set; }
 }
 
 public class MyTicketDto

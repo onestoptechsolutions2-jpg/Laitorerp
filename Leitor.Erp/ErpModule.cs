@@ -12,6 +12,7 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
 using Leitor.Erp.Pages.Shared.Components.FormOverlay;
+using Leitor.Erp.Pages.Shared.Components.GlobalSearch;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
 using Leitor.Erp.Pages.Shared.Components.ThemeFonts;
 using Leitor.Erp.Services.Governance;
@@ -309,6 +310,15 @@ public class ErpModule : AbpModule
             options.Add(
                 LayoutHooks.Head.Last,
                 typeof(ThemeFontsViewComponent),
+                layout: StandardLayouts.Application);
+
+            // Floating global search trigger + panel (see GlobalSearchViewComponent's own
+            // comment) - added 2026-08-17 after a usability audit flagged "no way to find a
+            // record without already knowing which module owns it" as the highest-friction gap
+            // in the app.
+            options.Add(
+                LayoutHooks.Body.Last,
+                typeof(GlobalSearchViewComponent),
                 layout: StandardLayouts.Application);
         });
     }
