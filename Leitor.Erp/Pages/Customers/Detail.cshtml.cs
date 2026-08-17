@@ -6,17 +6,20 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Dtos.ServiceRequests;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Opportunities;
 using Leitor.Erp.Services.Sales;
+using Leitor.Erp.Services.ServiceRequests;
 using Leitor.Erp.Services.Support;
 using Leitor.Erp.Settings;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +28,7 @@ using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Features;
 using Volo.Abp.Settings;
 
 namespace Leitor.Erp.Pages.Customers;
@@ -51,6 +55,8 @@ public class DetailModel : AbpPageModel
     private readonly OrderAppService _orderAppService;
     private readonly InvoiceAppService _invoiceAppService;
     private readonly LeadTouchAppService _leadTouchAppService;
+    private readonly ServiceRequestAppService _serviceRequestAppService;
+    private readonly IFeatureChecker _featureChecker;
     private readonly IRepository<Lead, Guid> _leadRepository;
     private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
@@ -75,6 +81,8 @@ public class DetailModel : AbpPageModel
         OrderAppService orderAppService,
         InvoiceAppService invoiceAppService,
         LeadTouchAppService leadTouchAppService,
+        ServiceRequestAppService serviceRequestAppService,
+        IFeatureChecker featureChecker,
         IRepository<Lead, Guid> leadRepository,
         IRepository<Proposal, Guid> proposalRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository)
@@ -98,6 +106,8 @@ public class DetailModel : AbpPageModel
         _orderAppService = orderAppService;
         _invoiceAppService = invoiceAppService;
         _leadTouchAppService = leadTouchAppService;
+        _serviceRequestAppService = serviceRequestAppService;
+        _featureChecker = featureChecker;
         _leadRepository = leadRepository;
         _proposalRepository = proposalRepository;
         _deletionRequestRepository = deletionRequestRepository;
@@ -115,6 +125,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<FieldServiceJobDto> FieldServiceJobs { get; set; } = Array.Empty<FieldServiceJobDto>();
     public IReadOnlyList<TicketDto> Tickets { get; set; } = Array.Empty<TicketDto>();
     public CustomerSlaPerformanceDto? SlaPerformance { get; set; }
+    public IReadOnlyList<ServiceRequestDto> ServiceRequests { get; set; } = Array.Empty<ServiceRequestDto>();
 
     // 360 pipeline/finance view - the Quote/Order/Invoice repositories already existed in
     // CustomerAppService for cascade-delete; this surfaces the same data for display instead.
@@ -225,6 +236,20 @@ public class DetailModel : AbpPageModel
             });
             Tickets = tickets.Items;
             SlaPerformance = await _supportAnalyticsAppService.GetCustomerSlaPerformanceAsync(Id);
+        }
+
+        // ServiceRequestManagement is a toggleable module (unlike Support/FieldService above,
+        // which are always-on) - gate on the feature too, or GetListAsync's own
+        // [RequiresFeature] throws for a deployment that has it off.
+        if (await _featureChecker.IsEnabledAsync(ErpFeatures.ServiceRequestManagement) &&
+            await AuthorizationService.IsGrantedAsync(ErpPermissions.ServiceRequests.Default))
+        {
+            var serviceRequests = await _serviceRequestAppService.GetListAsync(new GetServiceRequestListInput
+            {
+                CustomerId = Id,
+                MaxResultCount = 1000
+            });
+            ServiceRequests = serviceRequests.Items;
         }
 
         if (await AuthorizationService.IsGrantedAsync(ErpPermissions.Opportunities.Default))

@@ -20,6 +20,7 @@
             <abp-input asp-for="Customer.Status" />
             <abp-input asp-for="Customer.DefaultPaymentTerms" />
             <abp-select asp-for="Customer.DefaultCurrencyCode" asp-items="Model.CurrencyOptions" label="@L["DefaultCurrency"].Value" />
+            <abp-select asp-for="Customer.DefaultPriceListId" asp-items="Model.PriceListOptions" label="@L["DefaultPriceList"].Value" />
             <abp-input asp-for="Customer.CreditLimit" />
             <abp-input asp-for="Customer.DiscountPercent" />
             <abp-select asp-for="Customer.AccountOwnerUserId" asp-items="Model.UserOptions" label="@L["AccountOwner"].Value" />

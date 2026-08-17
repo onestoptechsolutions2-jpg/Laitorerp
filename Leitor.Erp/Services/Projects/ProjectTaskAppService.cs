@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
@@ -22,15 +23,21 @@ public class ProjectTaskAppService :
     CrudAppService<ProjectTask, ProjectTaskDto, Guid, GetProjectTaskListInput, CreateUpdateProjectTaskDto>
 {
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Agent, Guid> _agentRepository;
+    private readonly IRepository<Partner, Guid> _partnerRepository;
     private readonly IClock _clock;
 
     public ProjectTaskAppService(
         IRepository<ProjectTask, Guid> repository,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Agent, Guid> agentRepository,
+        IRepository<Partner, Guid> partnerRepository,
         IClock clock)
         : base(repository)
     {
         _identityUserRepository = identityUserRepository;
+        _agentRepository = agentRepository;
+        _partnerRepository = partnerRepository;
         _clock = clock;
 
         GetPolicyName = ErpPermissions.Projects.Default;
@@ -63,19 +70,42 @@ public class ProjectTaskAppService :
             .Distinct()
             .ToList();
 
-        if (userIds.Count == 0)
+        if (userIds.Count > 0)
         {
-            return;
+            var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
+            var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
+            foreach (var task in tasks)
+            {
+                if (task.AssignedToUserId.HasValue && namesById.TryGetValue(task.AssignedToUserId.Value, out var userName))
+                {
+                    task.AssignedToUserName = userName;
+                }
+            }
         }
 
-        var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
-        var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
-
-        foreach (var task in tasks)
+        var agentIds = tasks.Where(x => x.AgentId.HasValue).Select(x => x.AgentId!.Value).Distinct().ToList();
+        if (agentIds.Count > 0)
         {
-            if (task.AssignedToUserId.HasValue && namesById.TryGetValue(task.AssignedToUserId.Value, out var userName))
+            var agentNamesById = (await _agentRepository.GetListAsync(x => agentIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name);
+            foreach (var task in tasks)
             {
-                task.AssignedToUserName = userName;
+                if (task.AgentId.HasValue && agentNamesById.TryGetValue(task.AgentId.Value, out var agentName))
+                {
+                    task.AgentName = agentName;
+                }
+            }
+        }
+
+        var partnerIds = tasks.Where(x => x.PartnerId.HasValue).Select(x => x.PartnerId!.Value).Distinct().ToList();
+        if (partnerIds.Count > 0)
+        {
+            var partnerNamesById = (await _partnerRepository.GetListAsync(x => partnerIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name);
+            foreach (var task in tasks)
+            {
+                if (task.PartnerId.HasValue && partnerNamesById.TryGetValue(task.PartnerId.Value, out var partnerName))
+                {
+                    task.PartnerName = partnerName;
+                }
             }
         }
     }
@@ -100,6 +130,8 @@ public class ProjectTaskAppService :
         entity.Description = input.Description;
         entity.DueDate = input.DueDate;
         entity.AssignedToUserId = input.AssignedToUserId;
+        entity.AgentId = input.AgentId;
+        entity.PartnerId = input.PartnerId;
 
         if (input.IsCompleted && !entity.IsCompleted)
         {

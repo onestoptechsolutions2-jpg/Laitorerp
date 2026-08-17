@@ -15,6 +15,12 @@ public class ProjectTask : FullAuditedAggregateRoot<Guid>
     public bool IsCompleted { get; set; }
     public DateTime? CompletedAt { get; set; }
 
+    // External assignment, distinct from AssignedToUserId (internal staff) - a task can be
+    // handed to an outside Agent or Partner instead. Loose references, same convention as every
+    // other cross-aggregate link in this app. Added 2026-08-17.
+    public Guid? AgentId { get; set; }
+    public Guid? PartnerId { get; set; }
+
     protected ProjectTask()
     {
     }

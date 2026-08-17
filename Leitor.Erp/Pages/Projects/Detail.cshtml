@@ -128,13 +128,21 @@
         @if (Model.CanEdit)
         {
             <form method="post" asp-page-handler="AddTask" class="row g-2 mb-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">@L["Title"]</label>
                     <input asp-for="NewTask.Title" class="form-control" />
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">@L["DueDate"]</label>
                     <input asp-for="NewTask.DueDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Agent"]</label>
+                    <select asp-for="NewTask.AgentId" asp-items="Model.AgentOptions" class="form-select"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">@L["Partner"]</label>
+                    <select asp-for="NewTask.PartnerId" asp-items="Model.PartnerOptions" class="form-select"></select>
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary">@L["AddTask"]</button>
@@ -144,18 +152,19 @@
         <div class="table-responsive">
             <table class="table table-sm mb-0">
                 <thead>
-                    <tr><th>@L["Title"]</th><th>@L["DueDate"]</th><th>@L["Status"]</th><th>@L["Actions"]</th></tr>
+                    <tr><th>@L["Title"]</th><th>@L["DueDate"]</th><th>@L["AssignedTo"]</th><th>@L["Status"]</th><th>@L["Actions"]</th></tr>
                 </thead>
                 <tbody>
                     @if (!Model.Tasks.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="4">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state"><td colspan="5">@L["NoResultsFound"]</td></tr>
                     }
                     @foreach (var task in Model.Tasks)
                     {
                         <tr>
                             <td>@task.Title</td>
                             <td>@(task.DueDate?.ToShortDateString())</td>
+                            <td>@(task.AgentName ?? task.PartnerName ?? task.AssignedToUserName)</td>
                             <td><span class="pill @(task.IsCompleted ? "pill-success" : "pill-neutral")">@(task.IsCompleted ? L["Completed"] : L["Open"])</span></td>
                             <td>
                                 @if (Model.CanEdit)

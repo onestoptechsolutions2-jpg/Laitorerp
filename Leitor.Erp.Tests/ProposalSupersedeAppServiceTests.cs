@@ -68,6 +68,46 @@ public class ProposalSupersedeAppServiceTests : ErpTestBase
         Assert.Equal(odoo.Id, jipos.SupersedesProposalId);
     }
 
+    // Regression test for the 2026-08-17 "Save throws an error on an untouched proposal" bug:
+    // Create.cshtml used to expose Status as a plain editable dropdown, so a submitted non-Draft
+    // value used to be persisted as-is - a proposal born non-Draft has no UnlockedByUserId, so the
+    // very next Save (even with zero edits) hit the lock check and threw. CreateAsync now always
+    // forces Draft regardless of what's submitted.
+    [Fact]
+    public async Task CreateAsync_Always_Creates_A_Draft_Proposal_Regardless_Of_Submitted_Status()
+    {
+        await EnsureDatabaseCreatedAsync();
+
+        var proposalAppService = GetRequiredService<ProposalAppService>();
+        var opportunityId = await CreateOpportunityAsync();
+
+        var proposal = await proposalAppService.CreateAsync(new CreateUpdateProposalDto
+        {
+            OpportunityId = opportunityId,
+            Title = "Odoo Implementation",
+            Status = ProposalStatus.Sent
+        });
+
+        Assert.Equal(ProposalStatus.Draft, proposal.Status);
+
+        // The bug's exact symptom: opening it and saving with no edits must not throw.
+        var reloaded = await proposalAppService.GetAsync(proposal.Id);
+        await proposalAppService.UpdateAsync(proposal.Id, new CreateUpdateProposalDto
+        {
+            OpportunityId = reloaded.OpportunityId,
+            Title = reloaded.Title,
+            Status = reloaded.Status,
+            Summary = reloaded.Summary,
+            ProposedSolution = reloaded.ProposedSolution,
+            Scope = reloaded.Scope,
+            Timeline = reloaded.Timeline,
+            Assumptions = reloaded.Assumptions,
+            Exclusions = reloaded.Exclusions,
+            WarrantyAndSupport = reloaded.WarrantyAndSupport,
+            Terms = reloaded.Terms
+        });
+    }
+
     [Fact]
     public async Task SupersedeAsync_Requires_A_Reason()
     {

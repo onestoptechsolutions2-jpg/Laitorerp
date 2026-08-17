@@ -71,6 +71,16 @@
   border-radius: var(--leitor-radius-sm);
 }
 
+/* Hides the theme's own "Powered by"/attribution line in the footer bar - LeptonXLite ships no
+   C# option for this (confirmed: no LeptonXLiteThemeOptions type exists in the installed 5.4.0
+   package), so a CSS override is the only available mechanism. Targets the confirmed attribution
+   selectors specifically (found via DLL inspection of the theme's own compiled CSS), not the
+   whole .lpx-footbar - leaves room for any other legitimate footer content to keep showing. */
+.lpx-footbar-copyright,
+.lpx-footbar-solo-links {
+  display: none !important;
+}
+
 /* ============================= Bootstrap base ============================= */
 
 :root {
@@ -460,6 +470,11 @@ dl.row dd {
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   color: var(--leitor-ink);
+  /* A long formatted currency figure (e.g. "1,458,900.00") has no space characters to break on -
+     without this, it can bleed past the card edge on a narrow column instead of wrapping. The
+     label right above it already has its own overflow handling (kpi-body > .text-muted); the
+     number itself never did. */
+  overflow-wrap: anywhere;
 }
 
 /* ============================= Alerts ============================= */

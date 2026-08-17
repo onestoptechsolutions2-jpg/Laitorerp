@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
@@ -20,15 +21,18 @@ public class CreateModel : AbpPageModel
 {
     private readonly CustomerAppService _customerAppService;
     private readonly IRepository<IdentityUser, System.Guid> _identityUserRepository;
+    private readonly IRepository<PriceList, System.Guid> _priceListRepository;
     private readonly IRepository<Currency, System.Guid> _currencyRepository;
 
     public CreateModel(
         CustomerAppService customerAppService,
         IRepository<IdentityUser, System.Guid> identityUserRepository,
+        IRepository<PriceList, System.Guid> priceListRepository,
         IRepository<Currency, System.Guid> currencyRepository)
     {
         _customerAppService = customerAppService;
         _identityUserRepository = identityUserRepository;
+        _priceListRepository = priceListRepository;
         _currencyRepository = currencyRepository;
     }
 
@@ -36,11 +40,13 @@ public class CreateModel : AbpPageModel
     public CreateUpdateCustomerDto Customer { get; set; } = new();
 
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public List<SelectListItem> PriceListOptions { get; set; } = new();
     public List<SelectListItem> CurrencyOptions { get; set; } = new();
 
     public async Task OnGetAsync()
     {
         await LoadUserOptionsAsync();
+        await LoadPriceListOptionsAsync();
         await LoadCurrencyOptionsAsync();
     }
 
@@ -49,6 +55,7 @@ public class CreateModel : AbpPageModel
         if (!ModelState.IsValid)
         {
             await LoadUserOptionsAsync();
+            await LoadPriceListOptionsAsync();
             await LoadCurrencyOptionsAsync();
             return Page();
         }
@@ -70,6 +77,14 @@ public class CreateModel : AbpPageModel
         UserOptions.AddRange(
             users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
         );
+    }
+
+    // No "None" option - Customer.DefaultPriceListId is required (see the DTO's own comment), and
+    // ErpPriceListDataSeeder guarantees at least the seeded "Standard" list always exists.
+    private async Task LoadPriceListOptionsAsync()
+    {
+        var priceLists = await _priceListRepository.GetListAsync();
+        PriceListOptions = priceLists.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList();
     }
 
     private async Task LoadCurrencyOptionsAsync()

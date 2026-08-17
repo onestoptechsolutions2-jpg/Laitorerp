@@ -92,6 +92,17 @@ public class ProposalAppService :
             SupersedesProposalId = createInput.SupersedesProposalId
         };
         CopyToEntity(createInput, entity);
+
+        // A new proposal is always born Draft, regardless of whatever Status the create form
+        // submitted - Create.cshtml used to expose Status as a plain editable dropdown alongside
+        // Title/Summary/etc with no indication that picking anything but Draft locks the record
+        // immediately (IsLocked => Status != Draft). A proposal born non-Draft has no
+        // UnlockedByUserId, so the very next Save (even with zero edits) hit the lock check in
+        // MapToEntityAsync(update) below and threw - that's this bug's root cause. Status now
+        // only ever changes via the explicit transition actions (MarkSentAsync/ConvertToQuoteAsync/
+        // SupersedeAsync), matching how Quote/Order status transitions work.
+        entity.Status = ProposalStatus.Draft;
+
         return entity;
     }
 

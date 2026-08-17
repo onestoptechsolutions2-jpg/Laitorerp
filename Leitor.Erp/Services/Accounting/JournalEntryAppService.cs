@@ -59,35 +59,43 @@ public class JournalEntryAppService : ApplicationService
         _dataFilter = dataFilter;
     }
 
-    // Paged and filtered at the query level rather than loading every JournalEntry into memory -
-    // this is the one table nearly every transaction (Invoices, Payments, POS sales, recurring
+    // Filtered/paged without loading every JournalEntry LINE into memory - the original bug (see
+    // audit note below) loaded the full JournalEntryLine table on every page view, which is the
+    // truly unbounded part (N lines per entry). Header rows (JournalEntry itself, no lines) are
+    // still loaded in full here and paged in C# rather than at the SQL level - a true DB-level
+    // Skip/Take via GetQueryableAsync() was attempted first, but its lazily-evaluated IQueryable
+    // threw ObjectDisposedException against the DbContext once actually enumerated (confirmed via
+    // a failing test in this environment's SQLite test harness - AddAlwaysDisableUnitOfWorkTransaction
+    // in ErpTestBase appears to not keep the DbContext alive across the gap between
+    // GetQueryableAsync() and later executing it). Sticking to the repository's eager GetListAsync,
+    // the same pattern proven everywhere else in this test suite, trades true SQL-level entry
+    // paging for something that's actually correct and verified - still a large improvement over
+    // the original bug, which loaded every entry's full line set unconditionally on every view.
+    // This is the one table nearly every transaction (Invoices, Payments, POS sales, recurring
     // journals, FX revaluation, bank rec) auto-posts to via JournalPostingService, so it grows
-    // faster than any other table in the schema and was flagged in a 2026-08-17 performance audit
-    // as the first thing likely to become visibly slow. AccountId filtering can't be a plain
-    // Where on JournalEntry (the account lives on its child JournalEntryLine rows) - composing an
-    // Any() subquery against a second repository's IQueryable was tried first but EF Core rejects
-    // it ("cannot use multiple context instances within a single query execution", confirmed via
-    // a failing test), since each repository resolves its own DbContext instance. Two targeted
-    // queries instead: only the lines for the requested account are loaded (bounded by how many
-    // entries touch that one account, not the whole ledger), then their distinct JournalEntryIds
-    // filter the main paged query.
+    // faster than any other table in the schema - flagged in a 2026-08-17 performance audit.
     public async Task<PagedResultDto<JournalEntryDto>> GetListAsync(GetJournalEntryListInput input)
     {
         await CheckPolicyAsync(ErpPermissions.Accounting.Default);
 
-        var queryable = await _repository.GetQueryableAsync();
-
+        List<JournalEntry> matchingEntries;
         if (input.AccountId.HasValue)
         {
             var matchingEntryIds = (await _lineRepository.GetListAsync(x => x.AccountId == input.AccountId!.Value))
                 .Select(x => x.JournalEntryId)
                 .Distinct()
                 .ToList();
-            queryable = queryable.Where(x => matchingEntryIds.Contains(x.Id));
+            matchingEntries = matchingEntryIds.Count > 0
+                ? await _repository.GetListAsync(x => matchingEntryIds.Contains(x.Id))
+                : new List<JournalEntry>();
+        }
+        else
+        {
+            matchingEntries = await _repository.GetListAsync();
         }
 
-        var totalCount = queryable.Count();
-        var entries = queryable
+        var totalCount = matchingEntries.Count;
+        var entries = matchingEntries
             .OrderByDescending(x => x.EntryDate)
             .Skip(input.SkipCount)
             .Take(input.MaxResultCount)

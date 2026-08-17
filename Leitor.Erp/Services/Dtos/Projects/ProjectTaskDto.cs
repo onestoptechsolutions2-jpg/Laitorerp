@@ -10,9 +10,13 @@ public class ProjectTaskDto : FullAuditedEntityDto<Guid>
     public string? Description { get; set; }
     public DateTime? DueDate { get; set; }
     public Guid? AssignedToUserId { get; set; }
+    public Guid? AgentId { get; set; }
+    public Guid? PartnerId { get; set; }
     public bool IsCompleted { get; set; }
     public DateTime? CompletedAt { get; set; }
 
-    // Resolved by ProjectTaskAppService - not a stored column.
+    // Resolved by ProjectTaskAppService - not stored columns.
     public string? AssignedToUserName { get; set; }
+    public string? AgentName { get; set; }
+    public string? PartnerName { get; set; }
 }

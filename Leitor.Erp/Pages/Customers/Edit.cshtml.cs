@@ -105,13 +105,12 @@ public class EditModel : AbpPageModel
         );
     }
 
+    // No "None" option - Customer.DefaultPriceListId is required (see the DTO's own comment), and
+    // ErpPriceListDataSeeder guarantees at least the seeded "Standard" list always exists.
     private async Task LoadPriceListOptionsAsync()
     {
         var priceLists = await _priceListRepository.GetListAsync();
-        PriceListOptions = new List<SelectListItem> { new(L["None"], "") };
-        PriceListOptions.AddRange(
-            priceLists.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
-        );
+        PriceListOptions = priceLists.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList();
     }
 
     private async Task LoadCurrencyOptionsAsync()

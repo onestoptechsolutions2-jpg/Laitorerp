@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.ServiceCatalog;
 using Leitor.Erp.Entities.ServiceRequests;
 using Leitor.Erp.Features;
@@ -22,15 +23,18 @@ public class ServiceCatalogItemAppService :
 {
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
     private readonly IRepository<ServiceRequest, Guid> _serviceRequestRepository;
+    private readonly IRepository<Partner, Guid> _partnerRepository;
 
     public ServiceCatalogItemAppService(
         IRepository<ServiceCatalogItem, Guid> repository,
         IRepository<IdentityUser, Guid> identityUserRepository,
-        IRepository<ServiceRequest, Guid> serviceRequestRepository)
+        IRepository<ServiceRequest, Guid> serviceRequestRepository,
+        IRepository<Partner, Guid> partnerRepository)
         : base(repository)
     {
         _identityUserRepository = identityUserRepository;
         _serviceRequestRepository = serviceRequestRepository;
+        _partnerRepository = partnerRepository;
 
         GetPolicyName = ErpPermissions.ServiceCatalog.Default;
         GetListPolicyName = ErpPermissions.ServiceCatalog.Default;
@@ -67,19 +71,29 @@ public class ServiceCatalogItemAppService :
     private async Task ResolveOwnerNamesAsync(IReadOnlyCollection<ServiceCatalogItemDto> items)
     {
         var userIds = items.Where(x => x.OwnerUserId.HasValue).Select(x => x.OwnerUserId!.Value).Distinct().ToList();
-        if (userIds.Count == 0)
+        if (userIds.Count > 0)
         {
-            return;
+            var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
+            var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
+            foreach (var item in items)
+            {
+                if (item.OwnerUserId.HasValue && namesById.TryGetValue(item.OwnerUserId.Value, out var userName))
+                {
+                    item.OwnerUserName = userName;
+                }
+            }
         }
 
-        var users = await _identityUserRepository.GetListAsync(x => userIds.Contains(x.Id));
-        var namesById = users.ToDictionary(x => x.Id, x => x.UserName);
-
-        foreach (var item in items)
+        var partnerIds = items.Where(x => x.PartnerId.HasValue).Select(x => x.PartnerId!.Value).Distinct().ToList();
+        if (partnerIds.Count > 0)
         {
-            if (item.OwnerUserId.HasValue && namesById.TryGetValue(item.OwnerUserId.Value, out var userName))
+            var partnerNamesById = (await _partnerRepository.GetListAsync(x => partnerIds.Contains(x.Id))).ToDictionary(x => x.Id, x => x.Name);
+            foreach (var item in items)
             {
-                item.OwnerUserName = userName;
+                if (item.PartnerId.HasValue && partnerNamesById.TryGetValue(item.PartnerId.Value, out var partnerName))
+                {
+                    item.PartnerName = partnerName;
+                }
             }
         }
     }
@@ -103,6 +117,7 @@ public class ServiceCatalogItemAppService :
         entity.Description = input.Description;
         entity.Category = input.Category;
         entity.OwnerUserId = input.OwnerUserId;
+        entity.PartnerId = input.PartnerId;
         entity.TargetSlaHours = input.TargetSlaHours;
         entity.IsActive = input.IsActive;
     }

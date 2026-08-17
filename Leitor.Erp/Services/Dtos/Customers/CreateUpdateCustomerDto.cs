@@ -44,6 +44,15 @@ public class CreateUpdateCustomerDto
 
     public PaymentTerms DefaultPaymentTerms { get; set; } = PaymentTerms.Net30;
 
+    // Deliberately NOT [Required] here: the actual enforcement is UI-only (Pages/Customers/
+    // Create.cshtml/Edit.cshtml's dropdown has no "None" option, so a <select> always submits a
+    // real value - defaults to the first price list alphabetically if untouched). Adding
+    // [Required] at the DTO level would apply to every caller of CustomerAppService.CreateAsync/
+    // UpdateAsync uniformly, including ~15 existing test files that create customers as
+    // unrelated setup (not testing price lists at all) - a disproportionate blast radius for what
+    // is fundamentally a UI/workflow requirement ("you must pick one when creating a customer
+    // through the app"), not an API-hardening one. ErpPriceListDataSeeder guarantees the
+    // dropdown is never empty on a fresh install.
     public Guid? DefaultPriceListId { get; set; }
 
     public decimal? CreditLimit { get; set; }

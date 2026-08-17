@@ -652,3 +652,37 @@
         </div>
     </div>
 </div>
+
+@if (Model.ServiceRequests.Any())
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">@L["ServiceRequests"]</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["RequestNumber"]</th>
+                            <th>@L["Description"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["RequestedDate"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model.ServiceRequests)
+                        {
+                            <tr>
+                                <td><a class="doc-no" asp-page="/ServiceRequests/Detail" asp-route-id="@request.Id">@request.RequestNumber</a></td>
+                                <td>@request.Description</td>
+                                <td><span class="pill @StatusPill.For(request.Status)">@L[$"Enum:ServiceRequestStatus:{(int)request.Status}"]</span></td>
+                                <td>@request.RequestedDate.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

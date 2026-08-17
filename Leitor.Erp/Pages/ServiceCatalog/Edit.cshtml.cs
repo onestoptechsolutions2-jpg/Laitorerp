@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.ServiceCatalog;
@@ -21,15 +22,18 @@ public class EditModel : AbpPageModel
 {
     private readonly ServiceCatalogItemAppService _serviceCatalogItemAppService;
     private readonly IRepository<IdentityUser, Guid> _identityUserRepository;
+    private readonly IRepository<Partner, Guid> _partnerRepository;
     private readonly IFeatureChecker _featureChecker;
 
     public EditModel(
         ServiceCatalogItemAppService serviceCatalogItemAppService,
         IRepository<IdentityUser, Guid> identityUserRepository,
+        IRepository<Partner, Guid> partnerRepository,
         IFeatureChecker featureChecker)
     {
         _serviceCatalogItemAppService = serviceCatalogItemAppService;
         _identityUserRepository = identityUserRepository;
+        _partnerRepository = partnerRepository;
         _featureChecker = featureChecker;
     }
 
@@ -40,6 +44,7 @@ public class EditModel : AbpPageModel
     public CreateUpdateServiceCatalogItemDto Item { get; set; } = new();
 
     public List<SelectListItem> UserOptions { get; set; } = new();
+    public List<SelectListItem> PartnerOptions { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -55,6 +60,7 @@ public class EditModel : AbpPageModel
             Description = item.Description,
             Category = item.Category,
             OwnerUserId = item.OwnerUserId,
+            PartnerId = item.PartnerId,
             TargetSlaHours = item.TargetSlaHours,
             IsActive = item.IsActive
         };
@@ -81,6 +87,12 @@ public class EditModel : AbpPageModel
         UserOptions = new List<SelectListItem> { new(L["None"], "") };
         UserOptions.AddRange(
             users.OrderBy(x => x.UserName).Select(x => new SelectListItem(x.UserName, x.Id.ToString()))
+        );
+
+        var partners = await _partnerRepository.GetListAsync();
+        PartnerOptions = new List<SelectListItem> { new(L["None"], "") };
+        PartnerOptions.AddRange(
+            partners.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString()))
         );
     }
 }

@@ -17,6 +17,8 @@ public class CreateUpdateServiceCatalogItemDto
 
     public Guid? OwnerUserId { get; set; }
 
+    public Guid? PartnerId { get; set; }
+
     [Range(1, 8760)]
     public int? TargetSlaHours { get; set; }
 

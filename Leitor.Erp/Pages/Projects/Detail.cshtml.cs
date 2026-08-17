@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
@@ -13,6 +14,7 @@ using Leitor.Erp.Services.Projects;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -28,6 +30,8 @@ public class DetailModel : AbpPageModel
     private readonly OrderAppService _orderAppService;
     private readonly IRepository<Order, Guid> _orderRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<Agent, Guid> _agentRepository;
+    private readonly IRepository<Partner, Guid> _partnerRepository;
     private readonly IFeatureChecker _featureChecker;
 
     public DetailModel(
@@ -37,6 +41,8 @@ public class DetailModel : AbpPageModel
         OrderAppService orderAppService,
         IRepository<Order, Guid> orderRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<Agent, Guid> agentRepository,
+        IRepository<Partner, Guid> partnerRepository,
         IFeatureChecker featureChecker)
     {
         _projectAppService = projectAppService;
@@ -45,6 +51,8 @@ public class DetailModel : AbpPageModel
         _orderAppService = orderAppService;
         _orderRepository = orderRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _agentRepository = agentRepository;
+        _partnerRepository = partnerRepository;
         _featureChecker = featureChecker;
     }
 
@@ -58,6 +66,9 @@ public class DetailModel : AbpPageModel
 
     [BindProperty]
     public CreateUpdateProjectTaskDto NewTask { get; set; } = new();
+
+    public List<SelectListItem> AgentOptions { get; set; } = new();
+    public List<SelectListItem> PartnerOptions { get; set; } = new();
 
     public bool CanEdit { get; set; }
     public bool CanConvertToContract { get; set; }
@@ -74,7 +85,24 @@ public class DetailModel : AbpPageModel
         CanConvertToContract = await AuthorizationService.IsGrantedAsync(ErpPermissions.Customers.Edit);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Project", Id);
         await LoadAsync();
+        await LoadTaskAssigneeOptionsAsync();
         return Page();
+    }
+
+    // Queried directly via repository rather than through AgentAppService/PartnerAppService - both
+    // are [RequiresFeature(ErpFeatures.PartnerCommission)], a different optional module from
+    // Project Management. If that module is off, these lists are just empty (dropdown shows only
+    // "None") rather than throwing - graceful degradation, same as how other cross-module
+    // dropdowns in this app are populated (e.g. Customer Create's PriceList options).
+    private async Task LoadTaskAssigneeOptionsAsync()
+    {
+        var agents = await _agentRepository.GetListAsync();
+        AgentOptions = new List<SelectListItem> { new(L["None"], "") };
+        AgentOptions.AddRange(agents.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())));
+
+        var partners = await _partnerRepository.GetListAsync();
+        PartnerOptions = new List<SelectListItem> { new(L["None"], "") };
+        PartnerOptions.AddRange(partners.OrderBy(x => x.Name).Select(x => new SelectListItem(x.Name, x.Id.ToString())));
     }
 
     private async Task LoadAsync()
@@ -120,6 +148,8 @@ public class DetailModel : AbpPageModel
             Description = task.Description,
             DueDate = task.DueDate,
             AssignedToUserId = task.AssignedToUserId,
+            AgentId = task.AgentId,
+            PartnerId = task.PartnerId,
             IsCompleted = !task.IsCompleted
         });
 

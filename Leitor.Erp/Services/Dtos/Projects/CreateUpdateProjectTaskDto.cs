@@ -17,5 +17,7 @@ public class CreateUpdateProjectTaskDto
 
     public DateTime? DueDate { get; set; }
     public Guid? AssignedToUserId { get; set; }
+    public Guid? AgentId { get; set; }
+    public Guid? PartnerId { get; set; }
     public bool IsCompleted { get; set; }
 }
