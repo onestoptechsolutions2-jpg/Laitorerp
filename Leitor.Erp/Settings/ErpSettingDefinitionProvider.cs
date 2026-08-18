@@ -21,6 +21,7 @@ public class ErpSettingDefinitionProvider : SettingDefinitionProvider
             new SettingDefinition(ErpSettings.SlaHoursLow, "168", L("Setting:SlaHoursLow")),
             new SettingDefinition(ErpSettings.ContractExpiryAlertLeadDays, "30", L("Setting:ContractExpiryAlertLeadDays")),
             new SettingDefinition(ErpSettings.SalesMarginFloorPercent, "15", L("Setting:SalesMarginFloorPercent")),
+            new SettingDefinition(ErpSettings.SalesDefaultDepositPercent, "50", L("Setting:SalesDefaultDepositPercent")),
             new SettingDefinition(ErpSettings.TaskDueSoonLeadDays, "3", L("Setting:TaskDueSoonLeadDays")),
 
             // Kenya statutory payroll defaults - best-effort current figures as of this feature's

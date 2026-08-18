@@ -100,6 +100,7 @@ public class DetailModel : AbpPageModel
     public IReadOnlyList<FieldServiceJob> Jobs { get; set; } = Array.Empty<FieldServiceJob>();
     public bool CanIssueFinalInvoice { get; set; }
     public OrderWizardStep CurrentStep { get; set; }
+    public string? WhatsAppUrl { get; set; }
 
     [BindProperty]
     public CreateUpdateOrderLineDto NewLine { get; set; } = new()
@@ -134,6 +135,8 @@ public class DetailModel : AbpPageModel
     {
         Order = await _orderAppService.GetAsync(Id);
         Customer = await _customerRepository.GetAsync(Order.CustomerId);
+        WhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber,
+            $"Hello {Customer.Name}, please find attached order {Order.OrderNumber}. Kindly review and let us know if you have any questions.");
 
         var lines = await _orderLineAppService.GetListAsync(new GetOrderLineListInput
         {

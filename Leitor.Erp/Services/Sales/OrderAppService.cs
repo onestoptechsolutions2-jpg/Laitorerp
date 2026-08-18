@@ -155,7 +155,8 @@ public class OrderAppService :
         var query = await base.CreateFilteredQueryAsync(input);
         return query
             .WhereIf(input.CustomerId.HasValue, x => x.CustomerId == input.CustomerId!.Value)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.OrderNumber.Contains(input.Filter!));
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.OrderNumber.Contains(input.Filter!))
+            .WhereIf(input.Status.HasValue, x => x.Status == input.Status!.Value);
     }
 
     public override async Task<OrderDto> GetAsync(Guid id)
@@ -517,7 +518,10 @@ public class OrderAppService :
         var lines = await _lineRepository.GetListAsync(x => x.OrderId == order.Id);
         var subtotal = lines.Sum(x => x.Subtotal());
 
-        var deposit = new OrderPaymentMilestone(GuidGenerator.Create(), order.Id, "Deposit", 50)
+        var depositPercentRaw = await _settingProvider.GetOrNullAsync(ErpSettings.SalesDefaultDepositPercent);
+        var depositPercent = decimal.TryParse(depositPercentRaw, out var parsed) ? parsed : 50m;
+
+        var deposit = new OrderPaymentMilestone(GuidGenerator.Create(), order.Id, "Deposit", depositPercent)
         {
             Kind = OrderPaymentMilestoneKind.Deposit
         };

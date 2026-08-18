@@ -1,0 +1,36 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Shared.Components.MobileBottomNav.MobileBottomNavViewModel
+
+<nav id="leitor-mobile-bottom-nav" class="leitor-bottom-nav" aria-label="@L["Menu:Home"]">
+    <a href="~/" class="leitor-bottom-nav-item">
+        <i class="fas fa-home" aria-hidden="true"></i>
+        <span>@L["Menu:Home"]</span>
+    </a>
+    <a href="~/Workspace" class="leitor-bottom-nav-item">
+        <i class="fas fa-list-check" aria-hidden="true"></i>
+        <span>@L["Menu:MyWorkspace"]</span>
+    </a>
+    @if (Model.CanViewCustomers)
+    {
+        <a href="~/Customers" class="leitor-bottom-nav-item">
+            <i class="fas fa-address-book" aria-hidden="true"></i>
+            <span>@L["Menu:Customers"]</span>
+        </a>
+    }
+    @if (Model.CanViewSales)
+    {
+        <a href="~/Sales/Quotes" class="leitor-bottom-nav-item">
+            <i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>
+            <span>@L["Menu:Sales"]</span>
+        </a>
+    }
+    @if (Model.CanViewSupport)
+    {
+        <a href="~/Support/Tickets" class="leitor-bottom-nav-item">
+            <i class="fas fa-headset" aria-hidden="true"></i>
+            <span>@L["Menu:Tickets"]</span>
+        </a>
+    }
+</nav>

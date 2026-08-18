@@ -44,7 +44,10 @@ One pipeline, not three disconnected lists: a Lead (with outreach/dedup/do-not-c
 tracking) becomes an Opportunity (with needs assessments and proposals), which becomes a
 Customer (accounts, contacts, contracts, notes, follow-up tasks, file attachments). Customer
 records also support GDPR-style PII erasure in place (`Customers.Erase` permission) separate
-from hard delete, for data-retention compliance.
+from hard delete, for data-retention compliance. Customers Index supports CSV export of the
+current filtered list. An Opportunity's "Share Package" action emails the customer whichever of
+its NeedsAssessment/Proposal/Quote PDFs actually exist as one message, instead of sending them
+separately.
 
 ### Sales & Quoting
 Quote → Order → Invoice → Payment, each stage converting the last (line items copy forward
@@ -53,7 +56,12 @@ always computed live from Payments, never stored — matches how Manager.io beha
 can't cross into Sent/Confirmed while its computed margin sits below the admin-editable
 `Erp.Sales.MarginFloorPercent` setting (Administration → App Settings) — a `Sales.OverrideMarginGate`
 holder can override with a logged reason; anyone else's override reason instead files a request
-in the Escalations queue for a manager to approve.
+in the Escalations queue for a manager to approve. An order's deposit milestone percent on
+confirmation is admin-editable (`Erp:Sales:SalesDefaultDepositPercent`, default 50%) rather than
+hardcoded. Quote/Order/PurchaseOrder Detail pages and Invoice Detail's "Request Payment" action
+can share a WhatsApp deep link (prefilled message, opens `wa.me`) alongside the existing email
+action, and Quotes/Orders Index support CSV export and a Status filter on top of the existing
+search.
 
 ### Catalog & Inventory
 What you sell (Catalog: products/services, tax rates, categories, price lists) plus what you
@@ -94,7 +102,10 @@ so a portal permission can never leak another customer's or vendor's data.
 
 ### My Workspace
 A personal "what's mine" view — open Tickets and upcoming Field Service jobs assigned to the
-current user, plus a pending-approvals count if they can decide on Deletion Requests.
+current user, plus a pending-approvals count if they can decide on Deletion Requests. Also
+surfaces overdue/due-soon CustomerTask and ProjectTask reminders, and — since the 2026-08-18
+consolidation audit — an "Orders Ready to Invoice" section that proactively flags orders whose
+field jobs are all complete, instead of waiting for the salesperson to notice on their own.
 
 ### Governance
 - **Deletion Approvals** — deleting one of 7 top-level records (Customer, Vendor, Order,
@@ -103,9 +114,9 @@ current user, plus a pending-approvals count if they can decide on Deletion Requ
 - **Escalations** — a generic version of the same maker/checker idea, for actions other than
   deletion: any blocked action can file an `EscalationItem` (carrying whichever permission is
   needed to decide it, plus a JSON payload of parameters) instead of hard-failing. A registered
-  `IEscalationActionHandler` carries out the action on approval. Currently used by the Sales
-  margin gate (see above); designed so a future consumer is a new handler class, not a change to
-  this page or AppService.
+  `IEscalationActionHandler` carries out the action on approval. Used by the Sales margin gate
+  (see above) and by HR's Leave Request approval; designed so each new consumer is just a new
+  handler class, not a change to this page or AppService.
 - **Workflow Monitor** — cross-module visibility into records moving through approval/workflow
   stages.
 
@@ -182,3 +193,8 @@ sits underneath all of it, posting every invoice, payment, and supplier bill to 
   `initFormOverlay()`; copy the pattern from any existing Create/Edit page pair when adding one
   (a few pages with embedded line-item sub-tables or multi-handler edit flows are deliberately
   excluded — full-page navigation there instead).
+- Mobile bottom nav: on narrow viewports, `MobileBottomNavViewComponent` renders a fixed,
+  permission-gated strip (Home/My Workspace/Customers/Sales/Tickets) — the left sidebar stays the
+  primary nav on desktop. Same `LayoutHooks.Body.Last` extension point as the overlay-modal shell
+  and global search (see `ErpModule.ConfigureLayoutHooks`), since LeptonXLite's own layout is a
+  precompiled Razor Class Library with no source to override directly.

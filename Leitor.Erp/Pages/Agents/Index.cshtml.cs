@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Leitor.Erp.Features;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Partners;
@@ -9,7 +8,6 @@ using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
-using Volo.Abp.Features;
 
 namespace Leitor.Erp.Pages.Agents;
 
@@ -17,12 +15,10 @@ namespace Leitor.Erp.Pages.Agents;
 public class IndexModel : AbpPageModel
 {
     private readonly AgentAppService _agentAppService;
-    private readonly IFeatureChecker _featureChecker;
 
-    public IndexModel(AgentAppService agentAppService, IFeatureChecker featureChecker)
+    public IndexModel(AgentAppService agentAppService)
     {
         _agentAppService = agentAppService;
-        _featureChecker = featureChecker;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -38,11 +34,6 @@ public class IndexModel : AbpPageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!await _featureChecker.IsEnabledAsync(ErpFeatures.PartnerCommission))
-        {
-            return NotFound();
-        }
-
         CanCreate = await AuthorizationService.IsGrantedAsync(ErpPermissions.Partners.Create);
         CanDelete = await AuthorizationService.IsGrantedAsync(ErpPermissions.Partners.Delete);
 

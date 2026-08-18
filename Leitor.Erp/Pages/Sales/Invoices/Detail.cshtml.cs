@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
@@ -80,6 +81,8 @@ public class DetailModel : AbpPageModel
 
     public bool CanEdit { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
+    public decimal OutstandingBalance { get; set; }
+    public string? RequestPaymentWhatsAppUrl { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -122,6 +125,10 @@ public class DetailModel : AbpPageModel
         TaxRateOptions.AddRange(
             taxRates.Items.OrderBy(x => x.Name).Select(x => new SelectListItem($"{x.Name} ({x.Percent:N0}%)", x.Id.ToString()))
         );
+
+        OutstandingBalance = Math.Max(0, Invoice.Total - Invoice.AmountPaid);
+        var message = $"Hello {Customer.Name}, this is a reminder that invoice {Invoice.InvoiceNumber} has an outstanding balance of {Invoice.CurrencyCode} {OutstandingBalance:N2}, due {Invoice.DueDate:d}. Kindly arrange payment at your earliest convenience. Thank you.";
+        RequestPaymentWhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber, message);
     }
 
     public async Task<IActionResult> OnPostAddLineAsync()
@@ -176,6 +183,34 @@ public class DetailModel : AbpPageModel
                 Customer.Email,
                 $"Invoice {Invoice.InvoiceNumber}",
                 $"Dear {Customer.Name},\n\nPlease find attached invoice {Invoice.InvoiceNumber}.\n\nRegards,\n{_companyOptions.Name}",
+                isBodyHtml: false,
+                new AdditionalEmailSendingArgs
+                {
+                    Attachments = new List<EmailAttachment>
+                    {
+                        new() { Name = $"{Invoice.InvoiceNumber}.pdf", File = pdfBytes }
+                    }
+                }
+            );
+        }
+
+        return RedirectToPage(new { id = Id });
+    }
+
+    // Distinct from OnPostEmailAsync's neutral "please find attached invoice" - this is a targeted
+    // reminder about the outstanding balance specifically, only offered while one actually exists.
+    public async Task<IActionResult> OnPostRequestPaymentAsync()
+    {
+        await LoadAsync();
+        _companyOptions = await _companyProfileProvider.GetAsync();
+
+        if (!string.IsNullOrWhiteSpace(Customer.Email) && OutstandingBalance > 0)
+        {
+            var pdfBytes = InvoicePdfDocument.Generate(Invoice, Lines, Payments, Customer, _companyOptions);
+            await _emailSender.SendAsync(
+                Customer.Email,
+                $"Payment Request - Invoice {Invoice.InvoiceNumber}",
+                $"Dear {Customer.Name},\n\nThis is a reminder that invoice {Invoice.InvoiceNumber} has an outstanding balance of {Invoice.CurrencyCode} {OutstandingBalance:N2}, due {Invoice.DueDate:d}. Kindly arrange payment at your earliest convenience.\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {

@@ -13,6 +13,7 @@ using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
 using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.GlobalSearch;
+using Leitor.Erp.Pages.Shared.Components.MobileBottomNav;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
 using Leitor.Erp.Pages.Shared.Components.ThemeFonts;
 using Leitor.Erp.Services.Governance;
@@ -320,6 +321,14 @@ public class ErpModule : AbpModule
             options.Add(
                 LayoutHooks.Body.Last,
                 typeof(GlobalSearchViewComponent),
+                layout: StandardLayouts.Application);
+
+            // Fixed bottom nav bar, visible only on narrow viewports (see leitor-theme.css) - the
+            // 8-phase roadmap's "mobile bottom nav" item, same LayoutHooks.Body.Last extension
+            // point as everything else above.
+            options.Add(
+                LayoutHooks.Body.Last,
+                typeof(MobileBottomNavViewComponent),
                 layout: StandardLayouts.Application);
         });
     }

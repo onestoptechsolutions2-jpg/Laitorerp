@@ -5,18 +5,17 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Partners;
-using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Governance;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Features;
 
 namespace Leitor.Erp.Services.Partners;
 
-[RequiresFeature(ErpFeatures.PartnerCommission)]
+// The Agent directory itself is core (see MODULES.md) - only Commission math is the toggleable
+// PartnerCommission feature (see CommissionAppService). Not feature-gated here.
 public class AgentAppService :
     CrudAppService<Agent, AgentDto, Guid, GetAgentListInput, CreateUpdateAgentDto>
 {

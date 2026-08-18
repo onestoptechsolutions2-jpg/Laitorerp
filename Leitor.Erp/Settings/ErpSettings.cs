@@ -36,6 +36,11 @@ public static class ErpSettings
     // explicit, permission-gated, logged override. See Sales.OverrideMarginGate.
     public const string SalesMarginFloorPercent = GroupName + ".Sales.MarginFloorPercent";
 
+    // The deposit percentage OrderAppService.OnOrderConfirmedAsync bills automatically the moment
+    // a Milestone-terms order is confirmed - previously hardcoded at 50, now admin-editable so a
+    // business that wants a different standard deposit doesn't need a code change.
+    public const string SalesDefaultDepositPercent = GroupName + ".Sales.DefaultDepositPercent";
+
     // Company letterhead info shown on generated PDFs (invoices/quotes/orders/POs/proposals/field
     // service jobs/POS receipts) - previously appsettings-only (Documents/ErpCompanyOptions.cs),
     // meaning changing the company address or phone number needed a code redeploy. See

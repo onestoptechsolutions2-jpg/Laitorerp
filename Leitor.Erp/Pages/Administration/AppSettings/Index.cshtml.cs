@@ -63,7 +63,8 @@ public class IndexModel : AbpPageModel
             await ToRowAsync(ErpSettings.ShaContributionRatePercent, _l["Setting:ShaContributionRatePercent"]),
             await ToRowAsync(ErpSettings.ShaContributionMinimum, _l["Setting:ShaContributionMinimum"]),
             await ToRowAsync(ErpSettings.HousingLevyEmployeeRatePercent, _l["Setting:HousingLevyEmployeeRatePercent"]),
-            await ToRowAsync(ErpSettings.HousingLevyEmployerRatePercent, _l["Setting:HousingLevyEmployerRatePercent"])
+            await ToRowAsync(ErpSettings.HousingLevyEmployerRatePercent, _l["Setting:HousingLevyEmployerRatePercent"]),
+            await ToRowAsync(ErpSettings.SalesDefaultDepositPercent, _l["Setting:SalesDefaultDepositPercent"])
         };
     }
 

@@ -336,9 +336,10 @@ public static class ErpPermissions
         public const string Manage = Default + ".Manage";
     }
 
-    // Gated behind ErpFeatures.PartnerCommission (see Features/ErpFeatures.cs). Covers Partner,
-    // Agent, and Commission together - same "one group per nav section" convention as Assets
-    // covering ConfigurationItem+Relationship+AssetCredential.
+    // Covers Partner, Agent, and Commission together - same "one group per nav section" convention
+    // as Assets covering ConfigurationItem+Relationship+AssetCredential. The Partner/Agent
+    // directory itself is core; only Commission's AppService/pages are additionally gated behind
+    // ErpFeatures.PartnerCommission (see Features/ErpFeatures.cs).
     public static class Partners
     {
         public const string GroupName = "Erp.Partners";

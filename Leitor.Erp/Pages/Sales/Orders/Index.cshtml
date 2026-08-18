@@ -1,21 +1,34 @@
 @page
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Leitor.Erp.Localization
+@using Leitor.Erp.Entities.Sales
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Sales.Orders.IndexModel
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Orders"]</h5>
-        @if (Model.CanCreate)
-        {
-            <a asp-page="./Create" class="btn btn-primary">@L["NewOrder"]</a>
-        }
+        <div>
+            <a asp-page="./Index" asp-page-handler="Export" asp-route-Filter="@Model.Filter" asp-route-Status="@Model.Status" class="btn btn-outline-secondary">@L["Export"]</a>
+            @if (Model.CanCreate)
+            {
+                <a asp-page="./Create" class="btn btn-primary">@L["NewOrder"]</a>
+            }
+        </div>
     </div>
     <div class="card-body">
         <form method="get" class="row g-2 mb-3">
             <div class="col-auto">
                 <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["OrderNumber"]" />
+            </div>
+            <div class="col-auto">
+                <select name="Status" class="form-select">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="0" selected="@(Model.Status == OrderStatus.Submitted)">@L["Enum:OrderStatus:0"]</option>
+                    <option value="1" selected="@(Model.Status == OrderStatus.Confirmed)">@L["Enum:OrderStatus:1"]</option>
+                    <option value="2" selected="@(Model.Status == OrderStatus.Fulfilled)">@L["Enum:OrderStatus:2"]</option>
+                    <option value="3" selected="@(Model.Status == OrderStatus.Cancelled)">@L["Enum:OrderStatus:3"]</option>
+                </select>
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-secondary">@L["Search"]</button>
@@ -49,7 +62,7 @@
                             <td>
                                 @if (Model.CanDelete)
                                 {
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@order.Id" asp-route-Filter="@Model.Filter" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@order.Id" asp-route-Filter="@Model.Filter" asp-route-Status="@Model.Status" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
                                     </form>
                                 }

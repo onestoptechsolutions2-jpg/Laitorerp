@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
@@ -63,5 +65,63 @@ public class IndexModel : AbpPageModel
     {
         await _customerAppService.DeleteAsync(id);
         return RedirectToPage(new { Filter, PageIndex });
+    }
+
+    // CSV of whatever the current filter is showing, not just the current page - matches the
+    // same convention as Leads/Index.cshtml.cs's OnGetExportAsync.
+    public async Task<IActionResult> OnGetExportAsync()
+    {
+        var customers = new List<CustomerDto>();
+        var skip = 0;
+        const int batchSize = 1000;
+        while (true)
+        {
+            var batch = await _customerAppService.GetListAsync(new GetCustomerListInput
+            {
+                Filter = Filter,
+                SkipCount = skip,
+                MaxResultCount = batchSize
+            });
+
+            customers.AddRange(batch.Items);
+            if (batch.Items.Count < batchSize)
+            {
+                break;
+            }
+
+            skip += batchSize;
+        }
+
+        var csv = new StringBuilder();
+        csv.AppendLine(string.Join(",", new[]
+        {
+            "Name", "Email", "PhoneNumber", "City", "Country", "Status", "AccountOwner", "Created"
+        }.Select(CsvEscape)));
+
+        foreach (var customer in customers)
+        {
+            csv.AppendLine(string.Join(",", new[]
+            {
+                customer.Name,
+                customer.Email,
+                customer.PhoneNumber,
+                customer.City,
+                customer.Country,
+                customer.Status.ToString(),
+                customer.AccountOwnerUserName,
+                customer.CreationTime.ToString("yyyy-MM-dd")
+            }.Select(CsvEscape)));
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        return File(bytes, "text/csv", $"customers-{Clock.Now:yyyyMMdd-HHmmss}.csv");
+    }
+
+    private static string CsvEscape(string? value)
+    {
+        value ??= string.Empty;
+        return value.IndexOfAny(new[] { ',', '"', '\n' }) >= 0
+            ? $"\"{value.Replace("\"", "\"\"")}\""
+            : value;
     }
 }

@@ -1094,3 +1094,59 @@ body.leitor-panel-open .leitor-action-panel-tab {
     border-radius: 0;
   }
 }
+
+/* Mobile bottom nav (MobileBottomNavViewComponent) - hidden entirely above the mobile breakpoint,
+   since LeptonXLite's left sidebar is already the primary nav on desktop/tablet. On a phone this
+   gives the 4-5 highest-traffic destinations a permanent thumb-reachable strip instead of a
+   hamburger drawer for every hop. `env(safe-area-inset-bottom)` accounts for iOS home-indicator
+   devices; harmlessly evaluates to 0 elsewhere. */
+.leitor-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .leitor-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1030;
+    background: var(--leitor-surface);
+    border-top: 1px solid var(--leitor-border);
+    box-shadow: 0 -4px 16px rgba(90, 40, 10, 0.06);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+
+  /* Keeps page content (and the overlay-form modal's own footer buttons) from sitting under the
+     fixed bar - LeptonXLite's content wrapper is the confirmed selector already relied on
+     elsewhere in this file for the same "can't override the theme's own compiled markup, only
+     add a rule on top of it" reasoning. */
+  .lpx-content-container {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
+
+.leitor-bottom-nav-item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  border-radius: var(--leitor-radius-sm);
+  color: var(--leitor-ink-soft);
+  text-decoration: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+}
+.leitor-bottom-nav-item i {
+  font-size: 17px;
+}
+.leitor-bottom-nav-item:hover,
+.leitor-bottom-nav-item:focus-visible {
+  color: var(--leitor-primary-dark);
+  background: var(--leitor-primary-soft);
+}

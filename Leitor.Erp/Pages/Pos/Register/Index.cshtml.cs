@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Pos;
 using Leitor.Erp.Services.Pos;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Features;
 
 namespace Leitor.Erp.Pages.Pos.Register;
 
@@ -25,19 +27,22 @@ public class IndexModel : AbpPageModel
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<Currency, Guid> _currencyRepository;
     private readonly IRepository<TaxRate, Guid> _taxRateRepository;
+    private readonly IFeatureChecker _featureChecker;
 
     public IndexModel(
         PosSessionAppService posSessionAppService,
         IRepository<Warehouse, Guid> warehouseRepository,
         IRepository<Customer, Guid> customerRepository,
         IRepository<Currency, Guid> currencyRepository,
-        IRepository<TaxRate, Guid> taxRateRepository)
+        IRepository<TaxRate, Guid> taxRateRepository,
+        IFeatureChecker featureChecker)
     {
         _posSessionAppService = posSessionAppService;
         _warehouseRepository = warehouseRepository;
         _customerRepository = customerRepository;
         _currencyRepository = currencyRepository;
         _taxRateRepository = taxRateRepository;
+        _featureChecker = featureChecker;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -61,8 +66,13 @@ public class IndexModel : AbpPageModel
     [BindProperty]
     public ClosePosSessionDto CloseInput { get; set; } = new();
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
+        if (!await _featureChecker.IsEnabledAsync(ErpFeatures.PointOfSale))
+        {
+            return NotFound();
+        }
+
         CanManageSessions = await AuthorizationService.IsGrantedAsync(ErpPermissions.Pos.ManageSessions);
         CanVoid = await AuthorizationService.IsGrantedAsync(ErpPermissions.Pos.Void);
 
@@ -84,6 +94,8 @@ public class IndexModel : AbpPageModel
         {
             OpenSession = await _posSessionAppService.GetCurrentOpenAsync(WarehouseId.Value);
         }
+
+        return Page();
     }
 
     public async Task<IActionResult> OnPostOpenSessionAsync()

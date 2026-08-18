@@ -72,6 +72,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
                 </form>
             }
+            @if (Model.OutstandingBalance > 0)
+            {
+                @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
+                {
+                    <form method="post" asp-page-handler="RequestPayment" asp-route-id="@Model.Invoice.Id" class="d-inline" onsubmit="return confirm('@L["RequestPayment"]?');">
+                        <button type="submit" class="btn btn-warning">@L["RequestPayment"]</button>
+                    </form>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.RequestPaymentWhatsAppUrl))
+                {
+                    <a href="@Model.RequestPaymentWhatsAppUrl" target="_blank" rel="noopener" class="btn btn-outline-success">
+                        <i class="fab fa-whatsapp"></i> @L["RequestPaymentWhatsApp"]
+                    </a>
+                }
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

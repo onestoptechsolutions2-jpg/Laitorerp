@@ -6,6 +6,7 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -85,6 +86,7 @@ public class DetailModel : AbpPageModel
     public List<SelectListItem> PriceListOptions { get; set; } = new();
     public Customer Customer { get; set; } = null!;
     public List<CustomerPriceListDto> CustomerPriceLists { get; set; } = new();
+    public string? WhatsAppUrl { get; set; }
 
     [BindProperty]
     public CreateUpdateQuoteLineDto NewLine { get; set; } = new()
@@ -113,6 +115,8 @@ public class DetailModel : AbpPageModel
     {
         Quote = await _quoteAppService.GetAsync(Id);
         Customer = await _customerRepository.GetAsync(Quote.CustomerId);
+        WhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber,
+            $"Hello {Customer.Name}, please find attached our quotation {Quote.QuoteNumber}. Kindly review and let us know if you have any questions or would like us to proceed.");
 
         var existingOrder = (await _orderRepository.GetListAsync(x => x.QuoteId == Id)).FirstOrDefault();
         ExistingOrderId = existingOrder?.Id;

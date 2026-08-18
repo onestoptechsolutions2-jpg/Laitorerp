@@ -465,9 +465,9 @@ public class ErpMenuContributor : IMenuContributor
             context.Menu.Items.Add(posMenu);
         }
 
-        // Toggleable module (see Features/ErpFeatures.cs).
-        if (await context.IsGrantedAsync(ErpPermissions.Partners.Default) &&
-            await featureChecker.IsEnabledAsync(ErpFeatures.PartnerCommission))
+        // Partner/Agent directory is core; only the Commissions sub-item is behind the toggleable
+        // PartnerCommission feature (see Features/ErpFeatures.cs).
+        if (await context.IsGrantedAsync(ErpPermissions.Partners.Default))
         {
             var partnersMenu = new ApplicationMenuItem(
                 ErpMenus.Partners,
@@ -477,7 +477,12 @@ public class ErpMenuContributor : IMenuContributor
             );
             partnersMenu.AddItem(new ApplicationMenuItem(ErpMenus.PartnersDirectory, l["Menu:PartnersDirectory"], "~/Partners", order: 1));
             partnersMenu.AddItem(new ApplicationMenuItem(ErpMenus.PartnersAgents, l["Menu:PartnersAgents"], "~/Agents", order: 2));
-            partnersMenu.AddItem(new ApplicationMenuItem(ErpMenus.PartnersCommissions, l["Menu:PartnersCommissions"], "~/Commissions", order: 3));
+
+            if (await featureChecker.IsEnabledAsync(ErpFeatures.PartnerCommission))
+            {
+                partnersMenu.AddItem(new ApplicationMenuItem(ErpMenus.PartnersCommissions, l["Menu:PartnersCommissions"], "~/Commissions", order: 3));
+            }
+
             context.Menu.Items.Add(partnersMenu);
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Leitor.Erp.Features;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Partners;
@@ -8,7 +7,6 @@ using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
-using Volo.Abp.Features;
 
 namespace Leitor.Erp.Pages.Partners;
 
@@ -16,12 +14,10 @@ namespace Leitor.Erp.Pages.Partners;
 public class EditModel : AbpPageModel
 {
     private readonly PartnerAppService _partnerAppService;
-    private readonly IFeatureChecker _featureChecker;
 
-    public EditModel(PartnerAppService partnerAppService, IFeatureChecker featureChecker)
+    public EditModel(PartnerAppService partnerAppService)
     {
         _partnerAppService = partnerAppService;
-        _featureChecker = featureChecker;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -32,11 +28,6 @@ public class EditModel : AbpPageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!await _featureChecker.IsEnabledAsync(ErpFeatures.PartnerCommission))
-        {
-            return NotFound();
-        }
-
         var partner = await _partnerAppService.GetAsync(Id);
         Partner = new CreateUpdatePartnerDto
         {

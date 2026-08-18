@@ -37,6 +37,12 @@
                     <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
                 </form>
             }
+            @if (!string.IsNullOrWhiteSpace(Model.WhatsAppUrl))
+            {
+                <a href="@Model.WhatsAppUrl" target="_blank" rel="noopener" class="btn btn-outline-success" title="@L["ShareViaWhatsApp"]">
+                    <i class="fab fa-whatsapp"></i> @L["ShareViaWhatsApp"]
+                </a>
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

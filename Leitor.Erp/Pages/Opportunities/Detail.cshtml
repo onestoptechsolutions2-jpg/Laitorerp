@@ -14,6 +14,12 @@
             {
                 <a asp-page="./Edit" asp-route-id="@Model.Opportunity.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditOpportunity"]">@L["Edit"]</a>
             }
+            @if (Model.CanSharePackage)
+            {
+                <form method="post" asp-page-handler="SharePackage" asp-route-id="@Model.Opportunity.Id" class="d-inline" onsubmit="return confirm('@L["SharePackage"]?');">
+                    <button type="submit" class="btn btn-outline-success">@L["SharePackage"]</button>
+                </form>
+            }
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

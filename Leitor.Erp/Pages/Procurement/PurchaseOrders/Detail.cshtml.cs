@@ -8,6 +8,7 @@ using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
@@ -84,6 +85,7 @@ public class DetailModel : AbpPageModel
     public List<SelectListItem> ProductOptions { get; set; } = new();
     public Vendor Vendor { get; set; } = null!;
     public Customer? ShipToCustomer { get; set; }
+    public string? WhatsAppUrl { get; set; }
 
     [BindProperty]
     public CreateUpdatePurchaseOrderLineDto NewLine { get; set; } = new()
@@ -116,6 +118,8 @@ public class DetailModel : AbpPageModel
     {
         PurchaseOrder = await _purchaseOrderAppService.GetAsync(Id);
         Vendor = await _vendorRepository.GetAsync(PurchaseOrder.VendorId);
+        WhatsAppUrl = PhoneLinks.WhatsApp(Vendor.Phone,
+            $"Hello {Vendor.Name}, please find attached purchase order {PurchaseOrder.PONumber}. Kindly confirm receipt and expected delivery date.");
 
         ShipToCustomer = null;
         if (PurchaseOrder.ShipToCustomer && PurchaseOrder.SourceOrderId.HasValue)

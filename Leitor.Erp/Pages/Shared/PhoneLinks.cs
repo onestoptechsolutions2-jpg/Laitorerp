@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Net;
 
 namespace Leitor.Erp.Pages.Shared;
 
@@ -23,10 +25,21 @@ public static class PhoneLinks
         return digits == null ? null : $"sms:{digits}";
     }
 
-    public static string? WhatsApp(string? phone)
+    // The optional message is used wherever a document (quote/order/PO/invoice) gets shared - the
+    // customer's app opens with the text already typed in, editable before send, same "generate
+    // then let a human review before it goes out" rule every other outbound message in this app
+    // follows (see ProposalAppService's own Email/WhatsApp actions).
+    public static string? WhatsApp(string? phone, string? message = null)
     {
         var international = ToInternationalDigits(phone);
-        return international == null ? null : $"https://wa.me/{international}";
+        if (international == null)
+        {
+            return null;
+        }
+
+        return string.IsNullOrWhiteSpace(message)
+            ? $"https://wa.me/{international}"
+            : $"https://wa.me/{international}?text={WebUtility.UrlEncode(message)}";
     }
 
     private static string? DigitsWithLeadingPlus(string? phone)

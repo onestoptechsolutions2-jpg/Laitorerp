@@ -108,7 +108,8 @@ public class QuoteAppService :
         var query = await base.CreateFilteredQueryAsync(input);
         return query
             .WhereIf(input.CustomerId.HasValue, x => x.CustomerId == input.CustomerId!.Value)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Title.Contains(input.Filter!) || x.QuoteNumber.Contains(input.Filter!));
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Title.Contains(input.Filter!) || x.QuoteNumber.Contains(input.Filter!))
+            .WhereIf(input.Status.HasValue, x => x.Status == input.Status!.Value);
     }
 
     public override async Task<QuoteDto> GetAsync(Guid id)
