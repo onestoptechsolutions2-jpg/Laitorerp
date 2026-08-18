@@ -226,3 +226,23 @@ sits underneath all of it, posting every invoice, payment, and supplier bill to 
   primary nav on desktop. Same `LayoutHooks.Body.Last` extension point as the overlay-modal shell
   and global search (see `ErpModule.ConfigureLayoutHooks`), since LeptonXLite's own layout is a
   precompiled Razor Class Library with no source to override directly.
+- PWA installability: `wwwroot/manifest.json` + `wwwroot/service-worker.js` (app-shell static
+  assets only — CSS/JS/images/fonts — never pages or API calls, so an ERP never serves stale
+  business data from a cache) + `wwwroot/leitor-pwa.js` (registers the service worker, then shows
+  a dismissible "Install Leitor ERP" banner on first mobile visit — Chromium's real `prompt()` via
+  `beforeinstallprompt`, or an instructional banner on iOS Safari, which has no install-prompt API
+  of its own). `PwaHeadViewComponent` adds the manifest link/theme-color/apple-touch-icon tags via
+  the same `LayoutHooks.Head.Last` mechanism as `ThemeFontsViewComponent`; `Pages/Account/Login.cshtml`
+  carries the identical tags + script directly (same reason as `LOGIN_PAGE_GUIDE.md`'s existing
+  direct-`<link>` pattern) since a first-time visitor's very first page is the login screen, not
+  an authenticated one. App icons live at `wwwroot/images/pwa/` — generated from the token
+  palette's `--leitor-primary`/`--leitor-primary-dark` gradient, not the existing LeptonX sample
+  logo (`wwwroot/images/logo/leptonx/`), which is a mismatched blue never restyled to the app's
+  actual amber brand.
+- Mobile header contrast (2026-08-18): `leitor-theme.css`'s `.lpx-header` override forces a light
+  translucent background — LeptonXLite ships assuming a dark/colored header, so its icon-only
+  buttons (mobile menu toggle, search, notifications) likely hardcode a light icon color that
+  would go near-invisible against it. Forced to `var(--leitor-ink)` as a defensive fix; **not
+  live-verified in a browser** (local Postgres credentials in `appsettings.json` don't match the
+  actual local server — a standing gap across several sessions now) — confirm on a real phone
+  before considering this closed.

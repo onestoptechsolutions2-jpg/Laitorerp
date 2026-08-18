@@ -20,12 +20,23 @@
     <link rel="stylesheet" href="/leitor-tokens.css" />
     <link rel="stylesheet" href="/leitor-theme.css" />
     <link rel="stylesheet" href="/Pages/Account/login.css" />
+
+    <!-- A first-time mobile visitor's very first page IS this login screen, so the install
+         prompt (wwwroot/leitor-pwa.js) needs to be eligible here too - see PwaHeadViewComponent's
+         own comment for why the Account layout can't just pick these up via LayoutHooks. -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#f59e0b" />
+    <link rel="apple-touch-icon" href="/images/pwa/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Leitor ERP" />
 }
 
 @section scripts
 {
     <abp-script-bundle name="@typeof(LoginModel).FullName">
         <abp-script src="/Pages/Account/login.js" />
+        <abp-script src="/leitor-pwa.js" />
     </abp-script-bundle>
 }
 

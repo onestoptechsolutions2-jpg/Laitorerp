@@ -17,6 +17,7 @@ using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.GlobalSearch;
 using Leitor.Erp.Pages.Shared.Components.MobileBottomNav;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
+using Leitor.Erp.Pages.Shared.Components.PwaHead;
 using Leitor.Erp.Pages.Shared.Components.StatusToast;
 using Leitor.Erp.Pages.Shared.Components.ThemeFonts;
 using Leitor.Erp.Services.Governance;
@@ -290,8 +291,10 @@ public class ErpModule : AbpModule
                     // leitor-notify.js overrides abp.notify/abp.message (defined by abp.js, part
                     // of the theme's own base bundle loaded ahead of this one) using SweetAlert2 -
                     // it must load before leitor-layout.js, which relies on abp.message.error
-                    // being real for its own overlay-modal error handling.
-                    bundle.AddFiles("/libs/sweetalert2/sweetalert2.all.min.js", "/leitor-notify.js", "/leitor-layout.js");
+                    // being real for its own overlay-modal error handling. leitor-pwa.js (service
+                    // worker registration + install-prompt banner) has no dependency on either,
+                    // added last.
+                    bundle.AddFiles("/libs/sweetalert2/sweetalert2.all.min.js", "/leitor-notify.js", "/leitor-layout.js", "/leitor-pwa.js");
                 }
             );
         });
@@ -339,6 +342,14 @@ public class ErpModule : AbpModule
             options.Add(
                 LayoutHooks.Head.Last,
                 typeof(ThemeFontsViewComponent),
+                layout: StandardLayouts.Application);
+
+            // Manifest link/theme-color/apple-touch-icon (see PwaHeadViewComponent's own comment) -
+            // Account (login) layout is excluded the same way as everything else here, so
+            // Login.cshtml carries the identical tags directly in its own @section styles.
+            options.Add(
+                LayoutHooks.Head.Last,
+                typeof(PwaHeadViewComponent),
                 layout: StandardLayouts.Application);
 
             // Floating global search trigger + panel (see GlobalSearchViewComponent's own

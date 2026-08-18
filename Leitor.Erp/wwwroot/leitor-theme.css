@@ -58,6 +58,34 @@
   }
 }
 
+/* Reported bug (2026-08-18): the mobile menu toggle is hard to see on a phone. Best guess given
+   the header override above is also unverified in a live browser (see its own comment): LeptonXLite
+   ships assuming a dark/colored header, so its icon-only buttons (mobile menu toggle, search,
+   notifications, avatar caret) likely hardcode a light/white icon color rather than reading a CSS
+   variable - swapping the header to a near-white translucent background would make a white icon
+   all but invisible against it. Force every icon/button directly in the header to a guaranteed-
+   dark, on-brand color instead of trusting the theme's own (now-mismatched) default - harmless if
+   this doesn't end up being the actual element, since it only recolors icons that would otherwise
+   need to contrast against this same light header. */
+.lpx-header i,
+.lpx-header svg,
+.lpx-header .nav-link,
+.lpx-header button {
+  color: var(--leitor-ink) !important;
+}
+.lpx-header svg * {
+  fill: currentColor !important;
+}
+.lpx-header svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor !important;
+}
+.lpx-header .nav-link:hover,
+.lpx-header .nav-link:focus-visible,
+.lpx-header button:hover,
+.lpx-header button:focus-visible {
+  color: var(--leitor-primary-dark) !important;
+}
+
 /* Sidebar nav active-state tint - same "best-effort, harmless if unmatched" caveat as the
    header above. Icons stay whatever the theme/menu definitions already render (FontAwesome
    solid glyphs via ErpMenuContributor.cs) - swapping to a thin-stroke line-icon set is a
@@ -1235,4 +1263,101 @@ body.leitor-panel-open .leitor-action-panel-tab {
 .leitor-bottom-nav-item:focus-visible {
   color: var(--leitor-primary-dark);
   background: var(--leitor-primary-soft);
+}
+
+/* PWA install banner (wwwroot/leitor-pwa.js) - built and shown entirely client-side (no server
+   markup) once per browser, gated to narrow viewports and to a "not already dismissed/installed"
+   localStorage check. Fixed to the TOP of the viewport rather than the bottom: the bottom is
+   already claimed by .leitor-bottom-nav on authenticated pages, and this banner also needs to
+   render on the unauthenticated Account/login layout (see PwaHeadViewComponent's own comment -
+   both layouts load this stylesheet, so one set of rules covers both). */
+.leitor-pwa-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1041;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: var(--leitor-surface);
+  border-bottom: 1px solid var(--leitor-border);
+  box-shadow: var(--leitor-shadow);
+  animation: leitor-pwa-banner-in 0.25s ease-out;
+}
+@media (min-width: 768px) {
+  .leitor-pwa-banner {
+    display: none; /* leitor-pwa.js already gates showBanner() to a matching mobile media query -
+                       this is a defensive fallback if the viewport is resized after it renders */
+  }
+}
+@keyframes leitor-pwa-banner-in {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.leitor-pwa-banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--leitor-radius-sm);
+  flex-shrink: 0;
+}
+.leitor-pwa-banner-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.leitor-pwa-banner-text strong {
+  font-size: 14px;
+  color: var(--leitor-ink);
+}
+.leitor-pwa-banner-text span {
+  font-size: 12px;
+  color: var(--leitor-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leitor-pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.leitor-pwa-banner-install {
+  background: var(--leitor-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--leitor-radius-pill);
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.leitor-pwa-banner-install:hover,
+.leitor-pwa-banner-install:focus-visible {
+  background: var(--leitor-primary-dark);
+}
+.leitor-pwa-banner-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--leitor-ink-soft);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.leitor-pwa-banner-dismiss:hover,
+.leitor-pwa-banner-dismiss:focus-visible {
+  background: var(--leitor-border-light);
+  color: var(--leitor-ink);
 }
