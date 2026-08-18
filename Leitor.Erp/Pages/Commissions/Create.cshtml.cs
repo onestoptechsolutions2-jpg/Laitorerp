@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Partners;
@@ -116,6 +117,11 @@ public class CreateModel : AbpPageModel
             ErrorMessage = ex.Message;
             await LoadOptionsAsync();
             return Page();
+        }
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Index", new { OpportunityId = Commission.OpportunityId }) });
         }
 
         return RedirectToPage("./Index", new { OpportunityId = Commission.OpportunityId });

@@ -42,6 +42,16 @@ public class CustomerContract : FullAuditedAggregateRoot<Guid>
     public Guid? ContractTemplateId { get; set; }
     public string? ClientSignatoryName { get; set; }
 
+    // 2026-08-18 consolidation audit: a signed retainer contract had a Value implying recurring
+    // revenue but no automated billing at all - opt-in per contract (None is the default, every
+    // contract created before this feature keeps behaving exactly as it does today). See
+    // BackgroundWorkers/ContractRecurringBillingWorker.cs - same "small worker, same shape as
+    // RecurringJournalWorker" pattern, but producing a customer-facing Invoice instead of a GL
+    // journal entry.
+    public RecurringBillingFrequency BillingFrequency { get; set; } = RecurringBillingFrequency.None;
+    public DateTime? NextBillingDate { get; set; }
+    public DateTime? LastBilledDate { get; set; }
+
     protected CustomerContract()
     {
     }

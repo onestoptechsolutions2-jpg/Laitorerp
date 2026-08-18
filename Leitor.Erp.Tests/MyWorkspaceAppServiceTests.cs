@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
@@ -14,10 +15,12 @@ using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.FieldService;
 using Leitor.Erp.Services.Dtos.Governance;
 using Leitor.Erp.Services.Dtos.Projects;
+using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.FieldService;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Projects;
+using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.Support;
 using Leitor.Erp.Services.Workspace;
 using Volo.Abp.Domain.Repositories;
@@ -313,6 +316,87 @@ public class MyWorkspaceAppServiceTests : ErpTestBase
             var workspace = await workspaceAppService.GetAsync();
 
             Assert.Empty(workspace.Reminders);
+        }
+    }
+
+    // Covers the 2026-08-18 consolidation audit's "Job -> Invoice" gap: a completed FieldServiceJob
+    // never actively notified anyone that its Order was ready to bill, it just silently made an
+    // existing button appear next time someone happened to revisit the Order page. This mirrors
+    // Pages/Sales/Orders/Detail.cshtml.cs's own CanIssueFinalInvoice condition as a proactive
+    // per-salesperson workspace nudge instead.
+    [Fact]
+    public async Task GetAsync_OrdersReadyToInvoice_Includes_Confirmed_Order_With_All_Jobs_Completed()
+    {
+        await EnsureDatabaseCreatedAsync();
+
+        var customerAppService = GetRequiredService<CustomerAppService>();
+        var customer = await customerAppService.CreateAsync(new CreateUpdateCustomerDto { Name = "Ready To Invoice Co" });
+
+        var myUserId = Guid.NewGuid();
+
+        var orderAppService = GetRequiredService<OrderAppService>();
+        var order = await orderAppService.CreateAsync(new CreateUpdateOrderDto
+        {
+            CustomerId = customer.Id,
+            OrderDate = DateTime.UtcNow,
+            CurrencyCode = "KES",
+            SalespersonUserId = myUserId
+        });
+
+        var orderLineAppService = GetRequiredService<OrderLineAppService>();
+        await orderLineAppService.CreateAsync(new CreateUpdateOrderLineDto
+        {
+            OrderId = order.Id,
+            Description = "Installation",
+            UnitPrice = 500m,
+            Quantity = 2
+        });
+
+        await orderAppService.ConfirmAsync(order.Id);
+
+        var jobAppService = GetRequiredService<FieldServiceJobAppService>();
+        var job = await jobAppService.CreateAsync(new CreateUpdateFieldServiceJobDto
+        {
+            CustomerId = customer.Id,
+            OrderId = order.Id,
+            Type = FieldServiceJobType.Installation,
+            Status = FieldServiceJobStatus.Scheduled,
+            ScheduledDate = DateTime.UtcNow
+        });
+
+        using (ImpersonateAsUser(myUserId))
+        {
+            var workspaceAppService = GetRequiredService<MyWorkspaceAppService>();
+
+            // Job still Scheduled - order isn't ready yet.
+            var workspaceBeforeCompletion = await workspaceAppService.GetAsync();
+            Assert.Empty(workspaceBeforeCompletion.OrdersReadyToInvoice);
+
+            await jobAppService.UpdateAsync(job.Id, new CreateUpdateFieldServiceJobDto
+            {
+                CustomerId = customer.Id,
+                OrderId = order.Id,
+                Type = FieldServiceJobType.Installation,
+                Status = FieldServiceJobStatus.Completed,
+                ScheduledDate = job.ScheduledDate
+            });
+
+            var workspaceAfterCompletion = await workspaceAppService.GetAsync();
+            var ready = Assert.Single(workspaceAfterCompletion.OrdersReadyToInvoice);
+            Assert.Equal(order.Id, ready.Id);
+            Assert.Equal("Ready To Invoice Co", ready.CustomerName);
+
+            // 500 * 2 = 1000 subtotal, plus the default seeded 16% VAT rate the line auto-picked
+            // up (no TaxRateId was specified) - Total is the real invoiceable amount, tax included.
+            Assert.Equal(1160m, ready.Total);
+        }
+
+        // A different salesperson never sees someone else's order in their own workspace.
+        using (ImpersonateAsUser(Guid.NewGuid()))
+        {
+            var workspaceAppService = GetRequiredService<MyWorkspaceAppService>();
+            var workspace = await workspaceAppService.GetAsync();
+            Assert.Empty(workspace.OrdersReadyToInvoice);
         }
     }
 }

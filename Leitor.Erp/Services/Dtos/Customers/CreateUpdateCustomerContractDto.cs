@@ -51,4 +51,10 @@ public class CreateUpdateCustomerContractDto
 
     [StringLength(256)]
     public string? ClientSignatoryName { get; set; }
+
+    public RecurringBillingFrequency BillingFrequency { get; set; } = RecurringBillingFrequency.None;
+
+    // Optional manual override - left blank, the AppService defaults it to StartDate (or now, if
+    // StartDate has already passed) the first time BillingFrequency moves off None.
+    public DateTime? NextBillingDate { get; set; }
 }

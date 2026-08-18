@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Governance;
 using Leitor.Erp.Services.Governance;
@@ -63,6 +64,12 @@ public class CreateModel : AbpPageModel
         }
 
         var change = await _changeRequestAppService.CreateAsync(ChangeRequest);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = change.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = change.Id });
     }
 

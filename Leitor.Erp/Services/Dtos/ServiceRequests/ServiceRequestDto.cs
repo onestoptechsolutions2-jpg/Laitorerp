@@ -13,6 +13,7 @@ public class ServiceRequestDto : FullAuditedEntityDto<Guid>
     public ServiceRequestStatus Status { get; set; }
     public DateTime RequestedDate { get; set; }
     public DateTime? FulfilledDate { get; set; }
+    public Guid? JobId { get; set; }
 
     // Resolved by ServiceRequestAppService - not stored columns.
     public string? CustomerName { get; set; }

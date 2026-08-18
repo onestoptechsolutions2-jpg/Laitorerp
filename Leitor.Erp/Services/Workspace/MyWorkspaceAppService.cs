@@ -6,10 +6,12 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
 using Leitor.Erp.Features;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services;
 using Leitor.Erp.Services.Dtos.Workspace;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Settings;
@@ -37,6 +39,10 @@ public class MyWorkspaceAppService : ApplicationService
     private readonly IRepository<CustomerTask, Guid> _customerTaskRepository;
     private readonly IRepository<ProjectTask, Guid> _projectTaskRepository;
     private readonly IRepository<Project, Guid> _projectRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<OrderLine, Guid> _orderLineRepository;
+    private readonly IRepository<OrderPaymentMilestone, Guid> _milestoneRepository;
+    private readonly IRepository<Invoice, Guid> _invoiceRepository;
     private readonly EscalationItemAppService _escalationItemAppService;
     private readonly IFeatureChecker _featureChecker;
     private readonly ISettingProvider _settingProvider;
@@ -52,6 +58,10 @@ public class MyWorkspaceAppService : ApplicationService
         IRepository<CustomerTask, Guid> customerTaskRepository,
         IRepository<ProjectTask, Guid> projectTaskRepository,
         IRepository<Project, Guid> projectRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<OrderLine, Guid> orderLineRepository,
+        IRepository<OrderPaymentMilestone, Guid> milestoneRepository,
+        IRepository<Invoice, Guid> invoiceRepository,
         EscalationItemAppService escalationItemAppService,
         IFeatureChecker featureChecker,
         ISettingProvider settingProvider,
@@ -66,6 +76,10 @@ public class MyWorkspaceAppService : ApplicationService
         _customerTaskRepository = customerTaskRepository;
         _projectTaskRepository = projectTaskRepository;
         _projectRepository = projectRepository;
+        _orderRepository = orderRepository;
+        _orderLineRepository = orderLineRepository;
+        _milestoneRepository = milestoneRepository;
+        _invoiceRepository = invoiceRepository;
         _escalationItemAppService = escalationItemAppService;
         _featureChecker = featureChecker;
         _settingProvider = settingProvider;
@@ -157,8 +171,82 @@ public class MyWorkspaceAppService : ApplicationService
         }
 
         await LoadRemindersAsync(dto, userId);
+        await LoadOrdersReadyToInvoiceAsync(dto, userId);
 
         return dto;
+    }
+
+    // Mirrors the exact condition Pages/Sales/Orders/Detail.cshtml.cs computes for its own
+    // "Issue Final Invoice" button (CanIssueFinalInvoice) - the 2026-08-18 consolidation audit
+    // flagged that a completed job never actively notifies anyone, it only silently makes that
+    // button appear next time someone happens to revisit the Order page. This surfaces the same
+    // condition proactively to the order's own salesperson instead. No new entity/trigger needed -
+    // this is a read, not a write; the actual invoicing action is still the existing button.
+    private async Task LoadOrdersReadyToInvoiceAsync(MyWorkspaceDto dto, Guid userId)
+    {
+        var candidateOrders = await _orderRepository.GetListAsync(x =>
+            x.SalespersonUserId == userId && (x.Status == OrderStatus.Confirmed || x.Status == OrderStatus.Fulfilled));
+
+        if (candidateOrders.Count == 0)
+        {
+            return;
+        }
+
+        var orderIds = candidateOrders.Select(x => x.Id).ToList();
+
+        var invoicedOrderIds = (await _invoiceRepository.GetListAsync(x => x.OrderId.HasValue && orderIds.Contains(x.OrderId.Value)))
+            .Select(x => x.OrderId!.Value)
+            .ToHashSet();
+
+        var milestoneOrderIds = candidateOrders.Where(x => x.PaymentTerms == PaymentTerms.Milestone).Select(x => x.Id).ToList();
+        var finalInvoicedMilestoneOrderIds = milestoneOrderIds.Count == 0
+            ? new HashSet<Guid>()
+            : (await _milestoneRepository.GetListAsync(x =>
+                    milestoneOrderIds.Contains(x.OrderId) && x.Kind == OrderPaymentMilestoneKind.Final && x.IsInvoiced))
+                .Select(x => x.OrderId)
+                .ToHashSet();
+
+        var jobs = await _jobRepository.GetListAsync(x => x.OrderId != null && orderIds.Contains(x.OrderId.Value));
+        var jobsByOrderId = jobs.GroupBy(x => x.OrderId!.Value).ToDictionary(g => g.Key, g => g.ToList());
+
+        var readyOrders = candidateOrders.Where(order =>
+        {
+            var hasFinalInvoice = order.PaymentTerms == PaymentTerms.Milestone
+                ? finalInvoicedMilestoneOrderIds.Contains(order.Id)
+                : invoicedOrderIds.Contains(order.Id);
+            if (hasFinalInvoice)
+            {
+                return false;
+            }
+
+            var orderJobs = jobsByOrderId.GetValueOrDefault(order.Id, new List<FieldServiceJob>());
+            return !orderJobs.Any(x => x.Status != FieldServiceJobStatus.Completed);
+        }).ToList();
+
+        if (readyOrders.Count == 0)
+        {
+            return;
+        }
+
+        var customerIds = readyOrders.Select(x => x.CustomerId).Distinct().ToList();
+        var customerNamesById = (await _customerRepository.GetListAsync(x => customerIds.Contains(x.Id)))
+            .ToDictionary(x => x.Id, x => x.Name);
+
+        var readyOrderIds = readyOrders.Select(x => x.Id).ToList();
+        var linesByOrderId = (await _orderLineRepository.GetListAsync(x => readyOrderIds.Contains(x.OrderId)))
+            .GroupBy(x => x.OrderId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Total()));
+
+        dto.OrdersReadyToInvoice = readyOrders
+            .OrderBy(x => x.OrderNumber)
+            .Select(x => new MyOrderReadyToInvoiceDto
+            {
+                Id = x.Id,
+                OrderNumber = x.OrderNumber,
+                CustomerName = customerNamesById.GetValueOrDefault(x.CustomerId, string.Empty),
+                Total = linesByOrderId.GetValueOrDefault(x.Id, 0m)
+            })
+            .ToList();
     }
 
     // Passive, on-screen-only reminders - no worker/email, computed fresh on every request, same

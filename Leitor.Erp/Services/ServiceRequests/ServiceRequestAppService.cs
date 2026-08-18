@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.ServiceCatalog;
 using Leitor.Erp.Entities.ServiceRequests;
@@ -10,6 +11,7 @@ using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.ServiceRequests;
 using Leitor.Erp.Services.Governance;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
@@ -26,6 +28,7 @@ public class ServiceRequestAppService :
     private readonly IRepository<Customer, Guid> _customerRepository;
     private readonly IRepository<ServiceCatalogItem, Guid> _serviceCatalogItemRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<FieldServiceJob, Guid> _fieldServiceJobRepository;
     private readonly IClock _clock;
     private readonly IDataFilter _dataFilter;
 
@@ -34,6 +37,7 @@ public class ServiceRequestAppService :
         IRepository<Customer, Guid> customerRepository,
         IRepository<ServiceCatalogItem, Guid> serviceCatalogItemRepository,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<FieldServiceJob, Guid> fieldServiceJobRepository,
         IClock clock,
         IDataFilter dataFilter)
         : base(repository)
@@ -41,6 +45,7 @@ public class ServiceRequestAppService :
         _customerRepository = customerRepository;
         _serviceCatalogItemRepository = serviceCatalogItemRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _fieldServiceJobRepository = fieldServiceJobRepository;
         _clock = clock;
         _dataFilter = dataFilter;
 
@@ -49,6 +54,39 @@ public class ServiceRequestAppService :
         CreatePolicyName = ErpPermissions.ServiceRequests.Create;
         UpdatePolicyName = ErpPermissions.ServiceRequests.Edit;
         DeletePolicyName = ErpPermissions.ServiceRequests.Delete;
+    }
+
+    // 2026-08-18 consolidation audit: a ServiceRequest previously had no path to become billable
+    // work - Fulfilled just meant "marked done," nothing else happened. This gives it the same
+    // real destination FieldServiceJob already has for Orders (which then invoice normally) -
+    // same "dedicated transition entry point" shape as ProposalAppService.ConvertToQuoteAsync.
+    public virtual async Task<Guid> ConvertToJobAsync(Guid id)
+    {
+        await CheckUpdatePolicyAsync();
+
+        var request = await Repository.GetAsync(id);
+        if (request.JobId.HasValue)
+        {
+            throw new UserFriendlyException("This service request has already been converted to a job.");
+        }
+
+        if (request.Status is ServiceRequestStatus.Fulfilled or ServiceRequestStatus.Rejected)
+        {
+            throw new UserFriendlyException("This service request is already closed and can't be converted to a job.");
+        }
+
+        var job = new FieldServiceJob(GuidGenerator.Create(), request.CustomerId)
+        {
+            Description = request.Description,
+            ScheduledDate = _clock.Now
+        };
+        await _fieldServiceJobRepository.InsertAsync(job, autoSave: true);
+
+        request.JobId = job.Id;
+        request.Status = ServiceRequestStatus.InProgress;
+        await Repository.UpdateAsync(request);
+
+        return job.Id;
     }
 
     public override async Task DeleteAsync(Guid id)

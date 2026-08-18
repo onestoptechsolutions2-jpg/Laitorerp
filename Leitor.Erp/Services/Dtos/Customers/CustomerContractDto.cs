@@ -28,4 +28,8 @@ public class CustomerContractDto : FullAuditedEntityDto<Guid>
 
     // Resolved by CustomerContractAppService from ContractTemplate - not a stored column.
     public string? ContractTemplateName { get; set; }
+
+    public RecurringBillingFrequency BillingFrequency { get; set; }
+    public DateTime? NextBillingDate { get; set; }
+    public DateTime? LastBilledDate { get; set; }
 }

@@ -6,6 +6,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Entities.Support;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Support;
 using Leitor.Erp.Services.Support;
@@ -71,6 +72,12 @@ public class CreateModel : AbpPageModel
         }
 
         var ticket = await _ticketAppService.CreateAsync(Ticket);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = ticket.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = ticket.Id });
     }
 

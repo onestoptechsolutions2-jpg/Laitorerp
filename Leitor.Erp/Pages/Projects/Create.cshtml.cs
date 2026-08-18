@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Projects;
 using Leitor.Erp.Services.Projects;
@@ -92,6 +93,12 @@ public class CreateModel : AbpPageModel
         }
 
         var project = await _projectAppService.CreateAsync(Project);
+
+        if (OverlayRequest.Is(Request))
+        {
+            return new JsonResult(new { redirectUrl = Url.Page("./Detail", new { id = project.Id }) });
+        }
+
         return RedirectToPage("./Detail", new { id = project.Id });
     }
 

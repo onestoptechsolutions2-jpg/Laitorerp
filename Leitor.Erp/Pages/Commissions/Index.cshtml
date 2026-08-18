@@ -7,7 +7,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Commissions"]</h5>
-        <a asp-page="/Commissions/Create" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-primary">@L["NewCommission"]</a>
+        <a asp-page="/Commissions/Create" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-primary" data-overlay data-overlay-title="@L["NewCommission"]">@L["NewCommission"]</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">

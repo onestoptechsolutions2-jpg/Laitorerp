@@ -20,6 +20,12 @@ public class ServiceRequest : FullAuditedAggregateRoot<Guid>
     // the moment Status transitions into Fulfilled/Rejected, cleared if reopened.
     public DateTime? FulfilledDate { get; set; }
 
+    // Set by ServiceRequestAppService.ConvertToJobAsync (2026-08-18 consolidation audit: a
+    // ServiceRequest previously had no path to become billable work - this is that path, same
+    // "one loose Guid, no real FK" convention as every other cross-aggregate link in this app).
+    // Once set, the request has a real destination instead of dead-ending at Fulfilled.
+    public Guid? JobId { get; set; }
+
     protected ServiceRequest()
     {
     }

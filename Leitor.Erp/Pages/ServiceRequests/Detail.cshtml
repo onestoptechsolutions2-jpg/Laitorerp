@@ -15,7 +15,17 @@
         <div>
             @if (Model.CanEdit)
             {
-                <a asp-page="./Edit" asp-route-id="@Model.ServiceRequest.Id" class="btn btn-outline-primary">@L["Edit"]</a>
+                <a asp-page="./Edit" asp-route-id="@Model.ServiceRequest.Id" class="btn btn-outline-primary" data-overlay data-overlay-title="@L["EditServiceRequest"]">@L["Edit"]</a>
+                @if (Model.ServiceRequest.JobId.HasValue)
+                {
+                    <a asp-page="/FieldService/Jobs/Detail" asp-route-id="@Model.ServiceRequest.JobId" class="btn btn-outline-success">@L["ViewJob"]</a>
+                }
+                else if (!isTerminal)
+                {
+                    <form method="post" asp-page-handler="ConvertToJob" class="d-inline" onsubmit="return confirm('@L["ConvertToJob"]?');">
+                        <button type="submit" class="btn btn-success">@L["ConvertToJob"]</button>
+                    </form>
+                }
                 @if (!isTerminal)
                 {
                     @if (Model.ServiceRequest.Status != ServiceRequestStatus.Approved)

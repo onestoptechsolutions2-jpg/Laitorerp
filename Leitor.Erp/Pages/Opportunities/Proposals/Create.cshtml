@@ -3,12 +3,19 @@
 @using Leitor.Erp.Localization
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Opportunities.Proposals.CreateModel
+@{
+    if (OverlayRequest.Is(Request)) { Layout = null; }
+}
 
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">@L["NewProposal"]</h5>
     </div>
     <div class="card-body">
+        @if (Model.PrefilledFromAssessment)
+        {
+            <div class="alert alert-info">@L["PrefilledFromAssessment"]</div>
+        }
         <form method="post">
             <input type="hidden" asp-for="Proposal.OpportunityId" value="@Model.OpportunityId" />
             <input type="hidden" asp-for="Proposal.SupersedesProposalId" value="@Model.SupersedesProposalId" />

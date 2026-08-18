@@ -504,5 +504,6 @@ public class ErpModule : AbpModule
         await context.AddBackgroundWorkerAsync<ExchangeRateSyncWorker>();
         await context.AddBackgroundWorkerAsync<DataRetentionPurgeWorker>();
         await context.AddBackgroundWorkerAsync<RecurringJournalWorker>();
+        await context.AddBackgroundWorkerAsync<ContractRecurringBillingWorker>();
     }
 }

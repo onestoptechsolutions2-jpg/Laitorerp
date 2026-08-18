@@ -40,6 +40,40 @@
     </div>
 }
 
+@if (Model.Workspace.OrdersReadyToInvoice.Count > 0)
+{
+    <div class="card mb-3 border-success">
+        <div class="card-header bg-success-subtle">
+            <h5 class="card-title mb-0">@L["OrdersReadyToInvoice"]</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["OrderNumber"]</th>
+                            <th>@L["Customer"]</th>
+                            <th>@L["Total"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Workspace.OrdersReadyToInvoice)
+                        {
+                            <tr>
+                                <td><a asp-page="/Sales/Orders/Detail" asp-route-id="@order.Id">@order.OrderNumber</a></td>
+                                <td>@order.CustomerName</td>
+                                <td>@order.Total.ToString("N2")</td>
+                                <td><span class="pill pill-success">@L["ReadyToInvoice"]</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="card mb-3">
     <div class="card-header">
         <h5 class="card-title mb-0">@L["MyReminders"]</h5>

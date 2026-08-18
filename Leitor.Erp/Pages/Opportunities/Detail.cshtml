@@ -101,7 +101,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">@L["Proposals"]</h5>
-        <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm">@L["NewProposal"]</a>
+        <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewProposal"]">@L["NewProposal"]</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -157,7 +157,7 @@
                                     }
                                     else if (Model.CanEdit)
                                     {
-                                        <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" asp-route-supersedesProposalId="@proposal.Id" class="btn btn-sm btn-success">@L["CreateReplacement"]</a>
+                                        <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" asp-route-supersedesProposalId="@proposal.Id" class="btn btn-sm btn-success" data-overlay data-overlay-title="@L["NewProposal"]">@L["CreateReplacement"]</a>
                                     }
                                 }
                                 <form method="post" asp-page-handler="DeleteProposal" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
@@ -177,7 +177,7 @@
     <div class="card mt-3">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">@L["Commissions"]</h5>
-            <a asp-page="/Commissions/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm">@L["NewCommission"]</a>
+            <a asp-page="/Commissions/Create" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-primary btn-sm" data-overlay data-overlay-title="@L["NewCommission"]">@L["NewCommission"]</a>
         </div>
         <div class="card-body">
             <div class="table-responsive">

@@ -67,4 +67,10 @@ public class DetailModel : AbpPageModel
 
         return RedirectToPage(new { id = Id });
     }
+
+    public async Task<IActionResult> OnPostConvertToJobAsync()
+    {
+        var jobId = await _serviceRequestAppService.ConvertToJobAsync(Id);
+        return RedirectToPage("/FieldService/Jobs/Detail", new { id = jobId });
+    }
 }

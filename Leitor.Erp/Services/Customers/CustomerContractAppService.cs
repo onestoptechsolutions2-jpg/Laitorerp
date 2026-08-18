@@ -151,5 +151,24 @@ public class CustomerContractAppService :
 
         entity.ContractTemplateId = input.ContractTemplateId;
         entity.ClientSignatoryName = input.ClientSignatoryName;
+
+        // Defaults NextBillingDate the first time billing is turned on for this contract, so an
+        // admin enabling it doesn't also have to compute a starting date by hand. Left alone on
+        // every later save (including a manual override) unless billing is turned back off.
+        var turningOnBilling = input.BillingFrequency != RecurringBillingFrequency.None && entity.BillingFrequency == RecurringBillingFrequency.None;
+        entity.BillingFrequency = input.BillingFrequency;
+
+        if (input.BillingFrequency == RecurringBillingFrequency.None)
+        {
+            entity.NextBillingDate = null;
+        }
+        else if (input.NextBillingDate.HasValue)
+        {
+            entity.NextBillingDate = input.NextBillingDate;
+        }
+        else if (turningOnBilling)
+        {
+            entity.NextBillingDate = entity.StartDate;
+        }
     }
 }

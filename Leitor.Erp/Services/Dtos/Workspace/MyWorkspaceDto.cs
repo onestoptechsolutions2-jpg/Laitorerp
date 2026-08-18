@@ -15,6 +15,13 @@ public class MyWorkspaceDto
     // background worker/email involved.
     public List<MyReminderDto> Reminders { get; set; } = new();
 
+    // Orders where every linked FieldServiceJob is now Completed and the order is otherwise ready
+    // for its final invoice (Confirmed/Fulfilled, not yet invoiced) - the same condition Order
+    // Detail's own "Issue Final Invoice" button already gates on, surfaced here so the salesperson
+    // doesn't have to remember to revisit the Order page to notice a job finished. See
+    // MyWorkspaceAppService.LoadOrdersReadyToInvoiceAsync.
+    public List<MyOrderReadyToInvoiceDto> OrdersReadyToInvoice { get; set; } = new();
+
     // Null when the current user doesn't hold DeletionApprovals.Decide - distinct from a genuine
     // zero, same "section only appears if you can see it" convention as DashboardAppService.
     public int? PendingDeletionRequestCount { get; set; }
@@ -49,6 +56,14 @@ public class MyJobDto
     public FieldServiceJobType Type { get; set; }
     public FieldServiceJobStatus Status { get; set; }
     public DateTime ScheduledDate { get; set; }
+}
+
+public class MyOrderReadyToInvoiceDto
+{
+    public Guid Id { get; set; }
+    public string OrderNumber { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public decimal Total { get; set; }
 }
 
 public class MyReminderDto

@@ -3,6 +3,7 @@ using System;
 using Leitor.Erp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Leitor.Erp.Migrations
 {
     [DbContext(typeof(ErpDbContext))]
-    partial class ErpDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260817214926_AddServiceRequestJobId")]
+    partial class AddServiceRequestJobId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1722,9 +1725,6 @@ namespace Leitor.Erp.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("BillingFrequency")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ClientSignatoryName")
                         .HasColumnType("text");
 
@@ -1776,9 +1776,6 @@ namespace Leitor.Erp.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("IsDeleted");
 
-                    b.Property<DateTime?>("LastBilledDate")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<DateTime?>("LastExpiryAlertSentDate")
                         .HasColumnType("timestamp without time zone");
 
@@ -1789,9 +1786,6 @@ namespace Leitor.Erp.Migrations
                     b.Property<Guid?>("LastModifierId")
                         .HasColumnType("uuid")
                         .HasColumnName("LastModifierId");
-
-                    b.Property<DateTime?>("NextBillingDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)

@@ -60,7 +60,9 @@ public class EditModel : AbpPageModel
             SlaLowHours = contract.SlaLowHours,
             ServicesIncluded = contract.ServicesIncluded,
             ContractTemplateId = contract.ContractTemplateId,
-            ClientSignatoryName = contract.ClientSignatoryName
+            ClientSignatoryName = contract.ClientSignatoryName,
+            BillingFrequency = contract.BillingFrequency,
+            NextBillingDate = contract.NextBillingDate
         };
         SelectedServiceFlags = ContractServiceScopeOptions.All
             .Where(flag => contract.ServicesIncluded.HasFlag(flag))
