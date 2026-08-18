@@ -46,11 +46,18 @@ public class DetailModel : AbpPageModel
     public CreateLeadTouchDto NewTouch { get; set; } = new();
 
     public bool CanEdit { get; set; }
+    public bool CanConvertToCustomer { get; set; }
     public bool HasPendingDeletionRequest { get; set; }
 
     public async Task OnGetAsync()
     {
         CanEdit = await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Edit);
+        // ConvertToCustomerAsync requires Leads.Create (it creates a Customer + Opportunity, not
+        // just an edit of the Lead - see LeadAppService's CreatePolicyName). The button used to be
+        // gated on CanEdit alone, so a role with Edit but not Create could see it, confirm it, and
+        // have the POST fail authorization server-side with no obvious feedback - "the dialog shows
+        // but never acts". Gating on the actual requirement instead of a broader one.
+        CanConvertToCustomer = await AuthorizationService.IsGrantedAsync(ErpPermissions.Leads.Create);
         HasPendingDeletionRequest = await DeletionGate.IsPendingAsync(_deletionRequestRepository, "Lead", Id);
         await LoadAsync();
     }

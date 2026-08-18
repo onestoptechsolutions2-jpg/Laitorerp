@@ -21,7 +21,7 @@
                 {
                     <a asp-page="/Customers/Detail" asp-route-id="@Model.Lead.ConvertedCustomerId" class="btn btn-success">@L["ViewCustomer"]</a>
                 }
-                else
+                else if (Model.CanConvertToCustomer)
                 {
                     <form method="post" asp-page-handler="ConvertToCustomer" class="d-inline" data-confirm="@L["ConvertToCustomer"]?">
                         <button type="submit" class="btn btn-success">@L["ConvertToCustomer"]</button>
