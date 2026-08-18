@@ -214,6 +214,14 @@ sits underneath all of it, posting every invoice, payment, and supplier bill to 
   section, with extra fine-grained permissions only where an action is genuinely a distinct,
   rarer responsibility (e.g. `Assets.RevealCredentials`, `Changes.Approve`,
   `FiscalPeriods.Manage`).
+- **Gotcha:** a page-level button's visibility check and the AppService action it triggers can
+  drift onto different permissions (e.g. a button gated on `X.Edit` calling into a method whose
+  `CreatePolicyName` is `X.Create`) — a role holding one but not the other sees a button that's
+  guaranteed to fail authorization when clicked, with no obvious feedback beyond a generic error
+  toast. Found and fixed once on Leads' "Convert to Customer" (2026-08-19) — worth grepping for
+  the same drift (`AuthorizationService.IsGrantedAsync` in a page model vs. the target
+  AppService method's own `Check*PolicyAsync`) before assuming a "button does nothing" report is
+  a client-side bug.
 - Global search: a floating search trigger (bottom-right on every page, `Ctrl+K`/`Cmd+K`) queries
   Customers, Leads, Tickets, and Invoices by name/number — see `Services/Search/GlobalSearchAppService.cs`
   and `Pages/Search/Index.cshtml.cs` (a JSON-only endpoint, not a page users navigate to
