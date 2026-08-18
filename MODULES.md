@@ -157,6 +157,15 @@ Partner, and Agent gained an `IsActive` flag (Employee/Product/Warehouse/Account
 had one) so they can be deactivated instead of deleted; hard delete is still available, still
 gated by `DependencyGuard`/`DeletionGate`.
 
+Login is a single panel now (the theme's own separate logo/title-bar-with-language-dropdown chrome
+is hidden via CSS — see `Pages/Account/login.css` — since LeptonXLite's Account layout is a
+precompiled view with no safe direct override; the app's own logo/name render inside the login
+card instead). The language switcher is gone app-wide; culture resolves purely from the browser's
+`Accept-Language` header (`ErpModule.ConfigureLocalization` strips the cookie provider that used
+to permanently override it once clicked). App name/logo/favicon are settings-backed
+(`Erp.Branding.*`, Administration → Operations & Config → Branding tab) instead of hardcoded —
+`ErpBrandingProvider` and `Components/BrandingStyle` are what actually apply them.
+
 ---
 
 ## Optional modules (off by default — enable per deployment)

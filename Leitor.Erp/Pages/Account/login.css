@@ -10,17 +10,62 @@
    linked directly in Login.cshtml - single source of truth shared with leitor-theme.css.
    ======================================== */
 
-/* Root container - warm cream background, matching the rest of the app. No min-height: this
-   renders inside the LeptonXLite theme's own Account layout, which already puts its own
-   logo/title chrome above this content - claiming a full 100vh for this section on top of that
-   guarantees a scrollbar. Let it size to its content and centering happens naturally in
-   whatever space the theme leaves. The hero decoration below uses position:fixed specifically
-   so it never affects this container's own box size/scrolling. */
+/* Root container - warm cream background, matching the rest of the app. min-height: 100vh so
+   this centers vertically on its own - the theme's own logo/title-bar chrome that used to sit
+   above it (and that this container previously relied on for ambient height) is now hidden below,
+   since the login card carries its own logo/app-name instead (see Login.cshtml). The hero
+   decoration below uses position:fixed specifically so it never affects this container's own box
+   size/scrolling. */
 .leitor-auth-container {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 100vh;
     padding: 20px;
+}
+
+/* Collapses the theme's own login header chrome (logo block, and the title-bar-with-language-
+   dropdown row) down to nothing, so the form card below is the single visible panel - see the
+   login-simplification pass. Direct layout override isn't used here (see
+   ErpModule.ConfigureLayoutHooks's own comment on why LeptonXLite's precompiled views aren't
+   safely overridable); this is the same scoped-CSS-hide approach used elsewhere in this codebase
+   for other unavoidably-precompiled theme chrome. Selectors are copied verbatim from the compiled
+   theme's own markup. Kept separate from the :has()-based rule below - an unsupported/invalid
+   selector in a shared comma-list can invalidate the whole rule in some browsers, and these are
+   the selectors that actually matter. */
+.lpx-logo-container.lpx-login-brand-text,
+.lpx-login-title,
+.lpx-main-title,
+#languageDropdown {
+    display: none !important;
+}
+
+/* Best-effort: also hide whatever wraps the language-dropdown trigger, without needing its exact
+   class name, so no empty container is left behind. Own rule so a browser without :has() support
+   (none evergreen, as of 2023+) just skips this one instead of also losing the hides above. */
+.dropdown:has(#languageDropdown) {
+    display: none !important;
+}
+
+/* The login card's own logo + app name (replaces the theme's hidden panels above). */
+.leitor-auth-brand {
+    text-align: center;
+    margin-bottom: 24px;
+}
+.leitor-auth-logo {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: var(--leitor-radius-sm, 10px);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.leitor-auth-appname {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--leitor-ink);
 }
 
 .leitor-auth-wrapper {

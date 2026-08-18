@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -13,6 +16,7 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Filters;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
+using Leitor.Erp.Pages.Shared.Components.BrandingStyle;
 using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.GlobalSearch;
 using Leitor.Erp.Pages.Shared.Components.MobileBottomNav;
@@ -376,6 +380,14 @@ public class ErpModule : AbpModule
                 LayoutHooks.Body.Last,
                 typeof(StatusToastViewComponent),
                 layout: StandardLayouts.Application);
+
+            // Settings-driven logo/favicon overrides (see Components/BrandingStyle) - part of the
+            // configurable-branding pass. Account (login) layout is excluded same as the rest of
+            // this method; Login.cshtml invokes this same component directly instead.
+            options.Add(
+                LayoutHooks.Head.Last,
+                typeof(BrandingStyleViewComponent),
+                layout: StandardLayouts.Application);
         });
     }
 
@@ -415,6 +427,26 @@ public class ErpModule : AbpModule
         Configure<AbpExceptionLocalizationOptions>(options =>
         {
             options.MapCodeNamespace("Erp", typeof(ErpResource));
+        });
+
+        // Language is auto-detected from the browser's Accept-Language header now - the
+        // language-switcher UI is gone (see Pages/Account/login.css and leitor-theme.css's
+        // #languageDropdown hide rules, part of the login/UX simplification pass). Without this,
+        // ABP's default provider chain still checks a persistent ".AspNetCore.Culture" cookie
+        // (written by the old switcher's ~/Abp/Languages/Switch endpoint) ahead of Accept-Language
+        // - removing the UI wouldn't stop an already-cookied browser from staying stuck on
+        // whatever language it last picked, so the cookie provider is removed outright rather
+        // than just hiding the control that used to write it. QueryString stays (harmless,
+        // useful for deep-link/testing a specific culture).
+        Configure<RequestLocalizationOptions>(options =>
+        {
+            var cookieProviders = options.RequestCultureProviders
+                .OfType<CookieRequestCultureProvider>()
+                .ToList();
+            foreach (var provider in cookieProviders)
+            {
+                options.RequestCultureProviders.Remove(provider);
+            }
         });
     }
 

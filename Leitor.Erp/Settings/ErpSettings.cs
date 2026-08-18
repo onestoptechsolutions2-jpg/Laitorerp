@@ -57,4 +57,13 @@ public static class ErpSettings
     // Default signatory name used on generated contract PDFs (Documents/ContractPdfDocument.cs) -
     // see Settings/ErpSettingDefinitionProvider.cs for the seeded default.
     public const string CompanyContractSignatoryName = GroupName + ".Company.ContractSignatoryName";
+
+    // App branding - previously hardcoded (ErpBrandingProvider read a per-locale localization
+    // string for the app name; the logo/favicon were static files with no settings path at all).
+    // See ErpBrandingProvider.cs and Pages/Shared/Components/BrandingStyle for how these are
+    // applied. Empty LogoUrl/FaviconUrl means "use the built-in default asset" - both are plain
+    // URLs/paths (e.g. to a file already placed under wwwroot), not an upload pipeline.
+    public const string BrandingAppName = GroupName + ".Branding.AppName";
+    public const string BrandingLogoUrl = GroupName + ".Branding.LogoUrl";
+    public const string BrandingFaviconUrl = GroupName + ".Branding.FaviconUrl";
 }

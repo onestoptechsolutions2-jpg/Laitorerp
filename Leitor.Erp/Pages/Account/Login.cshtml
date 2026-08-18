@@ -1,12 +1,15 @@
 @page
+@using Leitor.Erp.Pages.Shared.Components.BrandingStyle
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Volo.Abp.Account.Localization
 @using Volo.Abp.Account.Web.Pages.Account;
 @using Volo.Abp.AspNetCore.Mvc.UI.Theming;
 @using Volo.Abp.Identity;
+@using Volo.Abp.Ui.Branding;
 @model Volo.Abp.Account.Web.Pages.Account.LoginModel
 @inject IHtmlLocalizer<AccountResource> L
 @inject IThemeManager ThemeManager
+@inject IBrandingProvider BrandingProvider
 
 @{
     Layout = ThemeManager.CurrentTheme.GetAccountLayout();
@@ -21,6 +24,12 @@
     <link rel="stylesheet" href="/leitor-theme.css" />
     <link rel="stylesheet" href="/Pages/Account/login.css" />
 
+    <!-- Settings-driven logo/favicon (see Components/BrandingStyle) - invoked directly rather
+         than via LayoutHooks, since the Account layout is excluded from those (see
+         ErpModule.ConfigureLayoutHooks's own comment). Rendered after the stylesheets above so
+         its --lpx-logo/--lpx-logo-icon override wins by source order. -->
+    @await Component.InvokeAsync(typeof(BrandingStyleViewComponent))
+
     <!-- A first-time mobile visitor's very first page IS this login screen, so the install
          prompt (wwwroot/leitor-pwa.js) needs to be eligible here too - see PwaHeadViewComponent's
          own comment for why the Account layout can't just pick these up via LayoutHooks. -->
@@ -29,7 +38,7 @@
     <link rel="apple-touch-icon" href="/images/pwa/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Leitor ERP" />
+    <meta name="apple-mobile-web-app-title" content="@BrandingProvider.AppName" />
 }
 
 @section scripts
@@ -55,6 +64,17 @@
 
         <div class="card">
             <div class="card-body">
+
+                <!-- Single-panel login: logo + app name live inside this same card instead of the
+                     theme's own separate logo/title-bar panels above it (hidden via CSS, see
+                     login.css - LeptonXLite's Account layout is precompiled with no safe direct
+                     override, see ErpModule.ConfigureLayoutHooks's own comment). --lpx-logo-icon
+                     is the same CSS var the theme's header/sidebar already read, kept in sync by
+                     Components/BrandingStyle above. -->
+                <div class="leitor-auth-brand">
+                    <div class="lpx-brand-logo leitor-auth-logo" aria-hidden="true"></div>
+                    <div class="leitor-auth-appname">@BrandingProvider.AppName</div>
+                </div>
 
                 <!-- Main Login Form -->
                 @if (Model.EnableLocalLogin)

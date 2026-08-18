@@ -62,6 +62,9 @@ public class IndexModel : AbpPageModel
     public CompanyProfileInput Company { get; set; } = new();
 
     [BindProperty]
+    public BrandingInput Branding { get; set; } = new();
+
+    [BindProperty]
     public EmailSettingsInput Email { get; set; } = new();
 
     public List<SettingRow> BusinessSettings { get; set; } = new();
@@ -75,6 +78,7 @@ public class IndexModel : AbpPageModel
         if (CanManageAppSettings)
         {
             await LoadCompanyAsync();
+            await LoadBrandingAsync();
             await LoadEmailAsync();
             await LoadBusinessSettingsAsync();
         }
@@ -100,6 +104,17 @@ public class IndexModel : AbpPageModel
         await _settingManager.SetGlobalAsync(ErpSettings.CompanyContractSignatoryName, Company.ContractSignatoryName ?? "");
 
         return RedirectToPage(new { tab = "company" });
+    }
+
+    public async Task<IActionResult> OnPostSaveBrandingAsync()
+    {
+        await CheckAppSettingsPermissionAsync();
+
+        await _settingManager.SetGlobalAsync(ErpSettings.BrandingAppName, string.IsNullOrWhiteSpace(Branding.AppName) ? "Leitor ERP" : Branding.AppName);
+        await _settingManager.SetGlobalAsync(ErpSettings.BrandingLogoUrl, Branding.LogoUrl ?? "");
+        await _settingManager.SetGlobalAsync(ErpSettings.BrandingFaviconUrl, Branding.FaviconUrl ?? "");
+
+        return RedirectToPage(new { tab = "branding" });
     }
 
     public async Task<IActionResult> OnPostSaveEmailAsync()
@@ -180,6 +195,16 @@ public class IndexModel : AbpPageModel
             Phone = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyPhone),
             Email = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyEmail),
             ContractSignatoryName = await _settingProvider.GetOrNullAsync(ErpSettings.CompanyContractSignatoryName)
+        };
+    }
+
+    private async Task LoadBrandingAsync()
+    {
+        Branding = new BrandingInput
+        {
+            AppName = await _settingProvider.GetOrNullAsync(ErpSettings.BrandingAppName) ?? "Leitor ERP",
+            LogoUrl = await _settingProvider.GetOrNullAsync(ErpSettings.BrandingLogoUrl),
+            FaviconUrl = await _settingProvider.GetOrNullAsync(ErpSettings.BrandingFaviconUrl)
         };
     }
 
@@ -297,6 +322,21 @@ public class IndexModel : AbpPageModel
 
         [StringLength(256)]
         public string? ContractSignatoryName { get; set; }
+    }
+
+    public class BrandingInput
+    {
+        [Required]
+        [StringLength(128)]
+        public string AppName { get; set; } = "Leitor ERP";
+
+        // Plain URL/path (e.g. to a file already placed under wwwroot), not an upload - see
+        // ErpSettings.BrandingLogoUrl's own comment for why.
+        [StringLength(512)]
+        public string? LogoUrl { get; set; }
+
+        [StringLength(512)]
+        public string? FaviconUrl { get; set; }
     }
 
     public class EmailSettingsInput

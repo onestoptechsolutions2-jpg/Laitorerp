@@ -109,6 +109,25 @@
   display: none !important;
 }
 
+/* Language switcher removed app-wide (see ErpModule.ConfigureLocalization) - culture now resolves
+   purely from the browser's Accept-Language header. Same "CSS hide, precompiled theme component
+   with no C# option" story as the footer attribution above. Login page has its own equivalent
+   rule in Pages/Account/login.css, since that page loads a different stylesheet. Kept as its own
+   rule, separate from the :has() one below - an unsupported/invalid selector in a shared
+   comma-list can invalidate the whole rule in some browsers, and this ID match is the one that
+   actually matters; the :has() one below is just a bonus. */
+#languageDropdown {
+  display: none !important;
+}
+
+/* Best-effort: also hide whatever wraps the dropdown trigger, without needing its exact class
+   name, so no empty container is left behind. Split into its own rule (see above) so a browser
+   without :has() support (none evergreen, as of 2023+) just skips this one rule instead of also
+   losing the #languageDropdown hide above. */
+.dropdown:has(#languageDropdown) {
+  display: none !important;
+}
+
 /* ============================= Bootstrap base ============================= */
 
 :root {

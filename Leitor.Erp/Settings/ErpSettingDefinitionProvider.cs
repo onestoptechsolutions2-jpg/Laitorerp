@@ -52,7 +52,13 @@ public class ErpSettingDefinitionProvider : SettingDefinitionProvider
 
             // Matches the real current signatory named in the Managed Services Agreement sample
             // this feature was built from - a genuine current value, not a placeholder.
-            new SettingDefinition(ErpSettings.CompanyContractSignatoryName, "Treazer Ominde Akombe", L("Setting:CompanyContractSignatoryName"))
+            new SettingDefinition(ErpSettings.CompanyContractSignatoryName, "Treazer Ominde Akombe", L("Setting:CompanyContractSignatoryName")),
+
+            // Defaults match what was previously hardcoded, so nothing changes visually for an
+            // existing deployment until an admin actually edits these.
+            new SettingDefinition(ErpSettings.BrandingAppName, "Leitor ERP", L("Setting:BrandingAppName")),
+            new SettingDefinition(ErpSettings.BrandingLogoUrl, "", L("Setting:BrandingLogoUrl")),
+            new SettingDefinition(ErpSettings.BrandingFaviconUrl, "", L("Setting:BrandingFaviconUrl"))
         );
     }
 

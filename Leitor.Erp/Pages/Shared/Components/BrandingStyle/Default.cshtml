@@ -1,0 +1,18 @@
+@model Leitor.Erp.Pages.Shared.Components.BrandingStyle.BrandingStyleModel
+
+@if (!string.IsNullOrWhiteSpace(Model.LogoUrl))
+{
+    <style>
+        :root .lpx-brand-logo {
+            --lpx-logo: url('@Model.LogoUrl');
+            --lpx-logo-icon: url('@Model.LogoUrl');
+        }
+    </style>
+}
+@if (!string.IsNullOrWhiteSpace(Model.FaviconUrl))
+{
+    <!-- Renders after the theme's own hardcoded <link rel="icon" href="~/favicon.svg"> (embedded
+         markup, can't be removed) - best-effort last-tag-wins override, same caveat already
+         accepted elsewhere in this codebase for unverifiable theme overrides. -->
+    <link rel="icon" href="@Model.FaviconUrl" />
+}

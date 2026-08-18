@@ -26,6 +26,9 @@
                     <button class="nav-link @(activeTab == "company" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-company" type="button">@L["CompanyProfile"]</button>
                 </li>
                 <li class="nav-item">
+                    <button class="nav-link @(activeTab == "branding" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-branding" type="button">@L["Branding"]</button>
+                </li>
+                <li class="nav-item">
                     <button class="nav-link @(activeTab == "email" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-email" type="button">@L["Email"]</button>
                 </li>
                 <li class="nav-item">
@@ -60,6 +63,17 @@
                             <div class="col-md-6"><abp-input asp-for="Company.Email" /></div>
                         </div>
                         <abp-input asp-for="Company.ContractSignatoryName" />
+                        <button type="submit" class="btn btn-primary mt-2">@L["Save"]</button>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade @(activeTab == "branding" ? "show active" : "")" id="tab-branding">
+                    <p class="text-muted small">@L["BrandingHint"]</p>
+                    <form method="post" asp-page-handler="SaveBranding">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <abp-input asp-for="Branding.AppName" label="@L["Setting:BrandingAppName"].Value" />
+                        <abp-input asp-for="Branding.LogoUrl" label="@L["Setting:BrandingLogoUrl"].Value" placeholder="/images/logo/leptonx/logo-dark-thumbnail.png" />
+                        <abp-input asp-for="Branding.FaviconUrl" label="@L["Setting:BrandingFaviconUrl"].Value" placeholder="/favicon.ico" />
                         <button type="submit" class="btn btn-primary mt-2">@L["Save"]</button>
                     </form>
                 </div>
