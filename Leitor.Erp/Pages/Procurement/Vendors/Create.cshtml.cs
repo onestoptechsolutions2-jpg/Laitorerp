@@ -12,6 +12,7 @@ using Leitor.Erp.Services.Procurement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -58,7 +59,19 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var vendor = await _vendorAppService.CreateAsync(Vendor);
+        VendorDto vendor;
+        try
+        {
+            vendor = await _vendorAppService.CreateAsync(Vendor);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["VendorCreatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

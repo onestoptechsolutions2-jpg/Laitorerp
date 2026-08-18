@@ -11,7 +11,7 @@
             <a asp-page-handler="Pdf" class="btn btn-outline-secondary">@L["PrintReceipt"]</a>
             @if (Model.CanVoid && Model.Sale.Status == Leitor.Erp.Entities.Pos.PosSaleStatus.Completed)
             {
-                <form method="post" asp-page-handler="Void" class="d-inline" onsubmit="return confirm('@L["ConfirmVoidSale"]');">
+                <form method="post" asp-page-handler="Void" class="d-inline" data-confirm="@L["ConfirmVoidSale"]" data-confirm-variant="danger">
                     <button type="submit" class="btn btn-outline-danger">@L["Void"]</button>
                 </form>
             }

@@ -16,7 +16,7 @@
             }
             @if (Model.CanSharePackage)
             {
-                <form method="post" asp-page-handler="SharePackage" asp-route-id="@Model.Opportunity.Id" class="d-inline" onsubmit="return confirm('@L["SharePackage"]?');">
+                <form method="post" asp-page-handler="SharePackage" asp-route-id="@Model.Opportunity.Id" class="d-inline" data-confirm="@L["SharePackage"]?">
                     <button type="submit" class="btn btn-outline-success">@L["SharePackage"]</button>
                 </form>
             }
@@ -92,7 +92,7 @@
                             <td>@assessment.ConductedByUserName</td>
                             <td>
                                 <a asp-page="/Opportunities/Assessments/Edit" asp-route-id="@assessment.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-primary">@L["Edit"]</a>
-                                <form method="post" asp-page-handler="DeleteAssessment" asp-route-assessmentId="@assessment.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteAssessment" asp-route-assessmentId="@assessment.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>
@@ -140,7 +140,7 @@
                                 <a asp-page="/Opportunities/Proposals/Edit" asp-page-handler="Pdf" asp-route-id="@proposal.Id" asp-route-opportunityId="@Model.Opportunity.Id" class="btn btn-sm btn-outline-secondary">@L["DownloadPdf"]</a>
                                 @if (Model.CanEdit && Model.CanConvertProposal(proposal))
                                 {
-                                    <form method="post" asp-page-handler="ConvertToQuote" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["ConvertToQuote"]?');">
+                                    <form method="post" asp-page-handler="ConvertToQuote" asp-route-proposalId="@proposal.Id" class="d-inline" data-confirm="@L["ConvertToQuote"]?">
                                         <button type="submit" class="btn btn-sm btn-success">@L["ConvertToQuote"]</button>
                                     </form>
                                 }
@@ -166,7 +166,7 @@
                                         <a asp-page="/Opportunities/Proposals/Create" asp-route-opportunityId="@Model.Opportunity.Id" asp-route-supersedesProposalId="@proposal.Id" class="btn btn-sm btn-success" data-overlay data-overlay-title="@L["NewProposal"]">@L["CreateReplacement"]</a>
                                     }
                                 }
-                                <form method="post" asp-page-handler="DeleteProposal" asp-route-proposalId="@proposal.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteProposal" asp-route-proposalId="@proposal.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>
@@ -216,7 +216,7 @@
                                 <td>
                                     @if (Model.CanEdit && commission.Status == CommissionStatus.Payable)
                                     {
-                                        <form method="post" asp-page-handler="MarkCommissionPaid" asp-route-commissionId="@commission.Id" class="d-inline" onsubmit="return confirm('@L["MarkPaid"]?');">
+                                        <form method="post" asp-page-handler="MarkCommissionPaid" asp-route-commissionId="@commission.Id" class="d-inline" data-confirm="@L["MarkPaid"]?">
                                             <button type="submit" class="btn btn-sm btn-success">@L["MarkPaid"]</button>
                                         </form>
                                     }

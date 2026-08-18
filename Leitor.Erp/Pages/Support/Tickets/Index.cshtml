@@ -58,7 +58,15 @@
                 <tbody>
                     @if (!Model.Tickets.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state">
+                            <td colspan="8">
+                                <div>@L["NoResultsFound"]</div>
+                                @if (Model.CanCreate)
+                                {
+                                    <a asp-page="./Create" class="btn btn-sm btn-outline-primary mt-2" data-overlay data-overlay-title="@L["NewTicket"]">@L["NewTicket"]</a>
+                                }
+                            </td>
+                        </tr>
                     }
                     @foreach (var ticket in Model.Tickets)
                     {
@@ -79,7 +87,7 @@
                             <td>
                                 @if (Model.CanDelete)
                                 {
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@ticket.Id" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@ticket.Id" class="d-inline" data-confirm="@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
                                     </form>
                                 }

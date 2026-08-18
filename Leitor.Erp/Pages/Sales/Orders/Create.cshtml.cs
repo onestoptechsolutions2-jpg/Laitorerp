@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -15,6 +16,8 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -82,7 +85,22 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var order = await _orderAppService.CreateAsync(Order);
+        OrderDto order;
+        try
+        {
+            order = await _orderAppService.CreateAsync(Order);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadCustomerOptionsAsync();
+            await LoadCurrencyOptionsAsync();
+            await LoadWarehouseOptionsAsync();
+            await LoadProjectOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["OrderCreatedSuccessfully"]);
         return RedirectToPage("./Detail", new { id = order.Id });
     }
 
@@ -107,9 +125,14 @@ public class CreateModel : AbpPageModel
 
             return new JsonResult(new { id = customer.Id, name = customer.Name, defaultCurrencyCode = customer.DefaultCurrencyCode });
         }
+        catch (UserFriendlyException ex)
+        {
+            return new JsonResult(new { error = ex.Message }) { StatusCode = 400 };
+        }
         catch (Exception ex)
         {
-            return new JsonResult(new { error = $"Error creating customer: {ex.Message}" }) { StatusCode = 400 };
+            Logger.LogError(ex, "Unexpected error creating customer inline from Order create");
+            return new JsonResult(new { error = L["SomethingWentWrong"].Value }) { StatusCode = 400 };
         }
     }
 

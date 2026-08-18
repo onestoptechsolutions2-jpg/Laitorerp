@@ -62,7 +62,15 @@
                 <tbody>
                     @if (!Model.Leads.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="8">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state">
+                            <td colspan="8">
+                                <div>@L["NoResultsFound"]</div>
+                                @if (Model.CanCreate)
+                                {
+                                    <a asp-page="./Create" class="btn btn-sm btn-outline-primary mt-2" data-overlay data-overlay-title="@L["NewLead"]">@L["NewLead"]</a>
+                                }
+                            </td>
+                        </tr>
                     }
                     @foreach (var lead in Model.Leads)
                     {
@@ -83,7 +91,7 @@
                             <td>
                                 @if (Model.CanDelete)
                                 {
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@lead.Id" class="d-inline" onsubmit="return confirm('@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])');">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@lead.Id" class="d-inline" data-confirm="@(Model.CanDecideDeletions ? L["AreYouSureToDelete"] : L["AreYouSureToRequestDeletion"])" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@(Model.CanDecideDeletions ? L["Delete"] : L["RequestDeletion"])</button>
                                     </form>
                                 }

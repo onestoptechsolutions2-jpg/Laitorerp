@@ -61,7 +61,7 @@
         </div>
         @if (Model.CanManageSessions)
         {
-            <form method="post" asp-page-handler="CloseSession" class="d-flex gap-2 align-items-end" onsubmit="return confirm('@L["ConfirmCloseTill"]');">
+            <form method="post" asp-page-handler="CloseSession" class="d-flex gap-2 align-items-end" data-confirm="@L["ConfirmCloseTill"]">
                 <input type="hidden" name="sessionId" value="@Model.OpenSession.Id" />
                 <input type="hidden" name="warehouseId" value="@Model.WarehouseId" />
                 <div>

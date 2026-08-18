@@ -23,7 +23,7 @@
                 }
                 else
                 {
-                    <form method="post" asp-page-handler="ConvertToCustomer" class="d-inline" onsubmit="return confirm('@L["ConvertToCustomer"]?');">
+                    <form method="post" asp-page-handler="ConvertToCustomer" class="d-inline" data-confirm="@L["ConvertToCustomer"]?">
                         <button type="submit" class="btn btn-success">@L["ConvertToCustomer"]</button>
                     </form>
                 }
@@ -123,7 +123,7 @@
                     </div>
                     @if (Model.CanEdit)
                     {
-                        <form method="post" asp-page-handler="DeleteTouch" asp-route-touchId="@touch.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                        <form method="post" asp-page-handler="DeleteTouch" asp-route-touchId="@touch.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                             <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                         </form>
                     }

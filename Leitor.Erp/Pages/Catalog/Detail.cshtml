@@ -120,7 +120,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <form method="post" asp-page-handler="DeleteSupplier" asp-route-supplierId="@supplier.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeleteSupplier" asp-route-supplierId="@supplier.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }
@@ -174,7 +174,7 @@
                                 <td>
                                     @if (Model.CanEdit)
                                     {
-                                        <form method="post" asp-page-handler="DeleteBundleItem" asp-route-bundleItemId="@item.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                        <form method="post" asp-page-handler="DeleteBundleItem" asp-route-bundleItemId="@item.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                         </form>
                                     }

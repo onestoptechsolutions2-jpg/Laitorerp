@@ -190,7 +190,7 @@
                                     <form method="post" asp-page-handler="ToggleTask" asp-route-taskId="@task.Id" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-outline-secondary">@(task.IsCompleted ? L["Reopen"] : L["MarkComplete"])</button>
                                     </form>
-                                    <form method="post" asp-page-handler="DeleteTask" asp-route-taskId="@task.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeleteTask" asp-route-taskId="@task.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }

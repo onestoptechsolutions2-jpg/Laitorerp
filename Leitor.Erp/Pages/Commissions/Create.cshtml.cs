@@ -12,6 +12,7 @@ using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
@@ -119,6 +120,8 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
+        this.SetSuccessMessage(L["CommissionCreatedSuccessfully"]);
+
         if (OverlayRequest.Is(Request))
         {
             return new JsonResult(new { redirectUrl = Url.Page("./Index", new { OpportunityId = Commission.OpportunityId }) });
@@ -148,9 +151,14 @@ public class CreateModel : AbpPageModel
 
             return new JsonResult(new { id = partner.Id, name = partner.Name });
         }
+        catch (UserFriendlyException ex)
+        {
+            return new JsonResult(new { error = ex.Message }) { StatusCode = 400 };
+        }
         catch (Exception ex)
         {
-            return new JsonResult(new { error = $"Error creating partner: {ex.Message}" }) { StatusCode = 400 };
+            Logger.LogError(ex, "Unexpected error creating partner inline from Commission create");
+            return new JsonResult(new { error = L["SomethingWentWrong"].Value }) { StatusCode = 400 };
         }
     }
 
@@ -172,9 +180,14 @@ public class CreateModel : AbpPageModel
 
             return new JsonResult(new { id = agent.Id, name = agent.Name });
         }
+        catch (UserFriendlyException ex)
+        {
+            return new JsonResult(new { error = ex.Message }) { StatusCode = 400 };
+        }
         catch (Exception ex)
         {
-            return new JsonResult(new { error = $"Error creating agent: {ex.Message}" }) { StatusCode = 400 };
+            Logger.LogError(ex, "Unexpected error creating agent inline from Commission create");
+            return new JsonResult(new { error = L["SomethingWentWrong"].Value }) { StatusCode = 400 };
         }
     }
 

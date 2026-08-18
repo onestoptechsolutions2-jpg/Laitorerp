@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Invoice.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
             {
-                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Invoice.Id" class="d-inline" onsubmit="return confirm('@L["EmailToCustomer"]?');">
+                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Invoice.Id" class="d-inline" data-confirm="@L["EmailToCustomer"]?">
                     <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
                 </form>
             }
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
                 {
-                    <form method="post" asp-page-handler="RequestPayment" asp-route-id="@Model.Invoice.Id" class="d-inline" onsubmit="return confirm('@L["RequestPayment"]?');">
+                    <form method="post" asp-page-handler="RequestPayment" asp-route-id="@Model.Invoice.Id" class="d-inline" data-confirm="@L["RequestPayment"]?">
                         <button type="submit" class="btn btn-warning">@L["RequestPayment"]</button>
                     </form>
                 }
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <form method="post" asp-page-handler="DeleteLine" asp-route-lineId="@line.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeleteLine" asp-route-lineId="@line.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <form method="post" asp-page-handler="DeletePayment" asp-route-paymentId="@payment.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeletePayment" asp-route-paymentId="@payment.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }

@@ -7,6 +7,7 @@ using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Features;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
@@ -100,6 +101,7 @@ public class EditModel : AbpPageModel
         try
         {
             await _orderAppService.UpdateAsync(Id, Order);
+            this.SetSuccessMessage(L["OrderUpdatedSuccessfully"]);
             return RedirectToPage("./Detail", new { id = Id });
         }
         catch (UserFriendlyException ex)

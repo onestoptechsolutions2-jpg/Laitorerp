@@ -4,15 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
+using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
+using Leitor.Erp.Services.Partners;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Features;
 
 namespace Leitor.Erp.Services.Opportunities;
 
@@ -22,6 +25,10 @@ public class ProposalAppService :
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<Quote, Guid> _quoteRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
+    private readonly IRepository<Commission, Guid> _commissionRepository;
+    private readonly IRepository<Partner, Guid> _partnerRepository;
+    private readonly IRepository<Agent, Guid> _agentRepository;
+    private readonly IFeatureChecker _featureChecker;
     private readonly IDataFilter _dataFilter;
 
     public ProposalAppService(
@@ -29,12 +36,20 @@ public class ProposalAppService :
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<Quote, Guid> quoteRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
+        IRepository<Commission, Guid> commissionRepository,
+        IRepository<Partner, Guid> partnerRepository,
+        IRepository<Agent, Guid> agentRepository,
+        IFeatureChecker featureChecker,
         IDataFilter dataFilter)
         : base(repository)
     {
         _opportunityRepository = opportunityRepository;
         _quoteRepository = quoteRepository;
         _stageEventRepository = stageEventRepository;
+        _commissionRepository = commissionRepository;
+        _partnerRepository = partnerRepository;
+        _agentRepository = agentRepository;
+        _featureChecker = featureChecker;
         _dataFilter = dataFilter;
 
         // Child reuses the parent Opportunity's permissions, same convention as
@@ -273,6 +288,10 @@ public class ProposalAppService :
         proposal.Status = ProposalStatus.Accepted;
         await Repository.UpdateAsync(proposal, autoSave: true);
         await WorkflowStageLog.RecordAsync(_stageEventRepository, GuidGenerator, CurrentUser, Clock, "Proposal", proposal.Id, WorkflowStage.ProposalApproved);
+
+        await CommissionAutoCreateService.CreateForAcceptedProposalAsync(
+            _commissionRepository, _partnerRepository, _agentRepository, _stageEventRepository, _featureChecker,
+            GuidGenerator, CurrentUser, Clock, opportunity);
 
         return ObjectMapper.Map<Quote, QuoteDto>(quote);
     }

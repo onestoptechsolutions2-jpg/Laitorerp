@@ -68,7 +68,7 @@
                             <td>
                                 @if (item.Status == EscalationItemStatus.Pending && canDecide)
                                 {
-                                    <form method="post" asp-page-handler="Approve" asp-route-id="@item.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToApproveEscalation"]');">
+                                    <form method="post" asp-page-handler="Approve" asp-route-id="@item.Id" class="d-inline" data-confirm="@L["AreYouSureToApproveEscalation"]">
                                         <button type="submit" class="btn btn-sm btn-outline-success">@L["Approve"]</button>
                                     </form>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@item.Id">@L["Reject"]</button>

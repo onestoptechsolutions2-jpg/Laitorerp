@@ -15,7 +15,7 @@
             }
             @if (Model.CanErase)
             {
-                <form method="post" asp-page-handler="EraseData" class="d-inline" onsubmit="return confirm('@L["ConfirmEraseCustomerData"]');">
+                <form method="post" asp-page-handler="EraseData" class="d-inline" data-confirm="@L["ConfirmEraseCustomerData"]" data-confirm-variant="danger">
                     <button type="submit" class="btn btn-outline-danger">@L["EraseCustomerData"]</button>
                 </form>
             }
@@ -333,7 +333,7 @@
                                     }
                                 </td>
                                 <td>
-                                    <form method="post" asp-page-handler="RemovePriceList" asp-route-priceListId="@cpl.Id" class="d-inline" onsubmit="return confirm('Remove this price list?');">
+                                    <form method="post" asp-page-handler="RemovePriceList" asp-route-priceListId="@cpl.Id" class="d-inline" data-confirm="Remove this price list?">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                                     </form>
                                 </td>
@@ -375,7 +375,7 @@
                             <td>@(contact.IsPrimary ? "✓" : "")</td>
                             <td>
                                 <a asp-page="/Customers/Contacts/Edit" asp-route-id="@contact.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditContact"]">@L["Edit"]</a>
-                                <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>
@@ -438,7 +438,7 @@
                                     <a asp-page="./Detail" asp-route-id="@Model.Customer.Id" asp-page-handler="ContractPdf" asp-route-contractId="@contract.Id" class="btn btn-sm btn-outline-secondary" target="_blank">@L["Pdf"]</a>
                                 }
                                 <a asp-page="/Customers/Contracts/Edit" asp-route-id="@contract.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditContract"]">@L["Edit"]</a>
-                                <form method="post" asp-page-handler="DeleteContract" asp-route-contractId="@contract.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteContract" asp-route-contractId="@contract.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>
@@ -487,7 +487,7 @@
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">@(task.IsCompleted ? L["Reopen"] : L["MarkComplete"])</button>
                                 </form>
                                 <a asp-page="/Customers/Tasks/Edit" asp-route-id="@task.Id" asp-route-customerId="@Model.Customer.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditTask"]">@L["Edit"]</a>
-                                <form method="post" asp-page-handler="DeleteTask" asp-route-taskId="@task.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteTask" asp-route-taskId="@task.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>
@@ -524,7 +524,7 @@
                             <td>@attachment.UploadedByUserName</td>
                             <td>
                                 <a asp-page="/Customers/Attachments/Download" asp-route-id="@attachment.Id" class="btn btn-sm btn-outline-primary">@L["Download"]</a>
-                                <form method="post" asp-page-handler="DeleteAttachment" asp-route-attachmentId="@attachment.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteAttachment" asp-route-attachmentId="@attachment.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>
@@ -575,7 +575,7 @@
                         <strong class="ms-2">@note.CreatorUserName</strong>
                         <span class="text-muted ms-2">@note.TouchedAt.ToString("g")</span>
                     </div>
-                    <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                    <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                     </form>
                 </div>

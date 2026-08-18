@@ -42,7 +42,7 @@
                         <td>@band.Rate.ToString("N2")%</td>
                         <td>@band.EffectiveFrom.ToShortDateString()</td>
                         <td>
-                            <form method="post" asp-page-handler="DeletePayeTaxBand" asp-route-id="@band.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                            <form method="post" asp-page-handler="DeletePayeTaxBand" asp-route-id="@band.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                             </form>
                         </td>
@@ -96,7 +96,7 @@
                         <td>@tier.EmployerRate.ToString("N2")%</td>
                         <td>@tier.EffectiveFrom.ToShortDateString()</td>
                         <td>
-                            <form method="post" asp-page-handler="DeleteNssfTier" asp-route-id="@tier.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                            <form method="post" asp-page-handler="DeleteNssfTier" asp-route-id="@tier.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                             </form>
                         </td>

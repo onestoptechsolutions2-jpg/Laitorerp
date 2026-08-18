@@ -51,7 +51,12 @@ separately.
 
 ### Sales & Quoting
 Quote → Order → Invoice → Payment, each stage converting the last (line items copy forward
-automatically). Invoice payment status (Unpaid/Overdue/PartiallyPaid/PaidInFull/Overpaid) is
+automatically). A daily `OrderReadyToInvoiceWorker` auto-issues the invoice for any non-Milestone
+order that's Confirmed/Fulfilled, not yet invoiced, and whose linked Field Service Jobs (if any)
+are all Completed — the same "ready" condition My Workspace's Orders Ready to Invoice list already
+computed, now acted on instead of just displayed. Milestone-billed orders are deliberately excluded
+(deciding which percentage to bill next stays a human call) and still go through the existing
+manual "Issue Final Invoice" action. Invoice payment status (Unpaid/Overdue/PartiallyPaid/PaidInFull/Overpaid) is
 always computed live from Payments, never stored — matches how Manager.io behaves. A Quote/Order
 can't cross into Sent/Confirmed while its computed margin sits below the admin-editable
 `Erp.Sales.MarginFloorPercent` setting (Administration → App Settings) — a `Sales.OverrideMarginGate`
@@ -93,7 +98,15 @@ Statement, Balance Sheet, AR/AP Aging, Cash Flow, Budget Variance, Currency Reva
 
 ### Partners — Directory & Agents
 Partner/agent directory. (Commission tracking itself is the toggleable **Partner Commission**
-module below — the directory is core, the commission math is optional.)
+module below — the directory is core, the commission math is optional.) When Partner Commission
+is on, accepting a Proposal (`ProposalAppService.ConvertToQuoteAsync`) auto-creates a Commission
+for any Partner/Agent already tagged on the Opportunity, using that party's own standing
+rate/basis/trigger and the Opportunity's `EstimatedValue` — no more retyping numbers that already
+existed on the partner record. An `OnClientPayment`-triggered commission created this way starts
+Pending with no invoice yet attached; `CommissionAutoPayableService` resolves it once a real
+Invoice is fully paid by tracing that invoice back to its Opportunity (Invoice → Order → Quote →
+Proposal). A manual "New Commission" is still there for anything the auto-create skips (no
+`EstimatedValue` yet, a deal with no Partner/Agent tagged, or a correction).
 
 ### Portal
 External-facing pages for Customer and Vendor logins. Portal pages never reuse the internal
@@ -103,9 +116,11 @@ so a portal permission can never leak another customer's or vendor's data.
 ### My Workspace
 A personal "what's mine" view — open Tickets and upcoming Field Service jobs assigned to the
 current user, plus a pending-approvals count if they can decide on Deletion Requests. Also
-surfaces overdue/due-soon CustomerTask and ProjectTask reminders, and — since the 2026-08-18
-consolidation audit — an "Orders Ready to Invoice" section that proactively flags orders whose
-field jobs are all complete, instead of waiting for the salesperson to notice on their own.
+surfaces overdue/due-soon CustomerTask and ProjectTask reminders, and an "Orders Ready to Invoice"
+section that flags any of the salesperson's own orders still awaiting invoicing — a manual
+"Issue Final Invoice" click is still available here for Milestone-billed orders, but every other
+order this list would have shown is now invoiced automatically overnight (see `OrderReadyToInvoiceWorker`
+below), so in practice this section stays empty except for the milestone case.
 
 ### Governance
 - **Deletion Approvals** — deleting one of 7 top-level records (Customer, Vendor, Order,

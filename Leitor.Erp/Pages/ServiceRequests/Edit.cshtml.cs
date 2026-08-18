@@ -12,6 +12,7 @@ using Leitor.Erp.Services.ServiceRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -76,7 +77,18 @@ public class EditModel : AbpPageModel
             return Page();
         }
 
-        await _serviceRequestAppService.UpdateAsync(Id, ServiceRequest);
+        try
+        {
+            await _serviceRequestAppService.UpdateAsync(Id, ServiceRequest);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["ServiceRequestUpdatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

@@ -117,6 +117,11 @@
                     formData.append(submitter.name, submitter.value || "");
                 }
 
+                var submitButton = submitter && submitter.tagName === "BUTTON" ? submitter : form.querySelector("button[type=submit]");
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
                 fetch(form.getAttribute("action") || window.location.href, {
                     method: "POST",
                     headers: xhrHeader,
@@ -128,8 +133,26 @@
                             return response.json().then(function (data) {
                                 if (data.redirectUrl) {
                                     window.location.href = data.redirectUrl;
+                                    return;
+                                }
+                                // A JSON body with no redirectUrl means the server (either ABP's
+                                // own pipeline or Filters/GlobalPageExceptionFilter) is reporting a
+                                // failure, not success - previously this branch did nothing at all,
+                                // leaving the modal sitting there with no feedback and no way to
+                                // retry. Surface it and re-enable the form instead.
+                                if (submitButton) {
+                                    submitButton.disabled = false;
+                                }
+                                var message = data.error && data.error.message ? data.error.message : null;
+                                if (message && window.abp && abp.message && abp.message.error) {
+                                    abp.message.error(message);
+                                } else if (message) {
+                                    window.alert(message);
                                 }
                             });
+                        }
+                        if (!response.ok && submitButton) {
+                            submitButton.disabled = false;
                         }
                         return response.text().then(renderFragment);
                     })

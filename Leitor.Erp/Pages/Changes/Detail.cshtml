@@ -11,14 +11,14 @@
         <div>
             @if (Model.Change.Status == ChangeRequestStatus.PendingApproval && Model.CanApprove)
             {
-                <form method="post" asp-page-handler="Approve" class="d-inline" onsubmit="return confirm('@L["ApproveChange"]?');">
+                <form method="post" asp-page-handler="Approve" class="d-inline" data-confirm="@L["ApproveChange"]?">
                     <button type="submit" class="btn btn-success">@L["Approve"]</button>
                 </form>
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">@L["Reject"]</button>
             }
             @if (Model.Change.Status == ChangeRequestStatus.Approved && Model.CanEdit)
             {
-                <form method="post" asp-page-handler="Complete" class="d-inline" onsubmit="return confirm('@L["MarkComplete"]?');">
+                <form method="post" asp-page-handler="Complete" class="d-inline" data-confirm="@L["MarkComplete"]?">
                     <button type="submit" class="btn btn-primary">@L["MarkComplete"]</button>
                 </form>
             }

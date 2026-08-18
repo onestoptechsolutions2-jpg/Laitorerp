@@ -3,18 +3,21 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Leitor.Erp.BackgroundWorkers;
 using Leitor.Erp.Data;
 using Leitor.Erp.Documents;
+using Leitor.Erp.Filters;
 using Leitor.Erp.Localization;
 using Leitor.Erp.Menus;
 using Leitor.Erp.Pages.Shared.Components.FormOverlay;
 using Leitor.Erp.Pages.Shared.Components.GlobalSearch;
 using Leitor.Erp.Pages.Shared.Components.MobileBottomNav;
 using Leitor.Erp.Pages.Shared.Components.MyActionItems;
+using Leitor.Erp.Pages.Shared.Components.StatusToast;
 using Leitor.Erp.Pages.Shared.Components.ThemeFonts;
 using Leitor.Erp.Services.Governance;
 using QuestPDF.Infrastructure;
@@ -208,6 +211,7 @@ public class ErpModule : AbpModule
         ConfigureUrls(configuration);
         ConfigureBundles();
         ConfigureLayoutHooks();
+        ConfigurePageFilters(context);
         ConfigureMapperly(context);
         ConfigureSwagger(context.Services);
         ConfigureNavigationServices();
@@ -269,7 +273,13 @@ public class ErpModule : AbpModule
                 LeptonXLiteThemeBundles.Styles.Global,
                 bundle =>
                 {
-                    bundle.AddFiles("/global-styles.css", "/leitor-tokens.css", "/leitor-theme.css");
+                    // sweetalert2.min.css loads before leitor-theme.css so the .leitor-swal/
+                    // .leitor-toast overrides in there (same source order, same specificity) win.
+                    bundle.AddFiles(
+                        "/global-styles.css",
+                        "/leitor-tokens.css",
+                        "/libs/sweetalert2/sweetalert2.min.css",
+                        "/leitor-theme.css");
                 }
             );
 
@@ -277,9 +287,26 @@ public class ErpModule : AbpModule
                 LeptonXLiteThemeBundles.Scripts.Global,
                 bundle =>
                 {
-                    bundle.AddFiles("/leitor-layout.js");
+                    // leitor-notify.js overrides abp.notify/abp.message (defined by abp.js, part
+                    // of the theme's own base bundle loaded ahead of this one) using SweetAlert2 -
+                    // it must load before leitor-layout.js, which relies on abp.message.error
+                    // being real for its own overlay-modal error handling.
+                    bundle.AddFiles("/libs/sweetalert2/sweetalert2.all.min.js", "/leitor-notify.js", "/leitor-layout.js");
                 }
             );
+        });
+    }
+
+    // Global filter (see Filters/GlobalPageExceptionFilter) that turns an uncaught exception from
+    // any Razor Page handler into a friendly redirect-with-toast instead of ABP's generic
+    // full-page /Error redirect. MvcOptions.Filters is shared infrastructure between MVC
+    // controllers and Razor Pages - IAsyncPageFilter implementations added here run for every
+    // page handler with no per-page registration needed.
+    private void ConfigurePageFilters(ServiceConfigurationContext context)
+    {
+        context.Services.Configure<MvcOptions>(options =>
+        {
+            options.Filters.Add<GlobalPageExceptionFilter>();
         });
     }
 
@@ -329,6 +356,14 @@ public class ErpModule : AbpModule
             options.Add(
                 LayoutHooks.Body.Last,
                 typeof(MobileBottomNavViewComponent),
+                layout: StandardLayouts.Application);
+
+            // Shared UX config + TempData-flashed success/error toast (see
+            // Components/StatusToast and wwwroot/leitor-notify.js) - part of the UX/error-handling
+            // audit, same LayoutHooks.Body.Last extension point as everything else above.
+            options.Add(
+                LayoutHooks.Body.Last,
+                typeof(StatusToastViewComponent),
                 layout: StandardLayouts.Application);
         });
     }
@@ -514,5 +549,6 @@ public class ErpModule : AbpModule
         await context.AddBackgroundWorkerAsync<DataRetentionPurgeWorker>();
         await context.AddBackgroundWorkerAsync<RecurringJournalWorker>();
         await context.AddBackgroundWorkerAsync<ContractRecurringBillingWorker>();
+        await context.AddBackgroundWorkerAsync<OrderReadyToInvoiceWorker>();
     }
 }

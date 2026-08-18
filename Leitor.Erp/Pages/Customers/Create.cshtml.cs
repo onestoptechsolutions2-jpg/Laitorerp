@@ -10,6 +10,7 @@ using Leitor.Erp.Services.Dtos.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
@@ -60,7 +61,26 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var customer = await _customerAppService.CreateAsync(Customer);
+        CustomerDto customer;
+        try
+        {
+            customer = await _customerAppService.CreateAsync(Customer);
+        }
+        catch (UserFriendlyException ex)
+        {
+            // Same-request redisplay so the customer's typed-in fields aren't lost - the global
+            // fallback (Filters/GlobalPageExceptionFilter) would otherwise catch this too, but only
+            // after a redirect that loses the form data. Works for the overlay-modal path as well:
+            // Page() renders plain HTML, which leitor-layout.js's bindFormSubmit() already knows
+            // how to drop back into the modal body (same as any other validation failure).
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadUserOptionsAsync();
+            await LoadPriceListOptionsAsync();
+            await LoadCurrencyOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["CustomerCreatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

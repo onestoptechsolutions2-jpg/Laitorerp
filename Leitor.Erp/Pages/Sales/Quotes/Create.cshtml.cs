@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
@@ -12,6 +13,8 @@ using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -66,7 +69,20 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var quote = await _quoteAppService.CreateAsync(Quote);
+        QuoteDto quote;
+        try
+        {
+            quote = await _quoteAppService.CreateAsync(Quote);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadCustomerOptionsAsync();
+            await LoadCurrencyOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["QuoteCreatedSuccessfully"]);
         return RedirectToPage("./Detail", new { id = quote.Id });
     }
 
@@ -91,9 +107,14 @@ public class CreateModel : AbpPageModel
 
             return new JsonResult(new { id = customer.Id, name = customer.Name, defaultCurrencyCode = customer.DefaultCurrencyCode });
         }
+        catch (UserFriendlyException ex)
+        {
+            return new JsonResult(new { error = ex.Message }) { StatusCode = 400 };
+        }
         catch (Exception ex)
         {
-            return new JsonResult(new { error = $"Error creating customer: {ex.Message}" }) { StatusCode = 400 };
+            Logger.LogError(ex, "Unexpected error creating customer inline from Quote create");
+            return new JsonResult(new { error = L["SomethingWentWrong"].Value }) { StatusCode = 400 };
         }
     }
 

@@ -1,0 +1,13 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Shared.Components.StatusToast.StatusToastModel
+
+<div id="leitor-ux-config"
+     hidden
+     data-ok-text="@L["Confirm"]"
+     data-cancel-text="@L["Cancel"]"
+     data-confirm-title="@L["AreYouSure"]"
+     data-saving-text="@L["Saving"]"
+     data-status-message="@Model.Message"
+     data-status-type="@Model.Type"></div>

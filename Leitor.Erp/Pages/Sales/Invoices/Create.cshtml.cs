@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 
@@ -58,7 +60,20 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var invoice = await _invoiceAppService.CreateAsync(Invoice);
+        InvoiceDto invoice;
+        try
+        {
+            invoice = await _invoiceAppService.CreateAsync(Invoice);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadCustomerOptionsAsync();
+            await LoadCurrencyOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["InvoiceCreatedSuccessfully"]);
         return RedirectToPage("./Detail", new { id = invoice.Id });
     }
 

@@ -576,6 +576,92 @@ dl.row dd {
   gap: 10px;
 }
 
+/* ============================= Notifications (SweetAlert2) ============================= */
+/* Real abp.notify/abp.message implementations - see wwwroot/leitor-notify.js. abp.js ships
+   these as unimplemented stubs with no UI at all; this reuses the SweetAlert2 bundle already
+   vendored via the LeptonXLite theme's own npm deps but never wired to anything before. Same
+   shape/shadow tokens as .modal-content above so a toast or confirm dialog reads as the same
+   design system, not a bolted-on third-party widget. */
+
+.swal2-container {
+  background: var(--leitor-scrim);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .swal2-container {
+    backdrop-filter: blur(6px) saturate(140%);
+    -webkit-backdrop-filter: blur(6px) saturate(140%);
+  }
+}
+
+.swal2-popup.leitor-swal,
+.swal2-popup.leitor-toast {
+  border-radius: var(--leitor-radius-lg);
+  box-shadow: var(--leitor-shadow-floating);
+  font-family: var(--leitor-font-sans);
+  color: var(--leitor-body);
+  border: 1.5px solid var(--leitor-border-light);
+}
+
+.swal2-popup.leitor-swal {
+  padding: 26px;
+}
+
+.swal2-popup.leitor-swal .swal2-title {
+  color: var(--leitor-ink);
+  font-size: 19px;
+}
+
+.swal2-popup.leitor-swal .swal2-html-container {
+  color: var(--leitor-body);
+  font-size: 14.5px;
+}
+
+.swal2-popup.leitor-swal .swal2-confirm {
+  background-color: var(--leitor-primary);
+  border-radius: var(--leitor-radius-sm);
+  box-shadow: none;
+}
+.swal2-popup.leitor-swal .swal2-confirm:focus {
+  box-shadow: var(--leitor-focus-ring);
+}
+
+.swal2-popup.leitor-swal .swal2-cancel {
+  background-color: var(--leitor-surface-sunken);
+  color: var(--leitor-body);
+  border-radius: var(--leitor-radius-sm);
+  box-shadow: none;
+}
+
+.swal2-popup.leitor-swal .swal2-icon.swal2-warning,
+.swal2-popup.leitor-toast .swal2-icon.swal2-warning {
+  border-color: var(--leitor-warning);
+  color: var(--leitor-warning);
+}
+.swal2-popup.leitor-swal .swal2-icon.swal2-error,
+.swal2-popup.leitor-toast .swal2-icon.swal2-error {
+  border-color: var(--leitor-danger);
+  color: var(--leitor-danger);
+}
+.swal2-popup.leitor-swal .swal2-icon.swal2-success,
+.swal2-popup.leitor-toast .swal2-icon.swal2-success {
+  border-color: var(--leitor-success);
+  color: var(--leitor-success);
+}
+.swal2-popup.leitor-swal .swal2-icon.swal2-info,
+.swal2-popup.leitor-toast .swal2-icon.swal2-info {
+  border-color: var(--leitor-info);
+  color: var(--leitor-info);
+}
+
+.swal2-popup.leitor-toast {
+  padding: 14px 18px;
+}
+
+.swal2-popup.leitor-toast .swal2-title {
+  font-size: 14px;
+  color: var(--leitor-ink);
+}
+
 /* ============================= Floating layers (dropdowns, dialogs) ============================= */
 /* Same elevation tier as .modal-content - these sit above page content the same way a modal
    does, so they get the deeper "floating" shadow rather than the flatter "resting" card one. */

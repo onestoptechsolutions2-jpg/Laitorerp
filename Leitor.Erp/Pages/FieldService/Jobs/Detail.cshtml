@@ -24,7 +24,7 @@
                     <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
                         <button type="submit" class="btn btn-warning">@L["MarkIncomplete"]</button>
                     </form>
-                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" data-confirm="@L["AreYouSure"]">
                         <button type="submit" class="btn btn-outline-danger">@L["Enum:FieldServiceJobStatus:4"]</button>
                     </form>
                 }
@@ -42,7 +42,7 @@
             }
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
             {
-                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Job.Id" class="d-inline" onsubmit="return confirm('@L["EmailToCustomer"]?');">
+                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Job.Id" class="d-inline" data-confirm="@L["EmailToCustomer"]?">
                     <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
                 </form>
             }
@@ -122,7 +122,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <form method="post" asp-page-handler="DeletePart" asp-route-partId="@part.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeletePart" asp-route-partId="@part.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }
@@ -171,7 +171,7 @@
                     </div>
                     @if (Model.CanEdit)
                     {
-                        <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                        <form method="post" asp-page-handler="DeleteNote" asp-route-noteId="@note.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                             <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                         </form>
                     }

@@ -125,7 +125,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <form method="post" asp-page-handler="DeleteLine" asp-route-lineId="@line.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeleteLine" asp-route-lineId="@line.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }
@@ -196,7 +196,7 @@
                             <td>
                                 @if (Model.CanEdit)
                                 {
-                                    <form method="post" asp-page-handler="DeletePayment" asp-route-paymentId="@payment.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeletePayment" asp-route-paymentId="@payment.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }

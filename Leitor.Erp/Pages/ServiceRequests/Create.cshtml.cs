@@ -12,6 +12,7 @@ using Leitor.Erp.Services.ServiceRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -66,7 +67,19 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        var request = await _serviceRequestAppService.CreateAsync(ServiceRequest);
+        ServiceRequestDto request;
+        try
+        {
+            request = await _serviceRequestAppService.CreateAsync(ServiceRequest);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["ServiceRequestCreatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

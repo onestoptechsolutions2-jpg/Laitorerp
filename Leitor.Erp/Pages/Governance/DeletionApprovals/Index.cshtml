@@ -60,7 +60,7 @@
                                 <td>
                                     @if (request.Status == DeletionRequestStatus.Pending)
                                     {
-                                        <form method="post" asp-page-handler="Approve" asp-route-id="@request.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToApprove"]');">
+                                        <form method="post" asp-page-handler="Approve" asp-route-id="@request.Id" class="d-inline" data-confirm="@L["AreYouSureToApprove"]">
                                             <button type="submit" class="btn btn-sm btn-outline-success">@L["Approve"]</button>
                                         </form>
                                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@request.Id">@L["Reject"]</button>

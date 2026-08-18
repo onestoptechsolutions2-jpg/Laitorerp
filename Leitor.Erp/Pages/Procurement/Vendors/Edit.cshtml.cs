@@ -14,6 +14,7 @@ using Leitor.Erp.Services.Procurement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Features;
@@ -96,7 +97,20 @@ public class EditModel : AbpPageModel
             return Page();
         }
 
-        await _vendorAppService.UpdateAsync(Id, Vendor);
+        try
+        {
+            await _vendorAppService.UpdateAsync(Id, Vendor);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await LoadUserOptionsAsync();
+            await LoadWithholdingTaxRateOptionsAsync();
+            await LoadCurrencyOptionsAsync();
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["VendorUpdatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

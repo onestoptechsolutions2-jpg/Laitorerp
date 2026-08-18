@@ -93,7 +93,7 @@
                                 @if (Model.CanEdit)
                                 {
                                     <a asp-page="/Procurement/Vendors/Contacts/Edit" asp-route-id="@contact.Id" asp-route-vendorId="@Model.Vendor.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditContact"]">@L["Edit"]</a>
-                                    <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="DeleteContact" asp-route-contactId="@contact.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }

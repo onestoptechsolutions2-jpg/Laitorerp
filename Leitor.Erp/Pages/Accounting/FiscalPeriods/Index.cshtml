@@ -9,7 +9,7 @@
         <h5 class="card-title mb-0">@L["FiscalPeriods"]</h5>
         @if (Model.CanManage)
         {
-            <form method="post" asp-page-handler="CloseYear" onsubmit="return confirm('@L["ConfirmCloseYear"]');">
+            <form method="post" asp-page-handler="CloseYear" data-confirm="@L["ConfirmCloseYear"]">
                 <input type="hidden" name="Year" value="@Model.Year" />
                 <button type="submit" class="btn btn-danger">@L["CloseYear"]</button>
             </form>

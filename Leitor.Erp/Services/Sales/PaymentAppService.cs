@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Partners;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Permissions;
@@ -29,6 +30,9 @@ public class PaymentAppService :
     private readonly IRepository<JournalEntryLine, Guid> _journalEntryLineRepository;
     private readonly IRepository<FiscalPeriod, Guid> _fiscalPeriodRepository;
     private readonly IRepository<Commission, Guid> _commissionRepository;
+    private readonly IRepository<Order, Guid> _orderRepository;
+    private readonly IRepository<Quote, Guid> _quoteRepository;
+    private readonly IRepository<Proposal, Guid> _proposalRepository;
     private readonly IRepository<WorkflowStageEvent, Guid> _stageEventRepository;
     private readonly IDataFilter _dataFilter;
 
@@ -43,6 +47,9 @@ public class PaymentAppService :
         IRepository<JournalEntryLine, Guid> journalEntryLineRepository,
         IRepository<FiscalPeriod, Guid> fiscalPeriodRepository,
         IRepository<Commission, Guid> commissionRepository,
+        IRepository<Order, Guid> orderRepository,
+        IRepository<Quote, Guid> quoteRepository,
+        IRepository<Proposal, Guid> proposalRepository,
         IRepository<WorkflowStageEvent, Guid> stageEventRepository,
         IDataFilter dataFilter)
         : base(repository)
@@ -56,6 +63,9 @@ public class PaymentAppService :
         _journalEntryLineRepository = journalEntryLineRepository;
         _fiscalPeriodRepository = fiscalPeriodRepository;
         _commissionRepository = commissionRepository;
+        _orderRepository = orderRepository;
+        _quoteRepository = quoteRepository;
+        _proposalRepository = proposalRepository;
         _stageEventRepository = stageEventRepository;
         _dataFilter = dataFilter;
         GetPolicyName = ErpPermissions.Sales.Default;
@@ -111,7 +121,8 @@ public class PaymentAppService :
         if (amountPaid >= invoiceTotal)
         {
             await CommissionAutoPayableService.MarkPayableForInvoiceAsync(
-                _commissionRepository, _stageEventRepository, GuidGenerator, CurrentUser, Clock, entity.InvoiceId);
+                _commissionRepository, _invoiceRepository, _orderRepository, _quoteRepository, _proposalRepository,
+                _stageEventRepository, GuidGenerator, CurrentUser, Clock, entity.InvoiceId);
         }
 
         return entity;

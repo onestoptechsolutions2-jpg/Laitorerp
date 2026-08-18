@@ -29,7 +29,7 @@
         </form>
         @if (Model.CanDelete)
         {
-            <form method="post" asp-page-handler="Delete" class="mt-2" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+            <form method="post" asp-page-handler="Delete" class="mt-2" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                 <input type="hidden" asp-for="Id" />
                 <button type="submit" class="btn btn-outline-danger">@L["Delete"]</button>
             </form>

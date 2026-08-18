@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Accounting;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
@@ -89,6 +90,7 @@ public class EditModel : AbpPageModel
         try
         {
             await _quoteAppService.UpdateAsync(Id, Quote);
+            this.SetSuccessMessage(L["QuoteUpdatedSuccessfully"]);
             return RedirectToPage("./Detail", new { id = Id });
         }
         catch (UserFriendlyException ex)

@@ -53,7 +53,7 @@
                             <td>@attachment.UploadedByUserName</td>
                             <td>
                                 <a asp-page="/Opportunities/Assessments/Attachments/Download" asp-route-id="@attachment.Id" class="btn btn-sm btn-outline-primary">@L["Download"]</a>
-                                <form method="post" asp-page-handler="DeleteAttachment" asp-route-attachmentId="@attachment.Id" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                <form method="post" asp-page-handler="DeleteAttachment" asp-route-attachmentId="@attachment.Id" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                 </form>
                             </td>

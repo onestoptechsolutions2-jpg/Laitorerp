@@ -63,7 +63,7 @@
                             <td>
                                 @if (Model.CanDelete)
                                 {
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@quote.Id" asp-route-Filter="@Model.Filter" asp-route-Status="@Model.Status" class="d-inline" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@quote.Id" asp-route-Filter="@Model.Filter" asp-route-Status="@Model.Status" class="d-inline" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                                     </form>
                                 }

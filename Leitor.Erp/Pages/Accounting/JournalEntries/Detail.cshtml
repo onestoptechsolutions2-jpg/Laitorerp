@@ -10,13 +10,13 @@
         <div>
             @if (Model.CanEdit && !Model.Entry.IsReversed)
             {
-                <form method="post" asp-page-handler="Reverse" onsubmit="return confirm('@L["AreYouSureToReverse"]');" class="d-inline">
+                <form method="post" asp-page-handler="Reverse" data-confirm="@L["AreYouSureToReverse"]" data-confirm-variant="danger" class="d-inline">
                     <button type="submit" class="btn btn-outline-warning">@L["Reverse"]</button>
                 </form>
             }
             @if (Model.CanEdit && !Model.Entry.IsSystemGenerated)
             {
-                <form method="post" asp-page-handler="Delete" onsubmit="return confirm('@L["AreYouSureToDelete"]');" class="d-inline">
+                <form method="post" asp-page-handler="Delete" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger" class="d-inline">
                     <button type="submit" class="btn btn-outline-danger">@L["Delete"]</button>
                 </form>
             }

@@ -33,7 +33,7 @@
                     <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
                         <button type="submit" class="btn btn-success">@L["Enum:TicketStatus:3"]</button>
                     </form>
-                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" data-confirm="@L["AreYouSure"]">
                         <button type="submit" class="btn btn-outline-danger">@L["Enum:TicketStatus:4"]</button>
                     </form>
                 }
@@ -136,7 +136,7 @@
                     </div>
                     @if (Model.CanEdit)
                     {
-                        <form method="post" asp-page-handler="DeleteMessage" asp-route-messageId="@message.Id" onsubmit="return confirm('@L["AreYouSureToDelete"]');">
+                        <form method="post" asp-page-handler="DeleteMessage" asp-route-messageId="@message.Id" data-confirm="@L["AreYouSureToDelete"]" data-confirm-variant="danger">
                             <button type="submit" class="btn btn-sm btn-outline-danger">@L["Delete"]</button>
                         </form>
                     }

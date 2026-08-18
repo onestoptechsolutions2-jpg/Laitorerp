@@ -33,7 +33,7 @@
                     <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
                         <button type="submit" class="btn btn-success">@L["Enum:ProblemStatus:3"]</button>
                     </form>
-                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" data-confirm="@L["AreYouSure"]">
                         <button type="submit" class="btn btn-outline-danger">@L["Enum:ProblemStatus:4"]</button>
                     </form>
                 }

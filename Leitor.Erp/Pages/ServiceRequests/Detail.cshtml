@@ -22,7 +22,7 @@
                 }
                 else if (!isTerminal)
                 {
-                    <form method="post" asp-page-handler="ConvertToJob" class="d-inline" onsubmit="return confirm('@L["ConvertToJob"]?');">
+                    <form method="post" asp-page-handler="ConvertToJob" class="d-inline" data-confirm="@L["ConvertToJob"]?">
                         <button type="submit" class="btn btn-success">@L["ConvertToJob"]</button>
                     </form>
                 }
@@ -43,7 +43,7 @@
                     <form method="post" asp-page-handler="SetStatus" asp-route-status="3" class="d-inline">
                         <button type="submit" class="btn btn-success">@L["Enum:ServiceRequestStatus:3"]</button>
                     </form>
-                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" onsubmit="return confirm('@L["AreYouSure"]');">
+                    <form method="post" asp-page-handler="SetStatus" asp-route-status="4" class="d-inline" data-confirm="@L["AreYouSure"]">
                         <button type="submit" class="btn btn-outline-danger">@L["Enum:ServiceRequestStatus:4"]</button>
                     </form>
                 }

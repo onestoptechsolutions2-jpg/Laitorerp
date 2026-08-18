@@ -15,16 +15,16 @@
             <a asp-page="./Edit" asp-page-handler="Pdf" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
             @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
             {
-                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["EmailToCustomer"]?');">
+                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" data-confirm="@L["EmailToCustomer"]?">
                     <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
                 </form>
             }
-            <form method="post" asp-page-handler="MarkSentWhatsApp" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["MarkSentWhatsAppConfirm"]');">
+            <form method="post" asp-page-handler="MarkSentWhatsApp" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" data-confirm="@L["MarkSentWhatsAppConfirm"]">
                 <button type="submit" class="btn btn-outline-secondary">@L["MarkSentWhatsApp"]</button>
             </form>
             @if (Model.CanConvertToQuote)
             {
-                <form method="post" asp-page-handler="ConvertToQuote" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" onsubmit="return confirm('@L["ConvertToQuote"]?');">
+                <form method="post" asp-page-handler="ConvertToQuote" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" data-confirm="@L["ConvertToQuote"]?">
                     <button type="submit" class="btn btn-success">@L["ConvertToQuote"]</button>
                 </form>
             }
