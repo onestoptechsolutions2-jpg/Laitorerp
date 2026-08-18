@@ -5,6 +5,7 @@ using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 
 namespace Leitor.Erp.Pages.Agents;
@@ -34,7 +35,17 @@ public class CreateModel : AbpPageModel
             return Page();
         }
 
-        await _agentAppService.CreateAsync(Agent);
+        try
+        {
+            await _agentAppService.CreateAsync(Agent);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["AgentCreatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

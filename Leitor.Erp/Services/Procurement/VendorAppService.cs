@@ -96,7 +96,9 @@ public class VendorAppService :
     protected override async Task<IQueryable<Vendor>> CreateFilteredQueryAsync(GetVendorListInput input)
     {
         var query = await base.CreateFilteredQueryAsync(input);
-        return query.WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
+        return query
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!))
+            .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive!.Value);
     }
 
     public override async Task<VendorDto> GetAsync(Guid id)
@@ -176,6 +178,7 @@ public class VendorAppService :
         entity.PostalCode = input.PostalCode;
         entity.Country = input.Country;
         entity.Notes = input.Notes;
+        entity.IsActive = input.IsActive;
         entity.PortalUserId = input.PortalUserId;
         entity.WithholdingTaxRateId = input.WithholdingTaxRateId;
         entity.DefaultPaymentTerms = input.DefaultPaymentTerms;

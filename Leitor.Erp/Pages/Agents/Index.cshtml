@@ -18,6 +18,13 @@
                 <input type="text" class="form-control" name="Filter" value="@Model.Filter" placeholder="@L["Name"]" />
             </div>
             <div class="col-auto">
+                <select class="form-select" name="IsActive">
+                    <option value="">@L["Status"]: @L["None"]</option>
+                    <option value="true" selected="@(Model.IsActive == true)">@L["Active"]</option>
+                    <option value="false" selected="@(Model.IsActive == false)">@L["Inactive"]</option>
+                </select>
+            </div>
+            <div class="col-auto">
                 <button type="submit" class="btn btn-secondary">@L["Search"]</button>
             </div>
         </form>
@@ -30,13 +37,22 @@
                         <th>@L["Territory"]</th>
                         <th>@L["CommissionBasis"]</th>
                         <th>@L["CommissionRate"]</th>
+                        <th>@L["Status"]</th>
                         <th>@L["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Items.Any())
                     {
-                        <tr class="table-empty-state"><td colspan="6">@L["NoResultsFound"]</td></tr>
+                        <tr class="table-empty-state">
+                            <td colspan="7">
+                                <div>@L["NoResultsFound"]</div>
+                                @if (Model.CanCreate)
+                                {
+                                    <a asp-page="./Create" class="btn btn-sm btn-outline-primary mt-2" data-overlay data-overlay-title="@L["NewAgent"]">@L["NewAgent"]</a>
+                                }
+                            </td>
+                        </tr>
                     }
                     @foreach (var item in Model.Items)
                     {
@@ -46,6 +62,7 @@
                             <td>@item.Territory</td>
                             <td>@L[$"Enum:CommissionBasis:{(int)item.CommissionBasis}"]</td>
                             <td>@item.CommissionRate.ToString("N2")</td>
+                            <td><span class="pill @(item.IsActive ? "pill-success" : "pill-neutral")">@(item.IsActive ? L["Active"] : L["Inactive"])</span></td>
                             <td>
                                 <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" data-overlay data-overlay-title="@L["EditAgent"]">@L["Edit"]</a>
                                 @if (Model.CanDelete)

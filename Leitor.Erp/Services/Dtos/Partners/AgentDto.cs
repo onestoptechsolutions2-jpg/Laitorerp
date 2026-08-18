@@ -12,6 +12,7 @@ public class AgentDto : FullAuditedEntityDto<Guid>
     public string? Territory { get; set; }
     public string? Skills { get; set; }
     public string? Notes { get; set; }
+    public bool IsActive { get; set; }
     public CommissionBasis CommissionBasis { get; set; }
     public decimal CommissionRate { get; set; }
     public CommissionTrigger CommissionTrigger { get; set; }

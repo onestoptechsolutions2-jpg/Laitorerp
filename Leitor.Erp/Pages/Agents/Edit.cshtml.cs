@@ -6,6 +6,7 @@ using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 
 namespace Leitor.Erp.Pages.Agents;
@@ -37,6 +38,7 @@ public class EditModel : AbpPageModel
             Territory = agent.Territory,
             Skills = agent.Skills,
             Notes = agent.Notes,
+            IsActive = agent.IsActive,
             CommissionBasis = agent.CommissionBasis,
             CommissionRate = agent.CommissionRate,
             CommissionTrigger = agent.CommissionTrigger
@@ -51,7 +53,17 @@ public class EditModel : AbpPageModel
             return Page();
         }
 
-        await _agentAppService.UpdateAsync(Id, Agent);
+        try
+        {
+            await _agentAppService.UpdateAsync(Id, Agent);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["AgentUpdatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

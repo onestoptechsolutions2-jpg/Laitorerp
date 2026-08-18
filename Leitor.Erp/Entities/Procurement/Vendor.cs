@@ -16,6 +16,13 @@ public class Vendor : FullAuditedAggregateRoot<Guid>
     public string? Country { get; set; }
     public string? Notes { get; set; }
 
+    // Prefer deactivating over deleting a Vendor that still has payment/history value but is no
+    // longer being ordered from - Vendor has no soft-delete/status concept otherwise, unlike
+    // Customer's CustomerStatus (see the UX/error-handling audit's "deactivate over delete" pass).
+    // Deleting is still available (gated by DeletionGate/DependencyGuard) for a Vendor with no
+    // history at all; this is the safer default for one that does.
+    public bool IsActive { get; set; } = true;
+
     // Defaults new PurchaseOrder/SupplierInvoice's PaymentTerms field at creation - mirrors
     // Customer.DefaultPaymentTerms exactly, reuses the same enum from the Sales side rather than
     // duplicating it for Procurement.

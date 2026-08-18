@@ -5,4 +5,5 @@ namespace Leitor.Erp.Services.Dtos.Procurement;
 public class GetVendorListInput : PagedAndSortedResultRequestDto
 {
     public string? Filter { get; set; }
+    public bool? IsActive { get; set; }
 }

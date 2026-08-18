@@ -7,4 +7,5 @@ public class GetPartnerListInput : PagedAndSortedResultRequestDto
 {
     public PartnerCategory? Category { get; set; }
     public string? Filter { get; set; }
+    public bool? IsActive { get; set; }
 }

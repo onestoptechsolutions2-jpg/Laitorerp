@@ -15,6 +15,7 @@ public class VendorDto : FullAuditedEntityDto<Guid>
     public string? PostalCode { get; set; }
     public string? Country { get; set; }
     public string? Notes { get; set; }
+    public bool IsActive { get; set; }
     public Guid? PortalUserId { get; set; }
     public Guid? WithholdingTaxRateId { get; set; }
     public PaymentTerms DefaultPaymentTerms { get; set; }

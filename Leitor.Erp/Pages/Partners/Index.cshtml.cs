@@ -25,6 +25,9 @@ public class IndexModel : AbpPageModel
     public string? Filter { get; set; }
 
     [BindProperty(SupportsGet = true)]
+    public bool? IsActive { get; set; }
+
+    [BindProperty(SupportsGet = true)]
     public int PageIndex { get; set; } = 1;
 
     public IReadOnlyList<PartnerDto> Items { get; set; } = Array.Empty<PartnerDto>();
@@ -45,6 +48,7 @@ public class IndexModel : AbpPageModel
         var result = await _partnerAppService.GetListAsync(new GetPartnerListInput
         {
             Filter = Filter,
+            IsActive = IsActive,
             SkipCount = (PageIndex - 1) * PaginationModel.DefaultPageSize,
             MaxResultCount = PaginationModel.DefaultPageSize
         });
@@ -57,6 +61,7 @@ public class IndexModel : AbpPageModel
     public async Task<IActionResult> OnPostDeleteAsync(Guid id)
     {
         await _partnerAppService.DeleteAsync(id);
-        return RedirectToPage(new { Filter, PageIndex });
+        this.SetSuccessMessage(L["SuccessfullyDeleted"]);
+        return RedirectToPage(new { Filter, IsActive, PageIndex });
     }
 }

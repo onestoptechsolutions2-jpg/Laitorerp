@@ -20,6 +20,8 @@ public class CreateUpdatePartnerDto
     [StringLength(2000)]
     public string? Notes { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public CommissionBasis CommissionBasis { get; set; } = CommissionBasis.Percentage;
     public decimal CommissionRate { get; set; }
     public CommissionTrigger CommissionTrigger { get; set; } = CommissionTrigger.OnClientPayment;

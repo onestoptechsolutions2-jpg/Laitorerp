@@ -11,6 +11,7 @@ public class PartnerDto : FullAuditedEntityDto<Guid>
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Notes { get; set; }
+    public bool IsActive { get; set; }
     public CommissionBasis CommissionBasis { get; set; }
     public decimal CommissionRate { get; set; }
     public CommissionTrigger CommissionTrigger { get; set; }

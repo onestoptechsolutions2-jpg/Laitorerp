@@ -17,6 +17,13 @@ public class Partner : FullAuditedAggregateRoot<Guid>
     public string? Phone { get; set; }
     public string? Notes { get; set; }
 
+    // Prefer deactivating over deleting a Partner with commission/referral history - same
+    // rationale as Vendor.IsActive (see the UX/error-handling audit's "deactivate over delete"
+    // pass). Deleting still blocks on recorded Commissions regardless (see
+    // PartnerAppService.DeleteAsync); this is the non-destructive alternative for a Partner
+    // that's simply no longer being sent new deals.
+    public bool IsActive { get; set; } = true;
+
     public CommissionBasis CommissionBasis { get; set; } = CommissionBasis.Percentage;
     public decimal CommissionRate { get; set; }
     public CommissionTrigger CommissionTrigger { get; set; } = CommissionTrigger.OnClientPayment;

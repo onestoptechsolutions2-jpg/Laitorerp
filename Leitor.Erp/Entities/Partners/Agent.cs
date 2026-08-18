@@ -18,6 +18,13 @@ public class Agent : FullAuditedAggregateRoot<Guid>
     public string? Skills { get; set; }
     public string? Notes { get; set; }
 
+    // Prefer deactivating over deleting an Agent with commission/referral history - same
+    // rationale as Vendor.IsActive/Partner.IsActive (see the UX/error-handling audit's "deactivate
+    // over delete" pass). Deleting still blocks on recorded Commissions regardless (see
+    // AgentAppService.DeleteAsync); this is the non-destructive alternative for an Agent who's
+    // simply no longer active.
+    public bool IsActive { get; set; } = true;
+
     public CommissionBasis CommissionBasis { get; set; } = CommissionBasis.Percentage;
     public decimal CommissionRate { get; set; }
     public CommissionTrigger CommissionTrigger { get; set; } = CommissionTrigger.OnClientPayment;

@@ -6,6 +6,7 @@ using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Partners;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
 
 namespace Leitor.Erp.Pages.Partners;
@@ -36,6 +37,7 @@ public class EditModel : AbpPageModel
             Email = partner.Email,
             Phone = partner.Phone,
             Notes = partner.Notes,
+            IsActive = partner.IsActive,
             CommissionBasis = partner.CommissionBasis,
             CommissionRate = partner.CommissionRate,
             CommissionTrigger = partner.CommissionTrigger
@@ -50,7 +52,17 @@ public class EditModel : AbpPageModel
             return Page();
         }
 
-        await _partnerAppService.UpdateAsync(Id, Partner);
+        try
+        {
+            await _partnerAppService.UpdateAsync(Id, Partner);
+        }
+        catch (UserFriendlyException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return Page();
+        }
+
+        this.SetSuccessMessage(L["PartnerUpdatedSuccessfully"]);
 
         if (OverlayRequest.Is(Request))
         {

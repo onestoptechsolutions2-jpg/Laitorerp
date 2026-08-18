@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Partners;
+using Leitor.Erp.Entities.Projects;
+using Leitor.Erp.Entities.ServiceCatalog;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Partners;
 using Leitor.Erp.Services.Governance;
@@ -21,17 +23,23 @@ public class PartnerAppService :
     private readonly IRepository<Opportunity, Guid> _opportunityRepository;
     private readonly IRepository<Commission, Guid> _commissionRepository;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly IRepository<ProjectTask, Guid> _projectTaskRepository;
+    private readonly IRepository<ServiceCatalogItem, Guid> _serviceCatalogItemRepository;
 
     public PartnerAppService(
         IRepository<Partner, Guid> repository,
         IRepository<Opportunity, Guid> opportunityRepository,
         IRepository<Commission, Guid> commissionRepository,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        IRepository<ProjectTask, Guid> projectTaskRepository,
+        IRepository<ServiceCatalogItem, Guid> serviceCatalogItemRepository)
         : base(repository)
     {
         _opportunityRepository = opportunityRepository;
         _commissionRepository = commissionRepository;
         _deletionRequestRepository = deletionRequestRepository;
+        _projectTaskRepository = projectTaskRepository;
+        _serviceCatalogItemRepository = serviceCatalogItemRepository;
 
         GetPolicyName = ErpPermissions.Partners.Default;
         GetListPolicyName = ErpPermissions.Partners.Default;
@@ -67,6 +75,31 @@ public class PartnerAppService :
             await _opportunityRepository.UpdateManyAsync(opportunities);
         }
 
+        // Same soft-reference-clearing rationale as Opportunity above, closing a gap where these
+        // two were previously left pointing at a deleted Partner (a dangling reference, not just a
+        // UX nicety - see the UX/error-handling audit's DependencyGuard-gap pass).
+        var projectTasks = await _projectTaskRepository.GetListAsync(x => x.PartnerId == id);
+        if (projectTasks.Count > 0)
+        {
+            foreach (var task in projectTasks)
+            {
+                task.PartnerId = null;
+            }
+
+            await _projectTaskRepository.UpdateManyAsync(projectTasks);
+        }
+
+        var serviceCatalogItems = await _serviceCatalogItemRepository.GetListAsync(x => x.PartnerId == id);
+        if (serviceCatalogItems.Count > 0)
+        {
+            foreach (var item in serviceCatalogItems)
+            {
+                item.PartnerId = null;
+            }
+
+            await _serviceCatalogItemRepository.UpdateManyAsync(serviceCatalogItems);
+        }
+
         await Repository.DeleteAsync(id);
     }
 
@@ -77,7 +110,8 @@ public class PartnerAppService :
         var query = await base.CreateFilteredQueryAsync(input);
         return query
             .WhereIf(input.Category.HasValue, x => x.Category == input.Category!.Value)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!))
+            .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive!.Value);
     }
 
     protected override Task<Partner> MapToEntityAsync(CreateUpdatePartnerDto createInput)
@@ -100,6 +134,7 @@ public class PartnerAppService :
         entity.Email = input.Email;
         entity.Phone = input.Phone;
         entity.Notes = input.Notes;
+        entity.IsActive = input.IsActive;
         entity.CommissionBasis = input.CommissionBasis;
         entity.CommissionRate = input.CommissionRate;
         entity.CommissionTrigger = input.CommissionTrigger;

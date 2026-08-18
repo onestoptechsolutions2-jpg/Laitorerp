@@ -76,6 +76,7 @@ public class EditModel : AbpPageModel
             PostalCode = vendor.PostalCode,
             Country = vendor.Country,
             Notes = vendor.Notes,
+            IsActive = vendor.IsActive,
             PortalUserId = vendor.PortalUserId,
             WithholdingTaxRateId = vendor.WithholdingTaxRateId,
             DefaultPaymentTerms = vendor.DefaultPaymentTerms,

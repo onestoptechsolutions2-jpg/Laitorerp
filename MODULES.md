@@ -144,6 +144,19 @@ Audit Logs (read-only viewer over every request/entity change ABP already record
 Cross-cutting analytics that isn't a financial statement: workflow monitor, sales analytics,
 stock on hand/low stock, support analytics (including reopen-rate trend), audit logs.
 
+### UX & error handling (system-wide)
+A consistency pass, not a module: `Filters/GlobalPageExceptionFilter` catches any uncaught
+exception from a Razor Page handler app-wide and turns it into a friendly toast instead of
+ABP's raw `/Error` page, logging unexpected ones for developers; `wwwroot/leitor-notify.js` wires
+real `abp.notify`/`abp.message` implementations onto the previously-unused (stub-only)
+SweetAlert2 bundle, giving every page themed toasts and a `data-confirm="..."` attribute that
+replaces the old plain `confirm()` on every delete/status-change form, with anti-double-submit
+and a "Saving..." button state applied globally. `Pages/Shared/PageModelExtensions` +
+`Components/StatusToast` give any handler a one-line `this.SetSuccessMessage(...)`. Vendor,
+Partner, and Agent gained an `IsActive` flag (Employee/Product/Warehouse/Account/Currency already
+had one) so they can be deactivated instead of deleted; hard delete is still available, still
+gated by `DependencyGuard`/`DeletionGate`.
+
 ---
 
 ## Optional modules (off by default — enable per deployment)

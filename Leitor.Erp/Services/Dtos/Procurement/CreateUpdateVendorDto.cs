@@ -34,6 +34,8 @@ public class CreateUpdateVendorDto
     [StringLength(2000)]
     public string? Notes { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public Guid? PortalUserId { get; set; }
     public Guid? WithholdingTaxRateId { get; set; }
 
