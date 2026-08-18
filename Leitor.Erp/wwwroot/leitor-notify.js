@@ -109,6 +109,20 @@
     // is guarded by a "confirmed" flag set on the form right before the programmatic re-submit, so
     // the second, real submit isn't caught by this same check again.
     function initConfirmForms() {
+        // Capture phase (the `true` below), not the default bubble phase: this must run and
+        // potentially cancel the event before it ever reaches the theme's own jQuery submit
+        // handler (LeptonXLite.Global.*.js), regardless of script/registration order (jQuery's
+        // .on()/delegated handlers are bubble-phase by default, so a capture-phase listener always
+        // runs first). That handler appears to set up some one-shot state expecting a single,
+        // uninterrupted submission - a real production bug: seeing this same logical submission
+        // twice (once cancelled here, once for real via the later requestSubmit() below) left it
+        // dereferencing an undefined promise, "Cannot read properties of undefined (reading
+        // 'done')". The old inline onsubmit="return confirm(...)" never hit this because a
+        // cancelled confirm() was simply never delivered a second time. stopPropagation on this
+        // first, cancelled attempt keeps the theme's handler from ever seeing it at all; the later
+        // requestSubmit() below fires a completely fresh, un-intercepted event on confirm, so the
+        // theme's handler only ever sees the exact single-delivery shape it always did for a
+        // "user confirmed" submission.
         document.addEventListener("submit", function (e) {
             var form = e.target;
             if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-confirm")) {
@@ -118,6 +132,7 @@
                 return;
             }
             e.preventDefault();
+            e.stopPropagation();
 
             var message = form.getAttribute("data-confirm");
             var variant = form.getAttribute("data-confirm-variant") || "warning";
@@ -153,7 +168,7 @@
                     proceed();
                 }
             });
-        });
+        }, true);
     }
 
     // Anti-double-submit + "Saving..." feedback for every standard form post in the app. Runs
