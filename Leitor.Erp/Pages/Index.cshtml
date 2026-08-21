@@ -4,6 +4,55 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.IndexModel
 
+@if (User.Identity?.IsAuthenticated != true)
+{
+    ViewData["Title"] = "Leitor ERP";
+    <link rel="stylesheet" href="/Pages/landing.css" />
+
+    <main class="leitor-landing" aria-labelledby="landing-title">
+        <nav class="leitor-landing-nav" aria-label="Primary navigation">
+            <a class="leitor-landing-brand" href="/" aria-label="Leitor ERP home">
+                <span class="leitor-landing-mark" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
+                <span>Leitor<span class="leitor-landing-brand-muted">ERP</span></span>
+            </a>
+            <a class="leitor-landing-login" asp-page="/Account/Login">Sign in <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </nav>
+
+        <section class="leitor-landing-hero">
+            <div class="leitor-landing-copy">
+                <p class="leitor-eyebrow"><span></span> The operating system for your business</p>
+                <h1 id="landing-title">Move the work<br /><em>forward.</em></h1>
+                <p class="leitor-landing-intro">One calm, connected place for customers, cash flow, people, and the next opportunity.</p>
+                <div class="leitor-landing-actions">
+                    <a class="leitor-landing-primary" asp-page="/Account/Login">Enter your workspace <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                    <a class="leitor-landing-secondary" href="#capabilities">See what is inside <i class="fas fa-arrow-down" aria-hidden="true"></i></a>
+                </div>
+            </div>
+
+            <div class="leitor-landing-orbit" aria-hidden="true">
+                <div class="leitor-orbit-ring leitor-orbit-ring--outer"></div>
+                <div class="leitor-orbit-ring leitor-orbit-ring--inner"></div>
+                <div class="leitor-landing-dashboard">
+                    <div class="leitor-dashboard-top"><span>Workspace overview</span><span class="leitor-dashboard-status"><i></i> Live</span></div>
+                    <div class="leitor-dashboard-value">KES 2.84M <small>+18.6%</small></div>
+                    <div class="leitor-dashboard-label">Collected this quarter</div>
+                    <div class="leitor-dashboard-chart"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                    <div class="leitor-dashboard-footer"><span>Revenue</span><span>Jan&nbsp;&nbsp; Feb&nbsp;&nbsp; Mar&nbsp;&nbsp; Apr</span></div>
+                </div>
+                <div class="leitor-float-card leitor-float-card--people"><i class="fas fa-users"></i><strong>156</strong><span>Customers</span></div>
+                <div class="leitor-float-card leitor-float-card--tasks"><i class="fas fa-check"></i><strong>24</strong><span>Tasks closed</span></div>
+            </div>
+        </section>
+
+        <section class="leitor-landing-capabilities" id="capabilities" aria-label="Capabilities">
+            <div><span class="leitor-capability-number">01</span><strong>See the whole picture</strong><p>Live signals across every part of the operation.</p></div>
+            <div><span class="leitor-capability-number">02</span><strong>Keep momentum</strong><p>Turn conversations and commitments into action.</p></div>
+            <div><span class="leitor-capability-number">03</span><strong>Build with confidence</strong><p>Controls and context for decisions that last.</p></div>
+        </section>
+    </main>
+    return;
+}
+
 @{
     var noModulesVisible = Model.Dashboard.Leads == null &&
                             Model.Dashboard.Customers == null &&

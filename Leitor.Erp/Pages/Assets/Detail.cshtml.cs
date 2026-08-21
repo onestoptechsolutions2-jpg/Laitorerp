@@ -117,6 +117,11 @@ public class DetailModel : AbpPageModel
 
     public async Task<IActionResult> OnPostDeleteCredentialAsync(Guid credentialId)
     {
+        if (!await CredentialBelongsToAssetAsync(credentialId))
+        {
+            return NotFound();
+        }
+
         await _assetCredentialAppService.DeleteAsync(credentialId);
         return RedirectToPage(new { id = Id });
     }
@@ -128,7 +133,18 @@ public class DetailModel : AbpPageModel
     // enforced inside RevealAsync, not just by hiding the button.
     public async Task<IActionResult> OnGetRevealCredentialAsync(Guid credentialId)
     {
+        if (!await CredentialBelongsToAssetAsync(credentialId))
+        {
+            return NotFound();
+        }
+
         var secret = await _assetCredentialAppService.RevealAsync(credentialId);
         return new JsonResult(secret);
+    }
+
+    private async Task<bool> CredentialBelongsToAssetAsync(Guid credentialId)
+    {
+        var credential = await _assetCredentialAppService.GetAsync(credentialId);
+        return credential.ConfigurationItemId == Id;
     }
 }

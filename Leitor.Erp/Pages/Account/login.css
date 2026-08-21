@@ -21,7 +21,8 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 20px;
+    padding: 32px 20px;
+    background: linear-gradient(135deg, #fffaf2 0%, #fff 48%, #f6f1ff 100%);
 }
 
 /* Collapses the theme's own login header chrome (logo block, and the title-bar-with-language-
@@ -62,21 +63,32 @@
     background-repeat: no-repeat;
 }
 .leitor-auth-appname {
+    font-family: "Space Grotesk", var(--leitor-font-sans);
     font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--leitor-ink);
 }
 
+.leitor-auth-wrapper .card {
+    border-color: rgba(232, 221, 210, 0.8);
+    box-shadow: 0 24px 70px rgba(90, 40, 10, 0.13), 0 4px 14px rgba(90, 40, 10, 0.05);
+}
+
+.leitor-auth-wrapper .btn-primary {
+    min-height: 48px;
+    font-weight: 700;
+}
+
 .leitor-auth-wrapper {
     width: 100%;
-    max-width: 420px;
+    max-width: 448px;
     position: relative;
     z-index: 1;
 }
 
 .leitor-auth-wrapper .card-body {
-    padding: 32px 40px;
+    padding: 40px 44px;
 }
 
 /* Hero decoration - layered blurred color blobs + a faint grain texture, both fixed to the

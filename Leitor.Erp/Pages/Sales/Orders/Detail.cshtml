@@ -10,39 +10,34 @@
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0"><span class="doc-no">@Model.Order.OrderNumber</span></h5>
-        <div>
-            @if (Model.CanEdit)
-            {
-                <a asp-page="./Edit" asp-route-id="@Model.Order.Id" class="btn btn-outline-primary">@L["Edit"]</a>
-
-                @if (Model.Order.Status == OrderStatus.Submitted)
-                {
-                    <form id="confirmOrderForm" method="post" asp-page-handler="Confirm" class="d-inline" data-confirm="Confirm this order? The order will be locked and marked as confirmed.">
-                        <button type="submit" class="btn btn-warning">@L["ConfirmOrder"]</button>
-                    </form>
-                }
-
-                @if (Model.CanIssueFinalInvoice)
-                {
-                    <form method="post" asp-page-handler="IssueFinalInvoice" class="d-inline" data-confirm="@L["IssueFinalInvoice"]?">
-                        <button type="submit" class="btn btn-success">@L["IssueFinalInvoice"]</button>
-                    </form>
-                }
-                <a asp-page="/Procurement/PurchaseOrders/CreateFromOrder" asp-route-orderId="@Model.Order.Id" class="btn btn-outline-primary">@L["CreatePurchaseOrder"]</a>
-            }
-            <a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Order.Id" class="btn btn-outline-secondary">@L["DownloadPdf"]</a>
-            @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
-            {
-                <form method="post" asp-page-handler="Email" asp-route-id="@Model.Order.Id" class="d-inline" data-confirm="@L["EmailToCustomer"]?">
-                    <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
-                </form>
-            }
-            @if (!string.IsNullOrWhiteSpace(Model.WhatsAppUrl))
-            {
-                <a href="@Model.WhatsAppUrl" target="_blank" rel="noopener" class="btn btn-outline-success" title="@L["ShareViaWhatsApp"]">
-                    <i class="fab fa-whatsapp"></i> @L["ShareViaWhatsApp"]
-                </a>
-            }
+        <div class="d-flex align-items-center gap-2">
+            <div class="dropdown">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">@L["Actions"]</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    @if (Model.CanEdit)
+                    {
+                        <li><a asp-page="./Edit" asp-route-id="@Model.Order.Id" class="dropdown-item">@L["Edit"]</a></li>
+                        @if (Model.Order.Status == OrderStatus.Submitted)
+                        {
+                            <li><form id="confirmOrderForm" method="post" asp-page-handler="Confirm" data-confirm="Confirm this order? The order will be locked and marked as confirmed."><button type="submit" class="dropdown-item">@L["ConfirmOrder"]</button></form></li>
+                        }
+                        @if (Model.CanIssueFinalInvoice)
+                        {
+                            <li><form method="post" asp-page-handler="IssueFinalInvoice" data-confirm="@L["IssueFinalInvoice"]?"><button type="submit" class="dropdown-item">@L["IssueFinalInvoice"]</button></form></li>
+                        }
+                        <li><a asp-page="/Procurement/PurchaseOrders/CreateFromOrder" asp-route-orderId="@Model.Order.Id" class="dropdown-item">@L["CreatePurchaseOrder"]</a></li>
+                    }
+                    <li><a asp-page="./Detail" asp-page-handler="Pdf" asp-route-id="@Model.Order.Id" class="dropdown-item">@L["DownloadPdf"]</a></li>
+                    @if (!string.IsNullOrWhiteSpace(Model.Customer.Email))
+                    {
+                        <li><form method="post" asp-page-handler="Email" asp-route-id="@Model.Order.Id" data-confirm="@L["EmailToCustomer"]?"><button type="submit" class="dropdown-item">@L["EmailToCustomer"]</button></form></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.WhatsAppUrl))
+                    {
+                        <li><a href="@Model.WhatsAppUrl" target="_blank" rel="noopener" class="dropdown-item"><i class="fab fa-whatsapp"></i> @L["ShareViaWhatsApp"]</a></li>
+                    }
+                </ul>
+            </div>
             <a asp-page="./Index" class="btn btn-secondary">@L["BackToList"]</a>
         </div>
     </div>

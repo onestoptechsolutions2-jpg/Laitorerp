@@ -99,12 +99,18 @@
                 "</div>";
         }
 
-        function renderFragment(html) {
+        function renderFragment(html, sourceUrl) {
             bodyEl.innerHTML = html;
-            bindFormSubmit();
+            var forms = bodyEl.querySelectorAll("form");
+            forms.forEach(function (form) {
+                if (!form.getAttribute("action")) {
+                    form.setAttribute("action", sourceUrl || window.location.href);
+                }
+            });
+            bindFormSubmit(sourceUrl || window.location.href);
         }
 
-        function bindFormSubmit() {
+        function bindFormSubmit(sourceUrl) {
             var form = bodyEl.querySelector("form");
             if (!form) {
                 return;
@@ -122,7 +128,8 @@
                     submitButton.disabled = true;
                 }
 
-                fetch(form.getAttribute("action") || window.location.href, {
+                var targetUrl = (form.action && form.action !== window.location.href) ? form.action : (sourceUrl || form.getAttribute("action") || window.location.href);
+                fetch(targetUrl, {
                     method: "POST",
                     headers: xhrHeader,
                     body: formData
@@ -135,11 +142,6 @@
                                     window.location.href = data.redirectUrl;
                                     return;
                                 }
-                                // A JSON body with no redirectUrl means the server (either ABP's
-                                // own pipeline or Filters/GlobalPageExceptionFilter) is reporting a
-                                // failure, not success - previously this branch did nothing at all,
-                                // leaving the modal sitting there with no feedback and no way to
-                                // retry. Surface it and re-enable the form instead.
                                 if (submitButton) {
                                     submitButton.disabled = false;
                                 }
@@ -154,7 +156,9 @@
                         if (!response.ok && submitButton) {
                             submitButton.disabled = false;
                         }
-                        return response.text().then(renderFragment);
+                        return response.text().then(function (html) {
+                            renderFragment(html, sourceUrl || targetUrl);
+                        });
                     })
                     .catch(function () {
                         form.submit();
@@ -172,9 +176,10 @@
                     if (!response.ok) {
                         throw new Error("overlay fetch failed");
                     }
-                    return response.text();
+                    return response.text().then(function (html) {
+                        renderFragment(html, url);
+                    });
                 })
-                .then(renderFragment)
                 .catch(function () {
                     modal.hide();
                     window.location.href = url;

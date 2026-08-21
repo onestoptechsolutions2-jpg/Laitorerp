@@ -295,13 +295,14 @@ public class DetailModel : AbpPageModel
         try
         {
             await _orderAppService.ConfirmAsync(Id, MarginOverrideReason);
+            return RedirectToPage(new { id = Id });
         }
         catch (UserFriendlyException ex)
         {
             ErrorMessage = ex.Message;
+            await LoadAsync();
+            return Page();
         }
-
-        return RedirectToPage(new { id = Id });
     }
 
     public async Task<IActionResult> OnPostIssueFinalInvoiceAsync()
