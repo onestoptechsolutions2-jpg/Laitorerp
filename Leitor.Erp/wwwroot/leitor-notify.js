@@ -105,24 +105,20 @@
 
     // data-confirm="<message>" [data-confirm-variant="danger|warning"] - progressive-enhancement
     // replacement for the inline onsubmit="return confirm('...')" pattern used on every
-    // delete/status-change form in the app. One delegated listener covers all of them; re-entrancy
-    // is guarded by a "confirmed" flag set on the form right before the programmatic re-submit, so
-    // the second, real submit isn't caught by this same check again.
+    // delete/status-change form in the app. One delegated listener covers all of them.
     function initConfirmForms() {
         // Capture phase (the `true` below), not the default bubble phase: this must run and
-        // potentially cancel the event before it ever reaches the theme's own jQuery submit
-        // handler (LeptonXLite.Global.*.js), regardless of script/registration order (jQuery's
+        // cancel the event before it ever reaches the theme's own jQuery submit handler
+        // (LeptonXLite.Global.*.js), regardless of script/registration order (jQuery's
         // .on()/delegated handlers are bubble-phase by default, so a capture-phase listener always
-        // runs first). That handler appears to set up some one-shot state expecting a single,
-        // uninterrupted submission - a real production bug: seeing this same logical submission
-        // twice (once cancelled here, once for real via the later requestSubmit() below) left it
-        // dereferencing an undefined promise, "Cannot read properties of undefined (reading
-        // 'done')". The old inline onsubmit="return confirm(...)" never hit this because a
-        // cancelled confirm() was simply never delivered a second time. stopPropagation on this
-        // first, cancelled attempt keeps the theme's handler from ever seeing it at all; the later
-        // requestSubmit() below fires a completely fresh, un-intercepted event on confirm, so the
-        // theme's handler only ever sees the exact single-delivery shape it always did for a
-        // "user confirmed" submission.
+        // runs first). That handler has a real bug around seeing a submission it didn't expect -
+        // confirmed live 2026-08-22 as "Confirm does nothing" on Quotes Convert-to-Order and Leads
+        // Convert-to-Customer (see erp-review backlog item 3c). The previous version of this file
+        // re-submitted the confirmed form via form.requestSubmit(), which dispatches a brand new
+        // 'submit' event through the *entire* listener chain a second time, including that same
+        // theme handler - so confirming just fed it the exact broken sequence again, silently. The
+        // fix: classic form.submit() bypasses the event system entirely (no 'submit' event is
+        // dispatched at all, per spec), so nothing - ours or the theme's - can intercept it.
         document.addEventListener("submit", function (e) {
             var form = e.target;
             if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-confirm")) {
@@ -139,11 +135,20 @@
 
             function proceed() {
                 form.dataset.confirmed = "1";
-                if (form.requestSubmit) {
-                    form.requestSubmit();
-                } else {
-                    form.submit();
+                // No submit event fires for the line below, so initSubmitLoadingState() never
+                // sees this form - replicate its "disable + Saving..." feedback here directly.
+                var button = form.querySelector("button[type=submit]:not([disabled])") ||
+                    form.querySelector("input[type=submit]:not([disabled])");
+                if (button) {
+                    button.disabled = true;
+                    var loadingText = button.getAttribute("data-loading-text") || uxConfig("saving-text", "Saving...");
+                    if (button.tagName === "INPUT") {
+                        button.value = loadingText;
+                    } else {
+                        button.textContent = loadingText;
+                    }
                 }
+                form.submit();
             }
 
             if (!swalReady()) {
