@@ -20,7 +20,7 @@ This matches the project direction in [AGENCY_PLATFORM_MIGRATION_REFERENCE.md](A
 
 ### Priority A: Security and operational-data gap
 
-1. Asset credential / configuration store
+1. Asset credential / configuration store - completed
    - Close a real gap for managed IT clients: per-asset credentials and device configuration data.
    - Requirements:
      - encrypted-at-rest storage
@@ -56,16 +56,16 @@ This matches the project direction in [AGENCY_PLATFORM_MIGRATION_REFERENCE.md](A
 
 ### Priority C: Workflow, UX, and operational backlog from the latest chat notes
 
-6. Calendar event creation and save reliability
+6. Calendar event creation and save reliability - completed
    - Fix the calendar Add Event flow so creation saves properly instead of opening a menu or failing silently.
    - Ensure lead creation from calendar-related flows behaves consistently with the rest of the app.
 
-7. Quotation and detail-action UX
+7. Quotation and detail-action UX - completed
    - Replace fragmented action placement with a single action menu or action button pattern.
    - Standardize actions such as edit, PDF, email, WhatsApp, and related document actions inside a consistent action area.
    - Apply the same behavior to other list/detail screens where actions are currently spread out or awkward.
 
-8. Confirm action and status update integrity
+8. Confirm action and status update integrity - completed
    - Fix the Confirm action so it produces the actual expected effect and persists status changes correctly.
    - Check all confirmation flows for final-state consistency across sales and operational records.
 
@@ -209,7 +209,7 @@ Exit criteria:
 
 ## 5. Immediate next actions
 
-1. Finish the asset credential storage design and security review.
+1. Add regression coverage for the asset detail page's credential ownership boundary.
 2. Validate and close the remaining sales inheritance edge cases in tests and runtime flows.
 3. Confirm the procurement tax and warehouse inheritance coverage is complete and regression-safe.
 4. Resume POS completion only after the core accounting and inventory matching rules are stable.
@@ -221,10 +221,11 @@ Exit criteria:
 
 Current status by backlog area:
 
-- Security / credential gap: open and important
+- Security / credential gap: implemented; page-boundary regression coverage remains
 - CRM / sales inheritance: largely addressed in current phase work
 - Procurement tax and cost inheritance: largely addressed in current phase work
 - POS / inventory completion: in progress
+- Test-host ABP SQLite schema initialization: open
 - Optional generalization: deferred until demand is proven
 
 This keeps the implementation aligned with the actual business model: managed IT services, recurring contracts, field operations, and accounting integrity.

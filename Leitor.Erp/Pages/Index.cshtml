@@ -15,6 +15,11 @@
                 <span class="leitor-landing-mark" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
                 <span>Leitor<span class="leitor-landing-brand-muted">ERP</span></span>
             </a>
+            <div class="leitor-landing-links">
+                <a href="#platform">Platform</a>
+                <a href="#how-it-works">How it works</a>
+                <a href="#capabilities">Capabilities</a>
+            </div>
             <a class="leitor-landing-login" asp-page="/Account/Login">Sign in <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
         </nav>
 
@@ -44,11 +49,51 @@
             </div>
         </section>
 
+        <section class="leitor-landing-intro-section" id="platform">
+            <p class="leitor-section-kicker">One platform. Every moving part.</p>
+            <div class="leitor-section-heading">
+                <h2>Work gets lighter<br /><em>when it connects.</em></h2>
+                <p>Leitor brings the rhythm of your business into focus. Less hunting for answers. More time making the next good decision.</p>
+            </div>
+        </section>
+
+        <section class="leitor-landing-products" id="how-it-works" aria-label="Platform areas">
+            <article class="leitor-product product-orange">
+                <span class="leitor-product-index">01 / GROWTH</span>
+                <i class="fas fa-bullseye" aria-hidden="true"></i>
+                <h3>From first hello<br />to loyal customer.</h3>
+                <p>Keep leads, conversations, proposals, and customer context moving together.</p>
+                <a asp-page="/Account/Login" aria-label="Explore growth tools">Explore <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            </article>
+            <article class="leitor-product product-ink">
+                <span class="leitor-product-index">02 / CONTROL</span>
+                <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                <h3>Know where the<br />money is going.</h3>
+                <p>See sales, invoices, purchasing, and cash flow in the same clear operating view.</p>
+                <a asp-page="/Account/Login" aria-label="Explore control tools">Explore <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            </article>
+            <article class="leitor-product product-lilac">
+                <span class="leitor-product-index">03 / DELIVERY</span>
+                <i class="fas fa-route" aria-hidden="true"></i>
+                <h3>Make promises<br />easy to keep.</h3>
+                <p>Coordinate people, projects, field work, and service from one shared source of truth.</p>
+                <a asp-page="/Account/Login" aria-label="Explore delivery tools">Explore <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            </article>
+        </section>
+
         <section class="leitor-landing-capabilities" id="capabilities" aria-label="Capabilities">
             <div><span class="leitor-capability-number">01</span><strong>See the whole picture</strong><p>Live signals across every part of the operation.</p></div>
             <div><span class="leitor-capability-number">02</span><strong>Keep momentum</strong><p>Turn conversations and commitments into action.</p></div>
             <div><span class="leitor-capability-number">03</span><strong>Build with confidence</strong><p>Controls and context for decisions that last.</p></div>
         </section>
+
+        <section class="leitor-landing-cta">
+            <p class="leitor-section-kicker">Your next chapter starts here</p>
+            <h2>Make the work<br /><em>work for you.</em></h2>
+            <a class="leitor-landing-primary" asp-page="/Account/Login">Enter your workspace <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </section>
+
+        <footer class="leitor-landing-footer"><span>Leitor<span class="leitor-landing-brand-muted">ERP</span></span><span>Clearer work. Better business.</span><span>© @DateTime.UtcNow.Year</span></footer>
     </main>
     return;
 }
