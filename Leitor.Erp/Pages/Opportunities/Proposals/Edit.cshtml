@@ -19,6 +19,12 @@
                     <button type="submit" class="btn btn-outline-secondary">@L["EmailToCustomer"]</button>
                 </form>
             }
+            @if (!string.IsNullOrWhiteSpace(Model.WhatsAppUrl))
+            {
+                <a href="@Model.WhatsAppUrl" target="_blank" rel="noopener" class="btn btn-outline-success" title="@L["ShareViaWhatsApp"]">
+                    <i class="fab fa-whatsapp"></i> @L["ShareViaWhatsApp"]
+                </a>
+            }
             <form method="post" asp-page-handler="MarkSentWhatsApp" asp-route-id="@Model.Id" asp-route-opportunityId="@Model.OpportunityId" class="d-inline" data-confirm="@L["MarkSentWhatsAppConfirm"]">
                 <button type="submit" class="btn btn-outline-secondary">@L["MarkSentWhatsApp"]</button>
             </form>

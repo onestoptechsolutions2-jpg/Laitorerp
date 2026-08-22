@@ -41,8 +41,17 @@ public class CreateModel : AbpPageModel
     [BindProperty(SupportsGet = true)]
     public DateTime? StartDate { get; set; }
 
+    // StartDate is [Required] on the DTO. The FullCalendar dateClick path (Calendar/Index.cshtml)
+    // always supplies ?StartDate=... so OnGetAsync overrides this below, but the plain "+ New
+    // Calendar Event" header button links here with no query string at all - without this default,
+    // that path renders a blank/zero date picker, and a user who doesn't notice they need to pick
+    // one gets a silent [Required] validation failure: the overlay redisplays the same-looking
+    // form with no obvious change, indistinguishable from "clicking Save does nothing".
     [BindProperty]
-    public CreateUpdateCalendarEventDto EventInput { get; set; } = new();
+    public CreateUpdateCalendarEventDto EventInput { get; set; } = new()
+    {
+        StartDate = DateTime.Now
+    };
 
     public List<SelectListItem> UserOptions { get; set; } = new();
     public List<SelectListItem> AgentOptions { get; set; } = new();

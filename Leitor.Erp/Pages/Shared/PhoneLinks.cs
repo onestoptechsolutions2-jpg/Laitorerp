@@ -25,6 +25,16 @@ public static class PhoneLinks
         return digits == null ? null : $"sms:{digits}";
     }
 
+    // E.164 for the httpSMS API (see Services/Sms/HttpSmsClient.cs) - reuses the same
+    // Kenyan-local-number heuristic as WhatsApp() instead of a second phone-parsing
+    // implementation, since a bulk SMS recipient list is drawn from the same free-text
+    // Lead/Customer phone fields WhatsApp links already work from.
+    public static string? ToE164(string? phone)
+    {
+        var international = ToInternationalDigits(phone);
+        return international == null ? null : $"+{international}";
+    }
+
     // The optional message is used wherever a document (quote/order/PO/invoice) gets shared - the
     // customer's app opens with the text already typed in, editable before send, same "generate
     // then let a human review before it goes out" rule every other outbound message in this app
@@ -40,6 +50,23 @@ public static class PhoneLinks
         return string.IsNullOrWhiteSpace(message)
             ? $"https://wa.me/{international}"
             : $"https://wa.me/{international}?text={WebUtility.UrlEncode(message)}";
+    }
+
+    // "Hello John," reads as a real message from a person; "Hello John Wanjiru Kamau (Densification
+    // Apartments)," reads as a mail-merge - every outbound WhatsApp/email greeting in this app
+    // interpolates a customer/contact name and should use this, not the raw Name field. Falls back
+    // to the full (trimmed) name if it has no obvious separator to split on, so a single-word or
+    // company-style name still renders sensibly rather than as an empty string.
+    public static string FirstName(string? fullName)
+    {
+        var trimmed = fullName?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return string.Empty;
+        }
+
+        var firstWord = trimmed.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return string.IsNullOrEmpty(firstWord) ? trimmed : firstWord;
     }
 
     private static string? DigitsWithLeadingPlus(string? phone)

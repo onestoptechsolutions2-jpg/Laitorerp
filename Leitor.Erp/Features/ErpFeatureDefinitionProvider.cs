@@ -89,6 +89,12 @@ public class ErpFeatureDefinitionProvider : FeatureDefinitionProvider
             defaultValue: "false",
             displayName: L("Feature:HumanResources"),
             valueType: new ToggleStringValueType());
+
+        group.AddFeature(
+            ErpFeatures.BulkSms,
+            defaultValue: "false",
+            displayName: L("Feature:BulkSms"),
+            valueType: new ToggleStringValueType());
     }
 
     private static LocalizableString L(string name)

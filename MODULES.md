@@ -68,6 +68,16 @@ can share a WhatsApp deep link (prefilled message, opens `wa.me`) alongside the 
 action, and Quotes/Orders Index support CSV export and a Status filter on top of the existing
 search.
 
+**Smart document links** (`Entities/Documents/DocumentShareLink.cs`, `Services/Documents/`,
+`Pages/Documents/Index` at the short public route `/d/{token}`) — every WhatsApp/email share of a
+Quote, Order, Invoice, PurchaseOrder, or Proposal now includes a stable, unauthenticated link
+instead of (WhatsApp) or alongside (email) a raw PDF attachment. The link always regenerates the
+PDF live from current data, so it never goes stale, and the same (document, entity) pair always
+resolves to the same link rather than minting a new one per share. Greeting text everywhere a
+customer/vendor name is interpolated now uses `PhoneLinks.FirstName(...)` (first name only, not
+the full/company name). Not yet extended to Contract Templates or a Service Catalog public
+listing — see `/erp-review` backlog item 4/7b.
+
 ### Catalog & Inventory
 What you sell (Catalog: products/services, tax rates, categories, price lists) plus what you
 have of it (Inventory: warehouses, stock movements, stock-on-hand/low-stock reporting).
@@ -184,6 +194,7 @@ to permanently override it once clicked). App name/logo/favicon are settings-bac
 | **Change Enablement** | `ChangeRequest` tracking (tiered: Standard/Normal/Emergency, with approval gating on Normal+) for deliberate changes to a Configuration Item — patches, config changes, migrations — kept separate from Tickets, which model something reported broken. Depends on Asset Management being meaningful (nothing to change without a CI). |
 | **Shared Calendar** | Standalone `CalendarEvent` records (create/drag/reassign) merged at read time with a read-only feed of `FieldServiceJob`/`Ticket`/`ProjectTask`/`CustomerTask` dates — never a second source of truth for those, just a combined view. |
 | **Human Resources** | Employee directory (`Employee`, with optional self-service login link via `UserId`); leave management (`LeaveRequest`) with an approval workflow reusing the generic `EscalationItem`/`EscalationGate` mechanism (no separate approval table); Kenya statutory payroll (`PayrollRun`/`PayrollRunLine`) — PAYE via a first-of-its-kind progressive-band calculator (`PayeCalculator`), NSSF (2-tier), SHA and the Affordable Housing Levy, posted to the ledger via `JournalPostingService.PostMultiLineAsync`. PAYE bands and NSSF tiers are admin-editable seeded tables (`PayeTaxBand`/`NssfTier`, versioned by `EffectiveFrom` — a payroll run only uses the most recent version as of its period end, never stacking older rate-table generations); SHA/Housing Levy/PAYE personal relief are single tunable settings. **All seeded/default figures are best-effort as of implementation time and must be verified against current KRA/NSSF/SHA published tables before running real payroll** — see the Payroll > Tax Bands admin page. |
+| **Bulk SMS** | Sends SMS to Leads/Customers via the hosted [httpSMS](https://httpsms.com) API — no self-hosted SMS server, just an API key + gateway phone number entered under Administration > Operations > Bulk SMS (with an in-tab "Send Test SMS" to confirm before enabling). `~/Marketing/BulkSms` composes a message against Leads (filterable by status/assignee), Customers (by status), or a manual phone list; `BulkSmsAppService.QueueBatchAsync` normalizes/dedups numbers and respects `Lead.DoNotContact`, then inserts `BulkSmsMessage` rows instantly. A separate `BulkSmsDispatchWorker` sends one queued message roughly every 6 seconds (matching httpSMS's free-tier per-phone throttle) so a large batch never blocks the admin's request. Still requires one physical Android phone with a SIM running the httpSMS app — that's the actual SMS gateway, no way around it — but no second server to install or separate guide to follow. |
 
 ---
 

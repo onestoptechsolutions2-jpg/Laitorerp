@@ -3,7 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Leitor.Erp.Features;
 using Leitor.Erp.Localization;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Sms;
 using Leitor.Erp.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +38,7 @@ public class IndexModel : AbpPageModel
     private readonly ISettingManager _settingManager;
     private readonly IFeatureChecker _featureChecker;
     private readonly IFeatureManager _featureManager;
+    private readonly IHttpSmsClient _httpSmsClient;
     private readonly IHtmlLocalizer<ErpResource> _l;
 
     public IndexModel(
@@ -43,12 +46,14 @@ public class IndexModel : AbpPageModel
         ISettingManager settingManager,
         IFeatureChecker featureChecker,
         IFeatureManager featureManager,
+        IHttpSmsClient httpSmsClient,
         IHtmlLocalizer<ErpResource> l)
     {
         _settingProvider = settingProvider;
         _settingManager = settingManager;
         _featureChecker = featureChecker;
         _featureManager = featureManager;
+        _httpSmsClient = httpSmsClient;
         _l = l;
     }
 
@@ -58,6 +63,9 @@ public class IndexModel : AbpPageModel
     [TempData]
     public string? ErrorMessage { get; set; }
 
+    [TempData]
+    public string? SuccessMessage { get; set; }
+
     [BindProperty]
     public CompanyProfileInput Company { get; set; } = new();
 
@@ -66,6 +74,9 @@ public class IndexModel : AbpPageModel
 
     [BindProperty]
     public EmailSettingsInput Email { get; set; } = new();
+
+    [BindProperty]
+    public BulkSmsSettingsInput BulkSms { get; set; } = new();
 
     public List<SettingRow> BusinessSettings { get; set; } = new();
     public List<ModuleToggleRow> Modules { get; set; } = new();
@@ -80,6 +91,7 @@ public class IndexModel : AbpPageModel
             await LoadCompanyAsync();
             await LoadBrandingAsync();
             await LoadEmailAsync();
+            await LoadBulkSmsAsync();
             await LoadBusinessSettingsAsync();
         }
 
@@ -136,6 +148,49 @@ public class IndexModel : AbpPageModel
         await _settingManager.SetGlobalAsync(EmailSettingNames.DefaultFromDisplayName, Email.DefaultFromDisplayName ?? "");
 
         return RedirectToPage(new { tab = "email" });
+    }
+
+    public async Task<IActionResult> OnPostSaveBulkSmsAsync()
+    {
+        await CheckAppSettingsPermissionAsync();
+
+        // Same "blank means leave the stored secret unchanged" rule as Email.SmtpPassword - the
+        // form never round-trips the real API key back to the browser (see LoadBulkSmsAsync).
+        if (!string.IsNullOrEmpty(BulkSms.ApiKey))
+        {
+            await _settingManager.SetGlobalAsync(ErpSettings.BulkSmsApiKey, BulkSms.ApiKey);
+        }
+        await _settingManager.SetGlobalAsync(ErpSettings.BulkSmsFromNumber, BulkSms.FromNumber ?? "");
+
+        return RedirectToPage(new { tab = "bulksms" });
+    }
+
+    public async Task<IActionResult> OnPostSendTestSmsAsync(string testPhoneNumber)
+    {
+        await CheckAppSettingsPermissionAsync();
+
+        // Goes straight through IHttpSmsClient rather than BulkSmsAppService.SendTestAsync - this
+        // handler is already gated by AppSettings.Manage (configuring credentials), which is a
+        // different permission from BulkSms.Send (actually sending messages), and an admin
+        // confirming their own configuration shouldn't also need the latter.
+        var e164 = PhoneLinks.ToE164(testPhoneNumber);
+        if (e164 == null)
+        {
+            ErrorMessage = _l["InvalidPhoneNumber"].Value;
+            return RedirectToPage(new { tab = "bulksms" });
+        }
+
+        var result = await _httpSmsClient.SendAsync(e164, "This is a test message from Leitor ERP's Bulk SMS setup.");
+        if (result.Success)
+        {
+            SuccessMessage = _l["BulkSmsTestSentSuccessfully"].Value;
+        }
+        else
+        {
+            ErrorMessage = result.ErrorMessage;
+        }
+
+        return RedirectToPage(new { tab = "bulksms" });
     }
 
     public async Task<IActionResult> OnPostSaveBusinessAsync(string name, string value)
@@ -234,6 +289,19 @@ public class IndexModel : AbpPageModel
         };
     }
 
+    private async Task LoadBulkSmsAsync()
+    {
+        var storedApiKey = await _settingProvider.GetOrNullAsync(ErpSettings.BulkSmsApiKey);
+
+        BulkSms = new BulkSmsSettingsInput
+        {
+            // Never round-tripped to the browser - see OnPostSaveBulkSmsAsync's comment.
+            ApiKey = null,
+            HasStoredApiKey = !string.IsNullOrEmpty(storedApiKey),
+            FromNumber = await _settingProvider.GetOrNullAsync(ErpSettings.BulkSmsFromNumber)
+        };
+    }
+
     private async Task LoadBusinessSettingsAsync()
     {
         BusinessSettings = new List<SettingRow>
@@ -279,7 +347,8 @@ public class IndexModel : AbpPageModel
             await ToModuleRowAsync(ErpFeatures.Cybersecurity, _l["Feature:Cybersecurity"]),
             await ToModuleRowAsync(ErpFeatures.ChangeEnablement, _l["Feature:ChangeEnablement"]),
             await ToModuleRowAsync(ErpFeatures.Calendar, _l["Feature:Calendar"]),
-            await ToModuleRowAsync(ErpFeatures.HumanResources, _l["Feature:HumanResources"])
+            await ToModuleRowAsync(ErpFeatures.HumanResources, _l["Feature:HumanResources"]),
+            await ToModuleRowAsync(ErpFeatures.BulkSms, _l["Feature:BulkSms"])
         };
     }
 
@@ -364,6 +433,18 @@ public class IndexModel : AbpPageModel
 
         [StringLength(256)]
         public string? DefaultFromDisplayName { get; set; }
+    }
+
+    public class BulkSmsSettingsInput
+    {
+        [DataType(DataType.Password)]
+        [StringLength(256)]
+        public string? ApiKey { get; set; }
+
+        public bool HasStoredApiKey { get; set; }
+
+        [StringLength(32)]
+        public string? FromNumber { get; set; }
     }
 
     public class SettingRow

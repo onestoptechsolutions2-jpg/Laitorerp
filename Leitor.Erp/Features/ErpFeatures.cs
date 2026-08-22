@@ -33,4 +33,8 @@ public static class ErpFeatures
     // Employee directory, leave management, and Kenya statutory payroll (PAYE/NSSF/SHA/Housing
     // Levy). See Entities/Hr/.
     public const string HumanResources = GroupName + ".HumanResources";
+
+    // Bulk SMS to Leads/Customers via the hosted httpSMS API. See Settings/ErpSettings.cs
+    // (BulkSmsApiKey/BulkSmsFromNumber) and Services/Sms/.
+    public const string BulkSms = GroupName + ".BulkSms";
 }

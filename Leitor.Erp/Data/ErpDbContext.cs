@@ -4,6 +4,7 @@ using Leitor.Erp.Entities.Assets;
 using Leitor.Erp.Entities.Calendar;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.Cybersecurity;
+using Leitor.Erp.Entities.Documents;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Hr;
@@ -17,6 +18,7 @@ using Leitor.Erp.Entities.Projects;
 using Leitor.Erp.Entities.ServiceCatalog;
 using Leitor.Erp.Entities.ServiceRequests;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Entities.Sms;
 using Leitor.Erp.Entities.Support;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -115,6 +117,9 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
 
     public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
+
+    public DbSet<DocumentShareLink> DocumentShareLinks { get; set; } = null!;
+    public DbSet<BulkSmsMessage> BulkSmsMessages { get; set; } = null!;
 
     public DbSet<Employee> Employees { get; set; } = null!;
     public DbSet<LeaveRequest> LeaveRequests { get; set; } = null!;
@@ -1121,6 +1126,27 @@ public class ErpDbContext : AbpDbContext<ErpDbContext>
             b.Property(x => x.RollbackNotes).HasMaxLength(2000);
             b.HasIndex(x => x.ChangeNumber).IsUnique();
             b.HasIndex(x => x.ConfigurationItemId);
+            b.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<DocumentShareLink>(b =>
+        {
+            b.ToTable("DocumentShareLinks");
+            b.ConfigureByConvention();
+            b.Property(x => x.DocumentType).IsRequired().HasMaxLength(32);
+            b.HasIndex(x => new { x.DocumentType, x.EntityId }).IsUnique();
+        });
+
+        builder.Entity<BulkSmsMessage>(b =>
+        {
+            b.ToTable("BulkSmsMessages");
+            b.ConfigureByConvention();
+            b.Property(x => x.ToPhoneNumber).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Content).IsRequired().HasMaxLength(2000);
+            b.Property(x => x.RecipientName).HasMaxLength(256);
+            b.Property(x => x.ProviderMessageId).HasMaxLength(128);
+            b.Property(x => x.ErrorMessage).HasMaxLength(2000);
+            b.HasIndex(x => x.BatchId);
             b.HasIndex(x => x.Status);
         });
     }

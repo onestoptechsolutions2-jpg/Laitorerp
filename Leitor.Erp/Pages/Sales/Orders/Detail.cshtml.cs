@@ -6,11 +6,13 @@ using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
 using Leitor.Erp.Entities.FieldService;
 using Leitor.Erp.Entities.Governance;
+using Leitor.Erp.Entities.Documents;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Features;
 using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Services.Documents;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Procurement;
 using Leitor.Erp.Services.Sales;
@@ -49,6 +51,7 @@ public class DetailModel : AbpPageModel
     private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
     private readonly IRepository<EscalationItem, Guid> _escalationItemRepository;
+    private readonly DocumentShareLinkService _documentShareLinkService;
 
     public DetailModel(
         OrderAppService orderAppService,
@@ -66,7 +69,8 @@ public class DetailModel : AbpPageModel
         IEmailSender emailSender,
         ErpCompanyProfileProvider companyProfileProvider,
         IRepository<DeletionRequest, Guid> deletionRequestRepository,
-        IRepository<EscalationItem, Guid> escalationItemRepository)
+        IRepository<EscalationItem, Guid> escalationItemRepository,
+        DocumentShareLinkService documentShareLinkService)
     {
         _orderAppService = orderAppService;
         _orderLineAppService = orderLineAppService;
@@ -84,6 +88,7 @@ public class DetailModel : AbpPageModel
         _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
         _escalationItemRepository = escalationItemRepository;
+        _documentShareLinkService = documentShareLinkService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -135,8 +140,10 @@ public class DetailModel : AbpPageModel
     {
         Order = await _orderAppService.GetAsync(Id);
         Customer = await _customerRepository.GetAsync(Order.CustomerId);
+
+        var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Order, Id);
         WhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber,
-            $"Hello {Customer.Name}, please find attached order {Order.OrderNumber}. Kindly review and let us know if you have any questions.");
+            $"Hello {PhoneLinks.FirstName(Customer.Name)}, please find order {Order.OrderNumber} here: {shareUrl}");
 
         var lines = await _orderLineAppService.GetListAsync(new GetOrderLineListInput
         {
@@ -361,11 +368,12 @@ public class DetailModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(Customer.Email))
         {
+            var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Order, Id);
             var pdfBytes = OrderPdfDocument.Generate(Order, Lines, Customer, _companyOptions);
             await _emailSender.SendAsync(
                 Customer.Email,
                 $"Order {Order.OrderNumber}",
-                $"Dear {Customer.Name},\n\nPlease find attached order {Order.OrderNumber}.\n\nRegards,\n{_companyOptions.Name}",
+                $"Dear {PhoneLinks.FirstName(Customer.Name)},\n\nPlease find attached order {Order.OrderNumber}. You can also view/download it anytime here: {shareUrl}\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {

@@ -201,6 +201,10 @@ public class ErpPermissionDefinitionProvider : PermissionDefinitionProvider
         changesPermission.AddChild(ErpPermissions.Changes.Edit, L("Permission:Edit"));
         changesPermission.AddChild(ErpPermissions.Changes.Approve, L("Permission:Approve"));
         changesPermission.AddChild(ErpPermissions.Changes.Delete, L("Permission:Delete"));
+
+        var bulkSmsGroup = context.AddGroup(ErpPermissions.BulkSms.GroupName, L("Permission:BulkSms"));
+        var bulkSmsPermission = bulkSmsGroup.AddPermission(ErpPermissions.BulkSms.Default, L("Permission:BulkSms"));
+        bulkSmsPermission.AddChild(ErpPermissions.BulkSms.Send, L("Permission:Send"));
     }
 
     private static LocalizableString L(string name)

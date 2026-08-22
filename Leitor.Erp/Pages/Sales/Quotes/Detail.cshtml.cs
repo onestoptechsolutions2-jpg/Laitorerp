@@ -11,6 +11,8 @@ using Leitor.Erp.Permissions;
 using Leitor.Erp.Services.Customers;
 using Leitor.Erp.Services.Dtos.Customers;
 using Leitor.Erp.Services.Dtos.Sales;
+using Leitor.Erp.Entities.Documents;
+using Leitor.Erp.Services.Documents;
 using Leitor.Erp.Services.Sales;
 using Leitor.Erp.Services.ServiceCatalog;
 using Microsoft.AspNetCore.Authorization;
@@ -43,6 +45,7 @@ public class DetailModel : AbpPageModel
     private readonly IFeatureChecker _featureChecker;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private readonly DocumentShareLinkService _documentShareLinkService;
     private ErpCompanyOptions _companyOptions = null!;
 
     public DetailModel(
@@ -58,7 +61,8 @@ public class DetailModel : AbpPageModel
         ServiceCatalogItemAppService serviceCatalogItemAppService,
         IFeatureChecker featureChecker,
         IEmailSender emailSender,
-        ErpCompanyProfileProvider companyProfileProvider)
+        ErpCompanyProfileProvider companyProfileProvider,
+        DocumentShareLinkService documentShareLinkService)
     {
         _quoteAppService = quoteAppService;
         _quoteLineAppService = quoteLineAppService;
@@ -73,6 +77,7 @@ public class DetailModel : AbpPageModel
         _featureChecker = featureChecker;
         _emailSender = emailSender;
         _companyProfileProvider = companyProfileProvider;
+        _documentShareLinkService = documentShareLinkService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -115,8 +120,10 @@ public class DetailModel : AbpPageModel
     {
         Quote = await _quoteAppService.GetAsync(Id);
         Customer = await _customerRepository.GetAsync(Quote.CustomerId);
+
+        var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Quote, Id);
         WhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber,
-            $"Hello {Customer.Name}, please find attached our quotation {Quote.QuoteNumber}. Kindly review and let us know if you have any questions or would like us to proceed.");
+            $"Hello {PhoneLinks.FirstName(Customer.Name)}, please find our quotation {Quote.QuoteNumber} here: {shareUrl}");
 
         var existingOrder = (await _orderRepository.GetListAsync(x => x.QuoteId == Id)).FirstOrDefault();
         ExistingOrderId = existingOrder?.Id;
@@ -231,11 +238,12 @@ public class DetailModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(Customer.Email))
         {
+            var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Quote, Id);
             var pdfBytes = QuotePdfDocument.Generate(Quote, Lines, Customer, _companyOptions);
             await _emailSender.SendAsync(
                 Customer.Email,
                 $"Quote {Quote.QuoteNumber}",
-                $"Dear {Customer.Name},\n\nPlease find attached quote {Quote.QuoteNumber}.\n\nRegards,\n{_companyOptions.Name}",
+                $"Dear {PhoneLinks.FirstName(Customer.Name)},\n\nPlease find attached quote {Quote.QuoteNumber}. You can also view/download it anytime here: {shareUrl}\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {

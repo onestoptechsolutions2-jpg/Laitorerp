@@ -201,6 +201,15 @@ public class ErpModule : AbpModule
         context.Services.Configure<DataRetentionOptions>(configuration.GetSection("DataRetention"));
         context.Services.AddHttpClient("OpenExchangeRates");
 
+        // Hosted httpSMS API (https://httpsms.com) - the API key/sender number are Settings-backed
+        // (ErpSettings.BulkSmsApiKey/BulkSmsFromNumber), not appsettings.json, so no config file
+        // edit or redeploy is needed to turn Bulk SMS on. See Services/Sms/HttpSmsClient.cs.
+        context.Services.AddHttpClient("HttpSms", client =>
+        {
+            client.BaseAddress = new Uri("https://api.httpsms.com/v1/");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         // Explicit registration rather than relying on ITransientDependency convention -
         // IEnumerable<IEscalationActionHandler> resolution needs every implementation registered
         // under this exact interface, and empirically the conventional registrar didn't expose it
@@ -593,5 +602,6 @@ public class ErpModule : AbpModule
         await context.AddBackgroundWorkerAsync<RecurringJournalWorker>();
         await context.AddBackgroundWorkerAsync<ContractRecurringBillingWorker>();
         await context.AddBackgroundWorkerAsync<OrderReadyToInvoiceWorker>();
+        await context.AddBackgroundWorkerAsync<BulkSmsDispatchWorker>();
     }
 }

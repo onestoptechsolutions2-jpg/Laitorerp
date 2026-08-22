@@ -1,0 +1,39 @@
+@page "{batchId:guid}"
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Marketing.BulkSms.DetailModel
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["BulkSmsBatchDetailTitle"]</h5>
+        <a asp-page="./Index" class="small">&larr; @L["BulkSmsBatchHistory"]</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@L["BulkSmsRecipient"]</th>
+                        <th>@L["BulkSmsPhoneNumber"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["ErrorMessage"]</th>
+                        <th>@L["SentAt"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var message in Model.Messages)
+                    {
+                        <tr>
+                            <td>@(message.RecipientName ?? "-")</td>
+                            <td>@message.ToPhoneNumber</td>
+                            <td><span class="pill @(message.Status == Leitor.Erp.Entities.Sms.BulkSmsMessageStatus.Sent ? "pill-success" : message.Status == Leitor.Erp.Entities.Sms.BulkSmsMessageStatus.Failed ? "pill-danger" : "pill-neutral")">@L[$"Enum:BulkSmsMessageStatus:{(int)message.Status}"]</span></td>
+                            <td>@message.ErrorMessage</td>
+                            <td>@(message.SentAt.HasValue ? message.SentAt.Value.ToLocalTime().ToString("g") : "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

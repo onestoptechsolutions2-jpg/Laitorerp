@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Documents;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Documents;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
 using Leitor.Erp.Services.Sales;
@@ -34,6 +36,7 @@ public class DetailModel : AbpPageModel
     private readonly ErpCompanyProfileProvider _companyProfileProvider;
     private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly DocumentShareLinkService _documentShareLinkService;
 
     public DetailModel(
         InvoiceAppService invoiceAppService,
@@ -44,7 +47,8 @@ public class DetailModel : AbpPageModel
         IRepository<Customer, Guid> customerRepository,
         IEmailSender emailSender,
         ErpCompanyProfileProvider companyProfileProvider,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        DocumentShareLinkService documentShareLinkService)
     {
         _invoiceAppService = invoiceAppService;
         _invoiceLineAppService = invoiceLineAppService;
@@ -55,6 +59,7 @@ public class DetailModel : AbpPageModel
         _emailSender = emailSender;
         _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
+        _documentShareLinkService = documentShareLinkService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -127,7 +132,8 @@ public class DetailModel : AbpPageModel
         );
 
         OutstandingBalance = Math.Max(0, Invoice.Total - Invoice.AmountPaid);
-        var message = $"Hello {Customer.Name}, this is a reminder that invoice {Invoice.InvoiceNumber} has an outstanding balance of {Invoice.CurrencyCode} {OutstandingBalance:N2}, due {Invoice.DueDate:d}. Kindly arrange payment at your earliest convenience. Thank you.";
+        var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Invoice, Id);
+        var message = $"Hello {PhoneLinks.FirstName(Customer.Name)}, this is a reminder that invoice {Invoice.InvoiceNumber} has an outstanding balance of {Invoice.CurrencyCode} {OutstandingBalance:N2}, due {Invoice.DueDate:d}. View/download it here: {shareUrl}";
         RequestPaymentWhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber, message);
     }
 
@@ -178,11 +184,12 @@ public class DetailModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(Customer.Email))
         {
+            var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Invoice, Id);
             var pdfBytes = InvoicePdfDocument.Generate(Invoice, Lines, Payments, Customer, _companyOptions);
             await _emailSender.SendAsync(
                 Customer.Email,
                 $"Invoice {Invoice.InvoiceNumber}",
-                $"Dear {Customer.Name},\n\nPlease find attached invoice {Invoice.InvoiceNumber}.\n\nRegards,\n{_companyOptions.Name}",
+                $"Dear {PhoneLinks.FirstName(Customer.Name)},\n\nPlease find attached invoice {Invoice.InvoiceNumber}. You can also view/download it anytime here: {shareUrl}\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {
@@ -206,11 +213,12 @@ public class DetailModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(Customer.Email) && OutstandingBalance > 0)
         {
+            var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Invoice, Id);
             var pdfBytes = InvoicePdfDocument.Generate(Invoice, Lines, Payments, Customer, _companyOptions);
             await _emailSender.SendAsync(
                 Customer.Email,
                 $"Payment Request - Invoice {Invoice.InvoiceNumber}",
-                $"Dear {Customer.Name},\n\nThis is a reminder that invoice {Invoice.InvoiceNumber} has an outstanding balance of {Invoice.CurrencyCode} {OutstandingBalance:N2}, due {Invoice.DueDate:d}. Kindly arrange payment at your earliest convenience.\n\nRegards,\n{_companyOptions.Name}",
+                $"Dear {PhoneLinks.FirstName(Customer.Name)},\n\nThis is a reminder that invoice {Invoice.InvoiceNumber} has an outstanding balance of {Invoice.CurrencyCode} {OutstandingBalance:N2}, due {Invoice.DueDate:d}. You can view/download the invoice here: {shareUrl}\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {

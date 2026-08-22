@@ -4,39 +4,67 @@
 @inject IHtmlLocalizer<ErpResource> L
 @model Leitor.Erp.Pages.Workspace.IndexModel
 
-@if (Model.Workspace.PendingDeletionRequestCount.HasValue)
-{
-    <div class="card mb-3">
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <span>@L["PendingDeletionRequests"]</span>
-            <span class="pill @(Model.Workspace.PendingDeletionRequestCount > 0 ? "pill-warning" : "pill-neutral")">
-                @Model.Workspace.PendingDeletionRequestCount
-            </span>
-        </div>
-    </div>
+@{
+    // erp-review skill backlog item 10: the previous layout stacked every section as a full-width
+    // card regardless of whether it had anything in it, so an ordinary day (nothing overdue, no
+    // approvals pending) still scrolled through several near-empty "None yet" cards before reaching
+    // anything actionable. This groups the permission-gated pending-approval counts into one
+    // compact stat row, keeps the money-relevant Orders Ready to Invoice list full-width and near
+    // the top since it's the one everyone can act on immediately, and only renders the
+    // Reminders/Tickets/Jobs cards when they actually have rows - side by side on wide screens
+    // instead of one under another - falling back to a single reassuring message only when every
+    // section is genuinely empty.
+    var hasPendingStats = Model.Workspace.PendingDeletionRequestCount.HasValue
+        || Model.Workspace.PendingChangeRequestCount.HasValue
+        || Model.Workspace.PendingEscalationCount.HasValue;
+    var hasReminders = Model.Workspace.Reminders.Count > 0;
+    var hasTickets = Model.Workspace.Tickets.Count > 0;
+    var hasJobs = Model.Workspace.Jobs.Count > 0;
+    var hasAnyWork = Model.Workspace.OrdersReadyToInvoice.Count > 0 || hasReminders || hasTickets || hasJobs;
 }
 
-@if (Model.Workspace.PendingChangeRequestCount.HasValue)
+@if (hasPendingStats)
 {
-    <div class="card mb-3">
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <span>@L["PendingChangeRequests"]</span>
-            <span class="pill @(Model.Workspace.PendingChangeRequestCount > 0 ? "pill-warning" : "pill-neutral")">
-                @Model.Workspace.PendingChangeRequestCount
-            </span>
-        </div>
-    </div>
-}
-
-@if (Model.Workspace.PendingEscalationCount.HasValue)
-{
-    <div class="card mb-3">
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <span>@L["PendingEscalations"]</span>
-            <span class="pill @(Model.Workspace.PendingEscalationCount > 0 ? "pill-warning" : "pill-neutral")">
-                @Model.Workspace.PendingEscalationCount
-            </span>
-        </div>
+    <div class="row g-3 mb-3">
+        @if (Model.Workspace.PendingDeletionRequestCount.HasValue)
+        {
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <span>@L["PendingDeletionRequests"]</span>
+                        <span class="pill @(Model.Workspace.PendingDeletionRequestCount > 0 ? "pill-warning" : "pill-neutral")">
+                            @Model.Workspace.PendingDeletionRequestCount
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.Workspace.PendingChangeRequestCount.HasValue)
+        {
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <span>@L["PendingChangeRequests"]</span>
+                        <span class="pill @(Model.Workspace.PendingChangeRequestCount > 0 ? "pill-warning" : "pill-neutral")">
+                            @Model.Workspace.PendingChangeRequestCount
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.Workspace.PendingEscalationCount.HasValue)
+        {
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <span>@L["PendingEscalations"]</span>
+                        <span class="pill @(Model.Workspace.PendingEscalationCount > 0 ? "pill-warning" : "pill-neutral")">
+                            @Model.Workspace.PendingEscalationCount
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
 
@@ -74,138 +102,145 @@
     </div>
 }
 
-<div class="card mb-3">
-    <div class="card-header">
-        <h5 class="card-title mb-0">@L["MyReminders"]</h5>
+@if (!hasAnyWork)
+{
+    <div class="card">
+        <div class="card-body text-center text-muted py-5">
+            <p class="mb-0">@L["WorkspaceAllCaughtUp"]</p>
+        </div>
     </div>
-    <div class="card-body">
-        @if (Model.Workspace.Reminders.Count == 0)
+}
+else if (hasReminders || hasTickets || hasJobs)
+{
+    <div class="row g-3">
+        @if (hasReminders)
         {
-            <p class="text-muted mb-0">@L["NoneYet"]</p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr>
-                            <th>@L["Title"]</th>
-                            <th>@L["Customer"]</th>
-                            <th>@L["DueDate"]</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var reminder in Model.Workspace.Reminders)
-                        {
-                            <tr>
-                                <td>
-                                    @if (reminder.EntityType == "ProjectTask")
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">@L["MyReminders"]</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>@L["Title"]</th>
+                                        <th>@L["Customer"]</th>
+                                        <th>@L["DueDate"]</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var reminder in Model.Workspace.Reminders)
                                     {
-                                        <a asp-page="/Projects/Detail" asp-route-id="@reminder.ParentId">@reminder.Title</a>
+                                        <tr>
+                                            <td>
+                                                @if (reminder.EntityType == "ProjectTask")
+                                                {
+                                                    <a asp-page="/Projects/Detail" asp-route-id="@reminder.ParentId">@reminder.Title</a>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-page="/Customers/Detail" asp-route-id="@reminder.ParentId">@reminder.Title</a>
+                                                }
+                                            </td>
+                                            <td>@reminder.ParentName</td>
+                                            <td>@(reminder.DueDate?.ToShortDateString())</td>
+                                            <td>
+                                                @if (reminder.IsOverdue)
+                                                {
+                                                    <span class="pill pill-danger">@L["Overdue"]</span>
+                                                }
+                                                else if (reminder.IsDueSoon)
+                                                {
+                                                    <span class="pill pill-warning">@L["DueSoon"]</span>
+                                                }
+                                            </td>
+                                        </tr>
                                     }
-                                    else
-                                    {
-                                        <a asp-page="/Customers/Detail" asp-route-id="@reminder.ParentId">@reminder.Title</a>
-                                    }
-                                </td>
-                                <td>@reminder.ParentName</td>
-                                <td>@(reminder.DueDate?.ToShortDateString())</td>
-                                <td>
-                                    @if (reminder.IsOverdue)
-                                    {
-                                        <span class="pill pill-danger">@L["Overdue"]</span>
-                                    }
-                                    else if (reminder.IsDueSoon)
-                                    {
-                                        <span class="pill pill-warning">@L["DueSoon"]</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         }
-    </div>
-</div>
 
-<div class="card mb-3">
-    <div class="card-header">
-        <h5 class="card-title mb-0">@L["MyOpenTickets"]</h5>
-    </div>
-    <div class="card-body">
-        @if (Model.Workspace.Tickets.Count == 0)
+        @if (hasTickets)
         {
-            <p class="text-muted mb-0">@L["NoneYet"]</p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr>
-                            <th>@L["TicketNumber"]</th>
-                            <th>@L["Subject"]</th>
-                            <th>@L["Customer"]</th>
-                            <th>@L["Priority"]</th>
-                            <th>@L["Status"]</th>
-                            <th>@L["SlaDueDate"]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ticket in Model.Workspace.Tickets)
-                        {
-                            <tr>
-                                <td><a asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
-                                <td>@ticket.Subject</td>
-                                <td>@ticket.CustomerName</td>
-                                <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
-                                <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
-                                <td>@(ticket.SlaDueDate?.ToString("g") ?? "-")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">@L["MyOpenTickets"]</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>@L["TicketNumber"]</th>
+                                        <th>@L["Subject"]</th>
+                                        <th>@L["Customer"]</th>
+                                        <th>@L["Priority"]</th>
+                                        <th>@L["Status"]</th>
+                                        <th>@L["SlaDueDate"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ticket in Model.Workspace.Tickets)
+                                    {
+                                        <tr>
+                                            <td><a asp-page="/Support/Tickets/Detail" asp-route-id="@ticket.Id">@ticket.TicketNumber</a></td>
+                                            <td>@ticket.Subject</td>
+                                            <td>@ticket.CustomerName</td>
+                                            <td>@L[$"Enum:TicketPriority:{(int)ticket.Priority}"]</td>
+                                            <td><span class="pill @StatusPill.For(ticket.Status)">@L[$"Enum:TicketStatus:{(int)ticket.Status}"]</span></td>
+                                            <td>@(ticket.SlaDueDate?.ToString("g") ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         }
-    </div>
-</div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">@L["MyUpcomingJobs"]</h5>
-    </div>
-    <div class="card-body">
-        @if (Model.Workspace.Jobs.Count == 0)
+        @if (hasJobs)
         {
-            <p class="text-muted mb-0">@L["NoneYet"]</p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr>
-                            <th>@L["Customer"]</th>
-                            <th>@L["Type"]</th>
-                            <th>@L["Status"]</th>
-                            <th>@L["ScheduledDate"]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var job in Model.Workspace.Jobs)
-                        {
-                            <tr>
-                                <td><a asp-page="/FieldService/Jobs/Detail" asp-route-id="@job.Id">@job.CustomerName</a></td>
-                                <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
-                                <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
-                                <td>@job.ScheduledDate.ToString("g")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">@L["MyUpcomingJobs"]</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>@L["Customer"]</th>
+                                        <th>@L["Type"]</th>
+                                        <th>@L["Status"]</th>
+                                        <th>@L["ScheduledDate"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var job in Model.Workspace.Jobs)
+                                    {
+                                        <tr>
+                                            <td><a asp-page="/FieldService/Jobs/Detail" asp-route-id="@job.Id">@job.CustomerName</a></td>
+                                            <td>@L[$"Enum:FieldServiceJobType:{(int)job.Type}"]</td>
+                                            <td><span class="pill @StatusPill.For(job.Status)">@L[$"Enum:FieldServiceJobStatus:{(int)job.Status}"]</span></td>
+                                            <td>@job.ScheduledDate.ToString("g")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         }
     </div>
-</div>
+}

@@ -18,6 +18,10 @@
         {
             <div class="alert alert-danger">@Model.ErrorMessage</div>
         }
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success">@Model.SuccessMessage</div>
+        }
 
         <ul class="nav nav-tabs mb-3" role="tablist">
             @if (Model.CanManageAppSettings)
@@ -30,6 +34,9 @@
                 </li>
                 <li class="nav-item">
                     <button class="nav-link @(activeTab == "email" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-email" type="button">@L["Email"]</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "bulksms" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-bulksms" type="button">@L["BulkSms"]</button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link @(activeTab == "business" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-business" type="button">@L["BusinessSettings"]</button>
@@ -95,6 +102,26 @@
                             <div class="col-md-6"><abp-input asp-for="Email.DefaultFromDisplayName" /></div>
                         </div>
                         <button type="submit" class="btn btn-primary mt-2">@L["Save"]</button>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade @(activeTab == "bulksms" ? "show active" : "")" id="tab-bulksms">
+                    <p class="text-muted small">@L["BulkSmsHint"]</p>
+                    <form method="post" asp-page-handler="SaveBulkSms">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <abp-input asp-for="BulkSms.ApiKey" autocomplete="new-password" label="@L["Setting:BulkSmsApiKey"].Value" placeholder="@(Model.BulkSms.HasStoredApiKey ? L["PasswordUnchangedPlaceholder"].Value : "")" />
+                        <abp-input asp-for="BulkSms.FromNumber" label="@L["Setting:BulkSmsFromNumber"].Value" placeholder="+2547XXXXXXXX" />
+                        <button type="submit" class="btn btn-primary mt-2">@L["Save"]</button>
+                    </form>
+                    <hr />
+                    <form method="post" asp-page-handler="SendTestSms" class="row g-2 align-items-end">
+                        <div class="col-auto">
+                            <label class="form-label mb-0">@L["BulkSmsTestPhoneNumber"]</label>
+                            <input type="text" name="testPhoneNumber" class="form-control" placeholder="+2547XXXXXXXX" required />
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-outline-primary">@L["BulkSmsSendTest"]</button>
+                        </div>
                     </form>
                 </div>
 

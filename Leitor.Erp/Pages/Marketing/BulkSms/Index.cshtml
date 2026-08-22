@@ -1,0 +1,145 @@
+@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Leitor.Erp.Entities.Customers
+@using Leitor.Erp.Entities.Sms
+@using Leitor.Erp.Localization
+@inject IHtmlLocalizer<ErpResource> L
+@model Leitor.Erp.Pages.Marketing.BulkSms.IndexModel
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["BulkSms"]</h5>
+        <p class="text-muted small mb-0">@L["BulkSmsPageHint"]</p>
+    </div>
+    <div class="card-body">
+        @if (!Model.IsConfigured)
+        {
+            <div class="alert alert-warning">
+                @L["BulkSmsNotConfigured"]
+                <a asp-page="/Administration/Operations/Index" asp-route-tab="bulksms">@L["Setting:BulkSmsApiKey"]</a>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.QueueResultMessage))
+        {
+            <div class="alert alert-success">@Model.QueueResultMessage</div>
+        }
+
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label class="form-label">@L["BulkSmsRecipientSource"]</label>
+                <select asp-for="Compose.Source" class="form-select" id="bulk-sms-source" style="max-width: 20rem;">
+                    <option value="@((int)BulkSmsRecipientType.Lead)">@L["Enum:BulkSmsRecipientType:1"]</option>
+                    <option value="@((int)BulkSmsRecipientType.Customer)">@L["Enum:BulkSmsRecipientType:0"]</option>
+                    <option value="@((int)BulkSmsRecipientType.Manual)">@L["Enum:BulkSmsRecipientType:2"]</option>
+                </select>
+            </div>
+
+            <div class="row g-2 mb-3" data-bulk-sms-section="@((int)BulkSmsRecipientType.Lead)">
+                <div class="col-md-4">
+                    <label class="form-label">@L["Status"]</label>
+                    <select asp-for="Compose.LeadStatus" class="form-select">
+                        <option value="">@L["None"]</option>
+                        <option value="0">@L["Enum:LeadStatus:0"]</option>
+                        <option value="1">@L["Enum:LeadStatus:1"]</option>
+                        <option value="2">@L["Enum:LeadStatus:2"]</option>
+                        <option value="3">@L["Enum:LeadStatus:3"]</option>
+                        <option value="4">@L["Enum:LeadStatus:4"]</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">@L["AssignedTo"]</label>
+                    <select asp-for="Compose.AssignedToUserId" class="form-select" asp-items="Model.UserOptions"></select>
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3" data-bulk-sms-section="@((int)BulkSmsRecipientType.Customer)" style="display:none;">
+                <div class="col-md-4">
+                    <label class="form-label">@L["Status"]</label>
+                    <select asp-for="Compose.CustomerStatus" class="form-select">
+                        <option value="">@L["None"]</option>
+                        <option value="0">@L["Enum:CustomerStatus:0"]</option>
+                        <option value="1">@L["Enum:CustomerStatus:1"]</option>
+                        <option value="2">@L["Enum:CustomerStatus:2"]</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3" data-bulk-sms-section="@((int)BulkSmsRecipientType.Manual)" style="display:none;">
+                <label class="form-label">@L["BulkSmsManualPhoneNumbers"]</label>
+                <textarea asp-for="Compose.ManualPhoneNumbers" class="form-control" rows="4" placeholder="+2547XXXXXXXX"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">@L["BulkSmsMessageContent"]</label>
+                <textarea asp-for="Compose.Content" class="form-control" rows="4" maxlength="1600" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" @(Model.IsConfigured ? "" : "disabled")>@L["Send"]</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">@L["BulkSmsBatchHistory"]</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Batches.Count == 0)
+        {
+            <p class="text-muted">@L["NoResultsFound"]</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>@L["BulkSmsMessageContent"]</th>
+                            <th>@L["CreationTime"]</th>
+                            <th>@L["BulkSmsQueued"]</th>
+                            <th>@L["BulkSmsSending"]</th>
+                            <th>@L["BulkSmsSent"]</th>
+                            <th>@L["BulkSmsFailed"]</th>
+                            <th>@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var batch in Model.Batches)
+                        {
+                            <tr>
+                                <td>@batch.ContentPreview</td>
+                                <td>@batch.CreationTime.ToLocalTime().ToString("g")</td>
+                                <td>@batch.QueuedCount</td>
+                                <td>@batch.SendingCount</td>
+                                <td>@batch.SentCount</td>
+                                <td>@batch.FailedCount</td>
+                                <td><a asp-page="./Detail" asp-route-batchId="@batch.BatchId">@L["BulkSmsViewBatch"]</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts
+{
+    <script>
+        (function () {
+            var select = document.getElementById('bulk-sms-source');
+            if (!select) { return; }
+            var sections = document.querySelectorAll('[data-bulk-sms-section]');
+            function apply() {
+                sections.forEach(function (section) {
+                    section.style.display = section.getAttribute('data-bulk-sms-section') === select.value ? '' : 'none';
+                });
+            }
+            select.addEventListener('change', apply);
+            apply();
+        })();
+    </script>
+}

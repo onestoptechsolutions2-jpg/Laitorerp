@@ -153,8 +153,26 @@
                                 }
                             });
                         }
-                        if (!response.ok && submitButton) {
-                            submitButton.disabled = false;
+                        // A non-JSON, non-OK response (an antiforgery-validation 400, an
+                        // unhandled 500, etc.) is a full HTML error page, not this form's own
+                        // markup. Piping it into renderFragment used to silently replace the
+                        // user's in-progress form with that error page's raw HTML; bindFormSubmit
+                        // then finds no <form> inside it and gives up quietly, leaving no visible
+                        // error and no way to retry - indistinguishable from "clicking Save does
+                        // nothing". A 200 OK page redisplay (e.g. a [Required]-field validation
+                        // failure, which Razor Pages returns as 200 with the form re-rendered) is
+                        // unaffected by this check and still goes through renderFragment as before.
+                        if (!response.ok) {
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                            }
+                            var errorText = modalEl.getAttribute("data-error-text") || "Something went wrong. Please try again.";
+                            if (window.abp && abp.message && abp.message.error) {
+                                abp.message.error(errorText);
+                            } else {
+                                window.alert(errorText);
+                            }
+                            return;
                         }
                         return response.text().then(function (html) {
                             renderFragment(html, sourceUrl || targetUrl);

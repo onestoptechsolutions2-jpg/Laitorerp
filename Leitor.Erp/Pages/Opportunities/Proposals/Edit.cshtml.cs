@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Documents;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Opportunities;
 using Leitor.Erp.Entities.Sales;
+using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Documents;
 using Leitor.Erp.Services.Dtos.Opportunities;
 using Leitor.Erp.Services.Opportunities;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +31,7 @@ public class EditModel : AbpPageModel
     private readonly IRepository<Quote, Guid> _quoteRepository;
     private readonly IEmailSender _emailSender;
     private readonly ErpCompanyProfileProvider _companyProfileProvider;
+    private readonly DocumentShareLinkService _documentShareLinkService;
     private ErpCompanyOptions _companyOptions = null!;
 
     public EditModel(
@@ -36,7 +40,8 @@ public class EditModel : AbpPageModel
         IRepository<Customer, Guid> customerRepository,
         IRepository<Quote, Guid> quoteRepository,
         IEmailSender emailSender,
-        ErpCompanyProfileProvider companyProfileProvider)
+        ErpCompanyProfileProvider companyProfileProvider,
+        DocumentShareLinkService documentShareLinkService)
     {
         _proposalAppService = proposalAppService;
         _opportunityRepository = opportunityRepository;
@@ -44,6 +49,7 @@ public class EditModel : AbpPageModel
         _quoteRepository = quoteRepository;
         _emailSender = emailSender;
         _companyProfileProvider = companyProfileProvider;
+        _documentShareLinkService = documentShareLinkService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -67,6 +73,7 @@ public class EditModel : AbpPageModel
     // would just throw - hide the button and link to the existing Quote instead.
     public Guid? ExistingQuoteId { get; set; }
     public bool CanConvertToQuote => !ExistingQuoteId.HasValue && ProposalDetails.Status != ProposalStatus.Rejected;
+    public string? WhatsAppUrl { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -74,6 +81,11 @@ public class EditModel : AbpPageModel
         ProposalDetails = await _proposalAppService.GetAsync(Id);
         var opportunity = await _opportunityRepository.GetAsync(ProposalDetails.OpportunityId);
         Customer = await _customerRepository.GetAsync(opportunity.CustomerId);
+
+        var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Proposal, Id);
+        WhatsAppUrl = PhoneLinks.WhatsApp(Customer.PhoneNumber,
+            $"Hello {PhoneLinks.FirstName(Customer.Name)}, please find our proposal {ProposalDetails.ProposalNumber} here: {shareUrl}");
+
         var history = await _proposalAppService.GetDeliveryHistoryAsync(Id);
         DeliveryHistory = history.Where(x => x.Stage == WorkflowStage.ProposalSent).ToList();
 
@@ -149,11 +161,12 @@ public class EditModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(customer.Email))
         {
+            var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.Proposal, Id);
             var pdfBytes = ProposalPdfDocument.Generate(proposal, customer, _companyOptions);
             await _emailSender.SendAsync(
                 customer.Email,
                 $"Proposal {proposal.ProposalNumber}",
-                $"Dear {customer.Name},\n\nPlease find attached proposal {proposal.ProposalNumber}.\n\nRegards,\n{_companyOptions.Name}",
+                $"Dear {PhoneLinks.FirstName(customer.Name)},\n\nPlease find attached proposal {proposal.ProposalNumber}. You can also view/download it anytime here: {shareUrl}\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {

@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Leitor.Erp.Documents;
 using Leitor.Erp.Entities.Customers;
+using Leitor.Erp.Entities.Documents;
 using Leitor.Erp.Entities.Governance;
 using Leitor.Erp.Entities.Inventory;
 using Leitor.Erp.Entities.Procurement;
 using Leitor.Erp.Entities.Sales;
 using Leitor.Erp.Pages.Shared;
 using Leitor.Erp.Permissions;
+using Leitor.Erp.Services.Documents;
 using Leitor.Erp.Services.Dtos.Procurement;
 using Leitor.Erp.Services.Dtos.Sales;
 using Leitor.Erp.Services.Governance;
@@ -44,6 +46,7 @@ public class DetailModel : AbpPageModel
     private readonly ErpCompanyProfileProvider _companyProfileProvider;
     private ErpCompanyOptions _companyOptions = null!;
     private readonly IRepository<DeletionRequest, Guid> _deletionRequestRepository;
+    private readonly DocumentShareLinkService _documentShareLinkService;
 
     public DetailModel(
         PurchaseOrderAppService purchaseOrderAppService,
@@ -59,7 +62,8 @@ public class DetailModel : AbpPageModel
         IRepository<Warehouse, Guid> warehouseRepository,
         IEmailSender emailSender,
         ErpCompanyProfileProvider companyProfileProvider,
-        IRepository<DeletionRequest, Guid> deletionRequestRepository)
+        IRepository<DeletionRequest, Guid> deletionRequestRepository,
+        DocumentShareLinkService documentShareLinkService)
     {
         _purchaseOrderAppService = purchaseOrderAppService;
         _purchaseOrderLineAppService = purchaseOrderLineAppService;
@@ -75,6 +79,7 @@ public class DetailModel : AbpPageModel
         _emailSender = emailSender;
         _companyProfileProvider = companyProfileProvider;
         _deletionRequestRepository = deletionRequestRepository;
+        _documentShareLinkService = documentShareLinkService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -118,8 +123,10 @@ public class DetailModel : AbpPageModel
     {
         PurchaseOrder = await _purchaseOrderAppService.GetAsync(Id);
         Vendor = await _vendorRepository.GetAsync(PurchaseOrder.VendorId);
+
+        var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.PurchaseOrder, Id);
         WhatsAppUrl = PhoneLinks.WhatsApp(Vendor.Phone,
-            $"Hello {Vendor.Name}, please find attached purchase order {PurchaseOrder.PONumber}. Kindly confirm receipt and expected delivery date.");
+            $"Hello {PhoneLinks.FirstName(Vendor.Name)}, please find purchase order {PurchaseOrder.PONumber} here: {shareUrl}. Kindly confirm receipt and expected delivery date.");
 
         ShipToCustomer = null;
         if (PurchaseOrder.ShipToCustomer && PurchaseOrder.SourceOrderId.HasValue)
@@ -219,11 +226,12 @@ public class DetailModel : AbpPageModel
 
         if (!string.IsNullOrWhiteSpace(Vendor.Email))
         {
+            var shareUrl = await _documentShareLinkService.GetOrCreateUrlAsync(DocumentShareType.PurchaseOrder, Id);
             var pdfBytes = PurchaseOrderPdfDocument.Generate(PurchaseOrder, Lines, Vendor, _companyOptions, ShipToCustomer);
             await _emailSender.SendAsync(
                 Vendor.Email,
                 $"Purchase Order {PurchaseOrder.PONumber}",
-                $"Dear {Vendor.Name},\n\nPlease find attached purchase order {PurchaseOrder.PONumber}.\n\nRegards,\n{_companyOptions.Name}",
+                $"Dear {PhoneLinks.FirstName(Vendor.Name)},\n\nPlease find attached purchase order {PurchaseOrder.PONumber}. You can also view/download it anytime here: {shareUrl}\n\nRegards,\n{_companyOptions.Name}",
                 isBodyHtml: false,
                 new AdditionalEmailSendingArgs
                 {

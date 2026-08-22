@@ -11,7 +11,11 @@ using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Authorization;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
+using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.Uow;
 
 namespace Leitor.Erp.Tests;
@@ -99,6 +103,10 @@ public abstract class ErpTestBase : AbpWebApplicationFactoryIntegratedTest<Progr
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ErpDbContext>();
         await dbContext.Database.EnsureCreatedAsync();
+        await scope.ServiceProvider.GetRequiredService<PermissionManagementDbContext>().Database.EnsureCreatedAsync();
+        await scope.ServiceProvider.GetRequiredService<FeatureManagementDbContext>().Database.EnsureCreatedAsync();
+        await scope.ServiceProvider.GetRequiredService<SettingManagementDbContext>().Database.EnsureCreatedAsync();
+        await scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.EnsureCreatedAsync();
 
         var dataSeeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
         await dataSeeder.SeedAsync(new DataSeedContext(null)

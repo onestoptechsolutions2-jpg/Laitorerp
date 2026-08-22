@@ -383,4 +383,14 @@ public static class ErpPermissions
         public const string Approve = Default + ".Approve";
         public const string Delete = Default + ".Delete";
     }
+
+    // Sending is a separate act from configuring the API key/sender number, which stays gated by
+    // AppSettings.Manage (same tab family as Email/Company) - see Operations/Index.cshtml.cs's
+    // Bulk SMS tab.
+    public static class BulkSms
+    {
+        public const string GroupName = "Erp.BulkSms";
+        public const string Default = GroupName;
+        public const string Send = Default + ".Send";
+    }
 }

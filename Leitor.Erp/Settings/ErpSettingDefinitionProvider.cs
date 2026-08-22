@@ -58,7 +58,13 @@ public class ErpSettingDefinitionProvider : SettingDefinitionProvider
             // existing deployment until an admin actually edits these.
             new SettingDefinition(ErpSettings.BrandingAppName, "Leitor ERP", L("Setting:BrandingAppName")),
             new SettingDefinition(ErpSettings.BrandingLogoUrl, "", L("Setting:BrandingLogoUrl")),
-            new SettingDefinition(ErpSettings.BrandingFaviconUrl, "", L("Setting:BrandingFaviconUrl"))
+            new SettingDefinition(ErpSettings.BrandingFaviconUrl, "", L("Setting:BrandingFaviconUrl")),
+
+            // Bulk SMS (httpSMS hosted API) - both empty until an admin configures them under
+            // Administration > Operations > Bulk SMS. See ErpSettings.cs for why these are
+            // settings, not appsettings.json.
+            new SettingDefinition(ErpSettings.BulkSmsApiKey, "", L("Setting:BulkSmsApiKey"), isEncrypted: true),
+            new SettingDefinition(ErpSettings.BulkSmsFromNumber, "", L("Setting:BulkSmsFromNumber"))
         );
     }
 

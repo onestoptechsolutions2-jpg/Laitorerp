@@ -66,4 +66,13 @@ public static class ErpSettings
     public const string BrandingAppName = GroupName + ".Branding.AppName";
     public const string BrandingLogoUrl = GroupName + ".Branding.LogoUrl";
     public const string BrandingFaviconUrl = GroupName + ".Branding.FaviconUrl";
+
+    // Bulk SMS via the hosted httpSMS API (https://api.httpsms.com) - see Services/Sms/HttpSmsClient.cs.
+    // Deliberately settings-backed rather than appsettings.json: the whole point is an admin can
+    // configure this from Administration > Operations without a code deploy or a second server to
+    // stand up (no self-hosted httpSMS Postgres/Redis/API/Web stack). FromNumber is the phone
+    // number of the single Android handset running the httpSMS app - that physical gateway phone
+    // is unavoidable, it's what actually sends the SMS.
+    public const string BulkSmsApiKey = GroupName + ".BulkSms.ApiKey";
+    public const string BulkSmsFromNumber = GroupName + ".BulkSms.FromNumber";
 }

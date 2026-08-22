@@ -123,8 +123,10 @@ public class ErpMenuContributor : IMenuContributor
         var canViewLeads = await context.IsGrantedAsync(ErpPermissions.Leads.Default);
         var canViewOpportunities = await context.IsGrantedAsync(ErpPermissions.Opportunities.Default);
         var canViewCustomers = await context.IsGrantedAsync(ErpPermissions.Customers.Default);
+        var canSendBulkSms = await context.IsGrantedAsync(ErpPermissions.BulkSms.Default) &&
+            await featureChecker.IsEnabledAsync(ErpFeatures.BulkSms);
 
-        if (canViewLeads || canViewOpportunities || canViewCustomers)
+        if (canViewLeads || canViewOpportunities || canViewCustomers || canSendBulkSms)
         {
             var crmMenu = new ApplicationMenuItem(
                 ErpMenus.Crm,
@@ -154,6 +156,13 @@ public class ErpMenuContributor : IMenuContributor
                 );
                 crmMenu.AddItem(
                     new ApplicationMenuItem(ErpMenus.ContractTemplates, l["Menu:ContractTemplates"], "~/Contracts/Templates", order: 4)
+                );
+            }
+
+            if (canSendBulkSms)
+            {
+                crmMenu.AddItem(
+                    new ApplicationMenuItem(ErpMenus.BulkSms, l["Menu:BulkSms"], "~/Marketing/BulkSms", order: 5)
                 );
             }
 
